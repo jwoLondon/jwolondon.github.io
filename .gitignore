@@ -1,2 +1,5 @@
 # macOS Finder metadata
 .DS_Store
+
+# Don't share locally installed node modules
+node_modules/
