@@ -1,0 +1,31 @@
+{
+  "name": "refs-module",
+  "version": "1.0.0",
+  "description": "Citation helper bundle",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwoLondon/jwolondon.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "homepage": "https://github.com/jwoLondon/jwolondon.github.io#readme",
+  "bugs": {
+    "url": "https://github.com/jwoLondon/jwolondon.github.io/issues"
+  },
+  "dependencies": {
+    "@citation-js/core": "^0.7.18",
+    "@citation-js/plugin-bibtex": "^0.7.18",
+    "@citation-js/plugin-csl": "^0.7.18",
+    "@observablehq/inputs": "^0.12.0",
+    "citeproc": "^2.4.63"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.8"
+  }
+}
