@@ -2,7 +2,7 @@ import { Cite } from '@citation-js/core';
 import '@citation-js/plugin-bibtex';
 import '@citation-js/plugin-csl';
 import * as citeproc from 'citeproc';
-import * as Inputs from '@observablehq/inputs';
+import * as Inputs from 'npm:@observablehq/inputs';
 
 // ------------------------------------------------------------------------------------------------------------
 // Refs is the top level class with bibtex input and ASA style bibliographic output formats.
@@ -14,19 +14,39 @@ import * as Inputs from '@observablehq/inputs';
 // See Willighagen, L. G. (2019). Citation.js: a format-independent, modular bibliography tool
 // for the browser and command line. PeerJ Computer Science, 5, e214. https://doi.org/10.7717/peerj-cs.214
 // ------------------------------------------------------------------------------------------------------------
+
 export class Refs {
     constructor(refList, citeFac) {
-        this.refObject = this.#parseBibtex(refList);
         this.citeFac = citeFac;
+        this._bibliographyContainers = new Set();
+
+        // Build refObject from the parsed CSL-JSON if available; fallback to naive parsing
+        if (citeFac?.referenceMap instanceof Map) {
+            this.refObject = Array.from(citeFac.referenceMap.values()).map((r) => {
+                let title = '';
+                if (typeof r.title === 'string') {
+                    title = r.title;
+                } else if (Array.isArray(r.title)) {
+                    title = r.title.map((t) => (typeof t === 'string' ? t : t['title'] || '')).join('; ');
+                } else if (r.title && typeof r.title === 'object') {
+                    title = r.title['title'] || '';
+                }
+                return {
+                    name: r.id,
+                    title: title.replace(/[{}]/g, ''),
+                    type: r.type,
+                };
+            });
+        } else {
+            this.refObject = this.#parseBibtex(refList);
+        }
     }
 
-    // This is the entry point (e.g. const bib = Refs.create(myRefDatabase);)
-    static async create(refList, {
-        cslLocale = 'en-GB',
-        cslStyle = 'apa',
-        linkCitations = true,
-        linkBibliography = true
-    } = {}) {
+    // This is the main entry point.
+    static async create(
+        refList,
+        { cslLocale = 'en-GB', cslStyle = 'apa', linkCitations = true, linkBibliography = true } = {}
+    ) {
         const styleText = await fetchCslStyle(cslStyle);
         const localeText = await fetchCslLocale(cslLocale);
         const citeFac = await citationFactory(refList, {
@@ -38,42 +58,39 @@ export class Refs {
         return new Refs(refList, citeFac);
     }
 
-    // For external display raw reference list
     refTableRaw() {
         return this.refObject;
     }
 
-    // For Observable formatted tabular output
     refTable() {
-        return Inputs.table(this.refTableRaw(), { layout: "auto" })
+        return Inputs.table(this.refTableRaw(), { layout: 'auto' });
     }
 
-    // Cite a reference in the form Wood (2024)
     cite(...params) {
         return this.#citeProp('mode', 'composite', ...params);
     }
 
-    // Cite a reference in the form (Wood, 2024)
     citep(...params) {
         return this.citeFac(...params);
     }
 
-    // Cite a reference in the form (e.g. Wood, 2024)
     citeeg(...params) {
         return this.#citeProp('prefix', 'e.g. ', ...params);
     }
 
-    // Generates a reactive bibliography based on what is cited in document.
-    // Listens out for custom cite events to reactively update the bibliography.
-    bibliography(options = {}) {
-        const { showAll = false, showNone = false } = options;
-
+    bibliography({ showAll = false, showNone = false } = {}) {
         const container = document.createElement('div');
-        let [last, raf] = ['', null];
+        let last = '';
+        let raf = null;
 
         const update = () => {
             raf = null;
-            const htmlString = this.citeFac.bibliographyRaw({ showAll, showNone });
+            let htmlString;
+            try {
+                htmlString = this.citeFac.bibliographyRaw({ showAll, showNone });
+            } catch (e) {
+                htmlString = `<div style="color:red;"><strong>Bibliography error:</strong> ${String(e)}</div>`;
+            }
             if (htmlString === last) {
                 return;
             }
@@ -88,13 +105,14 @@ export class Refs {
             raf = requestAnimationFrame(update);
         };
 
-        // Listen for explicit citation additions/changes
         const onCitationUpdated = (e) => {
+            if (e?.detail?.engine !== this.citeFac?.citationEngineId) {
+                return;
+            }
             schedule();
         };
-        document.addEventListener('citation-updated', onCitationUpdated);
+        document.addEventListener(CITATION_UPDATED, onCitationUpdated);
 
-        // Watch existing and future clusters for internal mutation (e.g., reprocessing)
         const clusterObservers = new WeakMap();
         const observeCluster = (clusterEl) => {
             if (clusterObservers.has(clusterEl)) {
@@ -106,14 +124,18 @@ export class Refs {
             o.observe(clusterEl, { childList: true, subtree: true, characterData: true });
             clusterObservers.set(clusterEl, o);
         };
-        // Seed existing clusters
-        document.querySelectorAll('span.csl-citation-cluster').forEach(observeCluster);
 
-        // If new clusters get inserted (e.g., via cite), hook them too
+        for (const el of document.querySelectorAll(clusterSelector(this.citeFac.citationEngineId))) {
+            observeCluster(el);
+        }
+
         const clusterInsertionObserver = new MutationObserver((mutations) => {
             for (const m of mutations) {
                 for (const node of m.addedNodes) {
-                    if (node instanceof Element && node.matches('span.csl-citation-cluster')) {
+                    if (
+                        node instanceof Element &&
+                        node.matches('span.csl-citation-cluster')
+                    ) {
                         observeCluster(node);
                     }
                 }
@@ -121,28 +143,43 @@ export class Refs {
         });
         clusterInsertionObserver.observe(document.body, { childList: true, subtree: true });
 
-        // Initial render
         update();
 
         container.dispose = () => {
-            document.removeEventListener('citation-updated', onCitationUpdated);
+            document.removeEventListener(CITATION_UPDATED, onCitationUpdated);
             clusterInsertionObserver.disconnect();
             for (const o of clusterObservers.values()) {
                 o.disconnect();
             }
         };
 
+        const originalDispose = container.dispose;
+        container.dispose = () => {
+            if (typeof originalDispose === 'function') {
+                originalDispose();
+            }
+            this._bibliographyContainers.delete(container);
+        };
+        this._bibliographyContainers.add(container);
+
         return container;
     }
 
-    // Cleanup (removes internal listener)
     dispose() {
-        if (typeof this.citeFac.dispose === 'function') {
+        if (typeof this.citeFac?.dispose === 'function') {
             this.citeFac.dispose();
         }
+        for (const c of this._bibliographyContainers) {
+            if (typeof c.dispose === 'function') {
+                c.dispose();
+            }
+        }
+        this._bibliographyContainers.clear();
     }
 
     // ------------ Private methods
+
+    // Fallback, rarely used if citationFactory provides referenceMap
     #parseBibtex(bibtexString) {
         const entries = [];
         const regex = /@(\w+)\s*{\s*([^,]+),[^@]*?title\s*=\s*[{"]([^"}]+)[}"]/g;
@@ -169,33 +206,58 @@ export class Refs {
     }
 }
 
-// -----------------------------------------------------------------------------------------
-// Lower level functions (not exposed in this module as the public API is entirely through the Refs class)
-//
-const fetchCslStyle = async function (cslStyle) {
-    const response = await fetch(`https://raw.githubusercontent.com/citation-style-language/styles/master/${cslStyle}.csl`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch CSL style ${cslStyle}: ${response.statusText}`);
-    }
-    return await response.text();
-};
+// --------------------------------------------------------------------------
+//  A refactored version of CitationFactory with explicit tracking of citations
 
-const fetchCslLocale = async function (cslLocale) {
-    const response = await fetch(`https://raw.githubusercontent.com/citation-style-language/locales/master/locales-${cslLocale}.xml`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch CSL locale ${cslLocale}: ${response.statusText}`);
+const STYLE_CACHE = new Map();
+const LOCALE_CACHE = new Map();
+const CITATION_UPDATED = 'refs:citation-updated';
+
+async function fetchCslStyle(name) {
+    if (STYLE_CACHE.has(name)) {
+        return STYLE_CACHE.get(name);
     }
-    return await response.text();
-};
+    const response = await fetch(
+        `https://raw.githubusercontent.com/citation-style-language/styles/master/${name}.csl`
+    );
+    if (!response.ok) {
+        throw new Error(`Failed to fetch CSL style ${name}: ${response.statusText}`);
+    }
+    const text = await response.text();
+    STYLE_CACHE.set(name, text);
+    return text;
+}
+
+async function fetchCslLocale(name) {
+    if (LOCALE_CACHE.has(name)) {
+        return LOCALE_CACHE.get(name);
+    }
+    const response = await fetch(
+        `https://raw.githubusercontent.com/citation-style-language/locales/master/locales-${name}.xml`
+    );
+    if (!response.ok) {
+        throw new Error(`Failed to fetch CSL locale ${name}: ${response.statusText}`);
+    }
+    const text = await response.text();
+    LOCALE_CACHE.set(name, text);
+    return text;
+}
+
+const clusterSelector = (engineId) =>
+    `span.csl-citation-cluster[data-citation-engine-id="${engineId}"]`;
 
 const citationFactory = async function (
     referenceData = ``,
     { cslStyle, cslLocale, linkCitations = true, linkBibliography = true } = {}
 ) {
-    const citationEngineId = Math.random().toString(36).substr(2, 5);
+    const citationEngineId = Math.random().toString(36).slice(2, 7);
     let removeClickListener = null;
+    const citedIds = new Set();
+    let lastCitedKey = '';
+    let cachedOfflineEngine = null;
+    let cachedShowAllEngine = null;
 
-    // scrolling/linking logic
+    // Scrolling/linking logic
     const scrollToBibliographyEntry = (event) => {
         const sourceLink = event.target;
         if (
@@ -222,23 +284,45 @@ const citationFactory = async function (
     // Parse reference data into CSL-JSON map
     const referenceMap = (await Cite.async(referenceData, { generateGraph: false }))
         .format('data', { format: 'object' })
-        .reduce((map, reference) => {
-            return map.set(reference.id, reference);
-        }, new Map());
+        .reduce((map, reference) => map.set(reference.id, reference), new Map());
     const referenceIds = Array.from(referenceMap.keys());
 
     const sys = {
-        retrieveLocale: () => {
-            return cslLocale;
-        },
-        retrieveItem: (id) => {
-            return referenceMap.get(id);
-        },
+        retrieveLocale: () => cslLocale,
+        retrieveItem: (id) => referenceMap.get(id),
     };
 
     // Inline engine for citation previews
     const inlineEngine = new citeproc.Engine(sys, cslStyle);
     inlineEngine.updateItems(referenceIds);
+
+    // Helpers
+    const wrapCitationItem = (raw, engineId, linkCitationsFlag) => {
+        const item = typeof raw === 'string' ? { id: raw } : { ...raw };
+        const prefixInner = item.prefix || '';
+        const suffixInner = item.suffix || '';
+        const linkStart = linkCitationsFlag
+            ? `<a class="csl-link" href="#${item.id}" data-citation-engine-id="${engineId}">`
+            : '';
+        const linkEnd = linkCitationsFlag ? `</a>` : '';
+        item.prefix = `<span class="csl-citation-item" data-citation-engine-id="${engineId}" data-citation-item-id="${item.id}">${prefixInner}${linkStart}`;
+        item.suffix = `${linkEnd}${suffixInner}</span>`;
+        return item;
+    };
+
+    const makeOfflineEngine = (ids) => {
+        const engine = new citeproc.Engine(sys, cslStyle);
+        engine.opt.development_extensions.wrap_url_and_doi = linkBibliography;
+        engine.updateItems(ids);
+        return engine;
+    };
+
+    const makeShowAllEngine = () => {
+        const engine = new citeproc.Engine(sys, cslStyle);
+        engine.opt.development_extensions.wrap_url_and_doi = linkBibliography;
+        engine.updateUncitedItems(referenceIds);
+        return engine;
+    };
 
     // Main cite function
     function cite(...citationItems) {
@@ -251,14 +335,15 @@ const citationFactory = async function (
                     : {};
             citationProperties.noteIndex = 0;
 
-            citationItems = citationItems.map((citationItem) => {
-                citationItem = typeof citationItem === 'string' ? { id: citationItem } : citationItem;
-                citationItem.prefix = `<span class="csl-citation-item" data-citation-engine-id="${citationEngineId}" data-citation-item-id="${citationItem.id}">${citationItem.prefix ? citationItem.prefix : ''
-                    }${linkCitations ? `<a class="csl-link" href="#${citationItem.id}" data-citation-engine-id="${citationEngineId}">` : ''}`;
-                citationItem.suffix = `${linkCitations ? `</a>` : ''}${citationItem.suffix ? citationItem.suffix : ''
-                    }</span>`;
-                return citationItem;
-            });
+            citationItems = citationItems.map((ci) =>
+                wrapCitationItem(ci, citationEngineId, linkCitations)
+            );
+
+            for (const ci of citationItems) {
+                if (ci && ci.id) {
+                    citedIds.add(ci.id);
+                }
+            }
 
             const citationCluster = {
                 citationItems: citationItems,
@@ -276,108 +361,113 @@ const citationFactory = async function (
             citationTag.innerHTML = citationPreview;
             citationTag.citationCluster = citationCluster;
 
-            // Fire a citation event so bibliograph will update 
             if (typeof window !== 'undefined') {
-                document.dispatchEvent(new CustomEvent('citation-updated', { detail: { engine: citationEngineId } }));
+                document.dispatchEvent(
+                    new CustomEvent(CITATION_UPDATED, { detail: { engine: citationEngineId } })
+                );
             }
+
             return citationTag;
         } catch (e) {
             const err = document.createElement('span');
             err.style.padding = '0 5px';
             err.style.backgroundColor = 'red';
             err.style.color = 'white';
-            err.innerHTML = `<span style="font-weight:bold;">Citation error:</span> ${e}`;
+
+            const bold = document.createElement('span');
+            bold.style.fontWeight = 'bold';
+            bold.textContent = 'Citation error: ';
+
+            const msg = document.createTextNode(String(e));
+            err.append(bold, msg);
             return err;
         }
     }
 
-    // Bibliography builder (raw HTML string)
+    // Attach internal metadata for consumers
+    cite.referenceMap = referenceMap;
+    cite.citationEngineId = citationEngineId;
+
+    // Bibliography builder
     cite.bibliographyRaw = function ({ showAll = false, showNone = false } = {}) {
-        // Find current citation item and cluster tags scoped to this engine
-        const citationItemTags = Array.from(
-            document.querySelectorAll(
-                `span.csl-citation-item[data-citation-engine-id="${citationEngineId}"]`
-            )
-        );
-
-        const citationClusterTags = Array.from(
-            document.querySelectorAll(
-                `span.csl-citation-cluster[data-citation-engine-id="${citationEngineId}"]`
-            )
-        );
-
-        const haveCitationItems = citationItemTags.length > 0;
-
-        if (!referenceIds.length) {
-            return `<b>No references?</b>`;
-        }
-
-        if (showNone) {
-            return ``;
-        }
-
-        let bibliographyEngine;
-        let offlineEngine;
-
-        if (showAll) {
-            bibliographyEngine = new citeproc.Engine(sys, cslStyle);
-            bibliographyEngine.opt.development_extensions.wrap_url_and_doi = linkBibliography;
-            bibliographyEngine.updateUncitedItems(referenceIds);
-        } else {
-            if (!haveCitationItems) {
-                return `<b>No citations!</b>`;
+        try {
+            if (!referenceIds.length) {
+                return `<b>No references?</b>`;
+            }
+            if (showNone) {
+                return ``;
             }
 
-            offlineEngine = new citeproc.Engine(sys, cslStyle);
-            offlineEngine.opt.development_extensions.wrap_url_and_doi = linkBibliography;
-            offlineEngine.updateItems(referenceIds);
+            let bibliographyEngine;
 
-            // Process all clusters to update their displayed text (mutates DOM like previous)
-            const processedClusterList = [];
-            const processedClusterMap = new Map();
-
-            citationClusterTags.forEach((citationClusterTag) => {
-                const processedClusterData = offlineEngine.processCitationCluster(
-                    citationClusterTag.citationCluster,
-                    processedClusterList,
-                    []
-                );
-                processedClusterData[1].forEach((processedCluster) => {
-                    processedClusterMap.set(
-                        processedCluster[2],
-                        processedCluster[1].replace(/&#60;/g, '<').replace(/&#62;/g, '>')
-                    );
-                });
-                processedClusterList.push([citationClusterTag.citationCluster.citationID, 0]);
-            });
-
-            // Update inline citation cluster DOM if present
-            citationClusterTags.forEach((citationClusterTag) => {
-                const id = citationClusterTag.citationCluster.citationID;
-                const updated = processedClusterMap.get(id);
-                if (updated != null) {
-                    citationClusterTag.innerHTML = updated;
+            if (showAll) {
+                if (!cachedShowAllEngine) {
+                    cachedShowAllEngine = makeShowAllEngine();
                 }
+                bibliographyEngine = cachedShowAllEngine;
+            } else {
+                if (citedIds.size === 0) {
+                    return `<b>No citations!</b>`;
+                }
+                const sorted = Array.from(citedIds).sort();
+                const key = sorted.join('|');
+                if (key !== lastCitedKey || !cachedOfflineEngine) {
+                    cachedOfflineEngine = makeOfflineEngine(sorted);
+                    lastCitedKey = key;
+                }
+                bibliographyEngine = cachedOfflineEngine;
+            }
+
+            const citationClusterTags = Array.from(
+                document.querySelectorAll(
+                    `span.csl-citation-cluster[data-citation-engine-id="${citationEngineId}"]`
+                )
+            );
+
+            if (!showAll && citationClusterTags.length) {
+                const processedClusterList = [];
+                const processedClusterMap = new Map();
+
+                for (const citationClusterTag of citationClusterTags) {
+                    const processedClusterData = bibliographyEngine.processCitationCluster(
+                        citationClusterTag.citationCluster,
+                        processedClusterList,
+                        []
+                    );
+                    const clusters = processedClusterData[1];
+                    for (const processedCluster of clusters) {
+                        processedClusterMap.set(
+                            processedCluster[2],
+                            processedCluster[1].replace(/&#60;/g, '<').replace(/&#62;/g, '>')
+                        );
+                    }
+                    processedClusterList.push([citationClusterTag.citationCluster.citationID, 0]);
+                }
+
+                for (const citationClusterTag of citationClusterTags) {
+                    const id = citationClusterTag.citationCluster.citationID;
+                    const updated = processedClusterMap.get(id);
+                    if (updated != null) {
+                        citationClusterTag.innerHTML = updated;
+                    }
+                }
+            }
+
+            const bibliographyObject = bibliographyEngine.makeBibliography();
+
+            const bibliographyEntries = bibliographyObject[1].map((entry, index) => {
+                return entry.replace(
+                    '<div',
+                    `<div id="${bibliographyObject[0].entry_ids[index]}" data-citation-engine-id="${citationEngineId}"`
+                );
             });
 
-            bibliographyEngine = offlineEngine;
-        }
+            const bibliographyString =
+                bibliographyObject[0].bibstart +
+                bibliographyEntries.reduce((acc, e) => acc + e, '') +
+                bibliographyObject[0].bibend;
 
-        const bibliographyObject = bibliographyEngine.makeBibliography();
-
-        const bibliographyEntries = bibliographyObject[1].map((entry, index) => {
-            return entry.replace(
-                '<div',
-                `<div id="${bibliographyObject[0].entry_ids[index]}" data-citation-engine-id="${citationEngineId}"`
-            );
-        });
-
-        const bibliographyString =
-            bibliographyObject[0].bibstart +
-            bibliographyEntries.reduce((acc, e) => acc + e, '') +
-            bibliographyObject[0].bibend;
-
-        const bibliographyStyles = `
+            const bibliographyStyles = `
   <style>
     .csl-entry[data-citation-engine-id="${citationEngineId}"] {
       line-height: ${bibliographyObject[0].linespacing * 0.8};
@@ -385,15 +475,16 @@ const citationFactory = async function (
         padding-left: 1rem;
         text-indent: -1rem;
       ` : ``};
-
     }
   </style>
   `;
 
-        return `<div data-citation-engine-id="${citationEngineId}">${bibliographyStyles}${bibliographyString}</div>`;
+            return `<div data-citation-engine-id="${citationEngineId}">${bibliographyStyles}${bibliographyString}</div>`;
+        } catch (e) {
+            return `<div style="color:red;"><strong>Bibliography error:</strong> ${String(e)}</div>`;
+        }
     };
 
-    // Expose dispose
     cite.dispose = function () {
         if (removeClickListener) {
             removeClickListener();
