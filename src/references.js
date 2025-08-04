@@ -2,7 +2,8 @@ import { Cite } from '@citation-js/core';
 import '@citation-js/plugin-bibtex';
 import '@citation-js/plugin-csl';
 import * as citeproc from 'citeproc';
-import * as Inputs from 'npm:@observablehq/inputs';
+import * as Inputs from '@observablehq/inputs';
+import '@observablehq/inputs/dist/index.css';
 
 // ------------------------------------------------------------------------------------------------------------
 // Refs is the top level class with bibtex input and ASA style bibliographic output formats.
