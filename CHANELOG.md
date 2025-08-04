@@ -8,18 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 _Nothing currently planned._
 
-## [1.0.2] - 2025-08-04
-
- ### Fixed
-
- Uses imported stylesheet for references table
-
-
 ## [1.0.1] - 2025-08-04
 
  ### Fixed
 
-- references.js: Improved citation tracking and BibTeX parsing.
+- references.js: Improved citation tracking and BibTeX parsing; Uses imported stylesheet for references table
+
 
 ## [1.0.0] - 2025-08-03
 
