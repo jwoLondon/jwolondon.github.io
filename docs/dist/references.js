@@ -36549,8 +36549,7 @@ class Refs {
         { cslLocale = 'en-GB', cslStyle = 'apa', linkCitations = true, linkBibliography = true } = {}
     ) {
 
-        let styleText = await fetchCslStyle(cslStyle);
-        styleText = patchCslStyleAuthorBold(styleText); // This gives us a handle for user-generated author formatting.
+        const styleText = await fetchCslStyle(cslStyle);
         const localeText = await fetchCslLocale(cslLocale);
         const citeFac = await citationFactory(refList, {
             cslLocale: localeText,
@@ -36594,51 +36593,47 @@ class Refs {
             } catch (e) {
                 htmlString = `<div style="color:red;"><strong>Bibliography error:</strong> ${String(e)}</div>`;
             }
-            if (htmlString === last) {
-                return;
-            }
+            if (htmlString === last) return;
             last = htmlString;
+
+            // 1) Render the raw HTML
             container.innerHTML = htmlString;
+
+            // 2) Post-process each entry to wrap the "Last, I." part
+            for (const entry of container.querySelectorAll('.csl-entry')) {
+                entry.innerHTML = entry.innerHTML.replace(
+                    // capture: any text up to the year in parentheses
+                    /^([^<]+?)(\s*\(\d{4}\))/,
+                    (_, authors, rest) => `<span class="csl-author">${authors}</span>${rest}`
+                );
+            }
         };
 
         const schedule = () => {
-            if (raf !== null) {
-                return;
-            }
+            if (raf !== null) return;
             raf = requestAnimationFrame(update);
         };
 
-        const onCitationUpdated = (e) => {
-            if (e?.detail?.engine !== this.citeFac?.citationEngineId) {
-                return;
-            }
+        const onCitationUpdated = e => {
+            if (e?.detail?.engine !== this.citeFac?.citationEngineId) return;
             schedule();
         };
         document.addEventListener(CITATION_UPDATED, onCitationUpdated);
 
         const clusterObservers = new WeakMap();
-        const observeCluster = (clusterEl) => {
-            if (clusterObservers.has(clusterEl)) {
-                return;
-            }
-            const o = new MutationObserver(() => {
-                schedule();
-            });
+        const observeCluster = clusterEl => {
+            if (clusterObservers.has(clusterEl)) return;
+            const o = new MutationObserver(schedule);
             o.observe(clusterEl, { childList: true, subtree: true, characterData: true });
             clusterObservers.set(clusterEl, o);
         };
-
         for (const el of document.querySelectorAll(clusterSelector(this.citeFac.citationEngineId))) {
             observeCluster(el);
         }
-
-        const clusterInsertionObserver = new MutationObserver((mutations) => {
+        const clusterInsertionObserver = new MutationObserver(mutations => {
             for (const m of mutations) {
                 for (const node of m.addedNodes) {
-                    if (
-                        node instanceof Element &&
-                        node.matches('span.csl-citation-cluster')
-                    ) {
+                    if (node instanceof Element && node.matches('span.csl-citation-cluster')) {
                         observeCluster(node);
                     }
                 }
@@ -36646,21 +36641,18 @@ class Refs {
         });
         clusterInsertionObserver.observe(document.body, { childList: true, subtree: true });
 
+        // Initial render
         update();
 
         container.dispose = () => {
             document.removeEventListener(CITATION_UPDATED, onCitationUpdated);
             clusterInsertionObserver.disconnect();
-            for (const o of clusterObservers.values()) {
-                o.disconnect();
-            }
+            for (const o of clusterObservers.values()) o.disconnect();
         };
 
         const originalDispose = container.dispose;
         container.dispose = () => {
-            if (typeof originalDispose === 'function') {
-                originalDispose();
-            }
+            originalDispose();
             this._bibliographyContainers.delete(container);
         };
         this._bibliographyContainers.add(container);
@@ -36715,19 +36707,6 @@ class Refs {
 const STYLE_CACHE = new Map();
 const LOCALE_CACHE = new Map();
 const CITATION_UPDATED = 'refs:citation-updated';
-
-function patchCslStyleAuthorBold(styleXmlText) {
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(styleXmlText, 'application/xml');
-
-    // For every <names variable="author">, add class="csl-author" to each <name>
-    xml.querySelectorAll('names[variable="author"] name').forEach((nameEl) => {
-        nameEl.setAttribute('class', 'csl-author');
-        nameEl.setAttribute('font-weight', 'bold');
-    });
-
-    return new XMLSerializer().serializeToString(xml);
-}
 
 async function fetchCslStyle(name) {
     if (STYLE_CACHE.has(name)) {
