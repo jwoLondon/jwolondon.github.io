@@ -36548,7 +36548,9 @@ class Refs {
         refList,
         { cslLocale = 'en-GB', cslStyle = 'apa', linkCitations = true, linkBibliography = true } = {}
     ) {
-        const styleText = await fetchCslStyle(cslStyle);
+
+        let styleText = await fetchCslStyle(cslStyle);
+        styleText = patchCslStyleAuthorBold(styleText); // This gives us a handle for user-generated author formatting.
         const localeText = await fetchCslLocale(cslLocale);
         const citeFac = await citationFactory(refList, {
             cslLocale: localeText,
@@ -36713,6 +36715,19 @@ class Refs {
 const STYLE_CACHE = new Map();
 const LOCALE_CACHE = new Map();
 const CITATION_UPDATED = 'refs:citation-updated';
+
+function patchCslStyleAuthorBold(styleXmlText) {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(styleXmlText, 'application/xml');
+
+    // For every <names variable="author">, add class="csl-author" to each <name>
+    xml.querySelectorAll('names[variable="author"] name').forEach((nameEl) => {
+        nameEl.setAttribute('class', 'csl-author');
+        nameEl.setAttribute('font-weight', 'bold');
+    });
+
+    return new XMLSerializer().serializeToString(xml);
+}
 
 async function fetchCslStyle(name) {
     if (STYLE_CACHE.has(name)) {
