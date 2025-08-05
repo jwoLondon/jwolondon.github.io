@@ -1,3 +1,4 @@
+import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import postcss from 'rollup-plugin-postcss'; // For CSS imports
@@ -5,20 +6,20 @@ import postcss from 'rollup-plugin-postcss'; // For CSS imports
 export default {
   input: 'src/references.js',
   output: {
-    file: 'dist/references.js',
+    file: 'ddocs/dist/references.js',
     format: 'esm',
     sourcemap: true
   },
   plugins: [
-    // Let Rollup find `@citation-js/core`, `citeproc`, `@observablehq/inputs`, etc.
+    // 1) Allow Rollup to import JSON files
+    json(),
+    // Let Rollup resolve and bundle all npm deps
     resolve({ browser: true }),
-
-    // Convert any CommonJS modules to ES modules
+    // Convert any CommonJS modules (citeproc, etc.) to ES modules
     commonjs(),
-
-    // bundle any CSS
+    // Bundle any imported CSS (e.g. @observablehq/inputs styles)
     postcss({
-      inject:  true,     // inject <style> tags
+      inject: true,     // inject <style> tags into the bundle
       minimize: true
     })
   ]

@@ -4,23 +4,26 @@
   "description": "Citation helper bundle",
   "license": "MIT",
   "type": "module",
-  "main": "dist/references.umd.js",
-  "module": "dist/references.mjs",
+  "main": "dist/references.js",
+  "module": "dist/references.js",
   "exports": {
     ".": {
-      "import": "./dist/references.mjs",
-      "require": "./dist/references.umd.js"
+      "import": "./dist/references.js",
+      "require": "./dist/references.js"
     }
   },
- 
   "scripts": {
-    "build": "node build.mjs"
+    "build": "rollup -c"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jwoLondon/jwolondon.github.io.git"
+    "url": "https://github.com/jwoLondon/jwolondon.github.io.git"
   },
-  "keywords": [],
+  "keywords": [
+    "citation",
+    "bibliography",
+    "observable"
+  ],
   "author": "",
   "homepage": "https://github.com/jwoLondon/jwolondon.github.io#readme",
   "bugs": {
@@ -35,8 +38,8 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "esbuild": "^0.25.8",
     "rollup": "^4.46.2",
     "rollup-plugin-postcss": "^4.0.2"
   }
