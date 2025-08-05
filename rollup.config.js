@@ -6,7 +6,7 @@ import postcss from 'rollup-plugin-postcss'; // For CSS imports
 export default {
   input: 'src/references.js',
   output: {
-    file: 'ddocs/dist/references.js',
+    file: 'docs/dist/references.js',
     format: 'esm',
     sourcemap: true
   },
