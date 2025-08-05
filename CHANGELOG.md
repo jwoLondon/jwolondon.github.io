@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 _Nothing currently planned._
 
+
+## [1.0.4] - 2025-08-05
+
+ ### Enhancement
+
+Added class `csl-author` to bibliography outputs for CSS styling of author names.
+
 ## [1.0.3] - 2025-08-04
 
  ### Fixed
