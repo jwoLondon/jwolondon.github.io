@@ -4,7 +4,15 @@
   "description": "Citation helper bundle",
   "license": "MIT",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/references.umd.js",
+  "module": "dist/references.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/references.mjs",
+      "require": "./dist/references.umd.js"
+    }
+  },
+ 
   "scripts": {
     "build": "node build.mjs"
   },
@@ -26,6 +34,10 @@
     "citeproc": "^2.4.63"
   },
   "devDependencies": {
-    "esbuild": "^0.25.8"
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "esbuild": "^0.25.8",
+    "rollup": "^4.46.2",
+    "rollup-plugin-postcss": "^4.0.2"
   }
 }
