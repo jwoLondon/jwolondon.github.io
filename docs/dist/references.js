@@ -36996,5 +36996,5 @@ const citationFactory = async function (
     return cite;
 };
 
-export { Refs };
+export { Refs as default };
 //# sourceMappingURL=references.js.map

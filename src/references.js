@@ -16,7 +16,7 @@ import '@observablehq/inputs/dist/index.css';
 // for the browser and command line. PeerJ Computer Science, 5, e214. https://doi.org/10.7717/peerj-cs.214
 // ------------------------------------------------------------------------------------------------------------
 
-export class Refs {
+class Refs {
     constructor(refList, citeFac) {
         this.citeFac = citeFac;
         this._bibliographyContainers = new Set();
@@ -495,3 +495,6 @@ const citationFactory = async function (
 
     return cite;
 };
+
+// Just export the Refs class as the default in the bundled package
+export default Refs;
