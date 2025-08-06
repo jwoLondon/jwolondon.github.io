@@ -1,5 +1,5 @@
 # Software
 
-## 1. references.js
+## references.js
 
-For providing LaTeX/BibTeX-style citation and references.
+For providing LaTeX/BibTeX-style citation and references. [Documentation.](https://jwolondon.github.io/dist/references.html)
