@@ -120,24 +120,38 @@ export class Refs {
         };
         document.addEventListener(CITATION_UPDATED, onCitationUpdated);
 
-        const clusterObservers = new WeakMap();
+        const selector = clusterSelector(this.citeFac.citationEngineId);
+        const clusterObservers = new Map();
         const observeCluster = clusterEl => {
             if (clusterObservers.has(clusterEl)) return;
             const o = new MutationObserver(schedule);
             o.observe(clusterEl, { childList: true, subtree: true, characterData: true });
             clusterObservers.set(clusterEl, o);
         };
-        for (const el of document.querySelectorAll(clusterSelector(this.citeFac.citationEngineId))) {
+        const findClusters = node => {
+            if (!(node instanceof Element)) return [];
+            return [
+                ...(node.matches(selector) ? [node] : []),
+                ...node.querySelectorAll(selector),
+            ];
+        };
+        for (const el of document.querySelectorAll(selector)) {
             observeCluster(el);
         }
         const clusterInsertionObserver = new MutationObserver(mutations => {
+            let changed = false;
             for (const m of mutations) {
                 for (const node of m.addedNodes) {
-                    if (node instanceof Element && node.matches('span.csl-citation-cluster')) {
-                        observeCluster(node);
+                    for (const cluster of findClusters(node)) {
+                        observeCluster(cluster);
+                        changed = true;
                     }
                 }
+                for (const node of m.removedNodes) {
+                    if (findClusters(node).length) changed = true;
+                }
             }
+            if (changed) schedule();
         });
         clusterInsertionObserver.observe(document.body, { childList: true, subtree: true });
 
@@ -246,6 +260,8 @@ const citationFactory = async function (
     { cslStyle, cslLocale, linkCitations = true, linkBibliography = true } = {}
 ) {
     const citationEngineId = Math.random().toString(36).slice(2, 7);
+    let nextCitationClusterId = 0;
+    const citationClusters = new Map();
     let removeClickListener = null;
     const citedIds = new Set();
     let lastCitedKey = '';
@@ -319,6 +335,9 @@ const citationFactory = async function (
         return engine;
     };
 
+    const clusterFor = (element) =>
+        citationClusters.get(element.dataset.citationClusterId) ?? element.citationCluster;
+
     // Main cite function
     function cite(...citationItems) {
         try {
@@ -353,7 +372,10 @@ const citationFactory = async function (
             const citationTag = document.createElement('span');
             citationTag.className = 'csl-citation-cluster';
             citationTag.dataset.citationEngineId = citationEngineId;
+            const citationClusterId = `${citationEngineId}-${nextCitationClusterId++}`;
+            citationTag.dataset.citationClusterId = citationClusterId;
             citationTag.innerHTML = citationPreview;
+            citationClusters.set(citationClusterId, citationCluster);
             citationTag.citationCluster = citationCluster;
 
             if (typeof window !== 'undefined') {
@@ -424,8 +446,10 @@ const citationFactory = async function (
                 const processedClusterMap = new Map();
 
                 for (const citationClusterTag of citationClusterTags) {
+                    const citationCluster = clusterFor(citationClusterTag);
+                    if (!citationCluster) continue;
                     const processedClusterData = bibliographyEngine.processCitationCluster(
-                        citationClusterTag.citationCluster,
+                        citationCluster,
                         processedClusterList,
                         []
                     );
@@ -436,13 +460,15 @@ const citationFactory = async function (
                             processedCluster[1].replace(/&#60;/g, '<').replace(/&#62;/g, '>')
                         );
                     }
-                    processedClusterList.push([citationClusterTag.citationCluster.citationID, 0]);
+                    processedClusterList.push([citationCluster.citationID, 0]);
                 }
 
                 for (const citationClusterTag of citationClusterTags) {
-                    const id = citationClusterTag.citationCluster.citationID;
+                    const citationCluster = clusterFor(citationClusterTag);
+                    if (!citationCluster) continue;
+                    const id = citationCluster.citationID;
                     const updated = processedClusterMap.get(id);
-                    if (updated != null) {
+                    if (updated != null && citationClusterTag.innerHTML !== updated) {
                         citationClusterTag.innerHTML = updated;
                     }
                 }
@@ -485,6 +511,7 @@ const citationFactory = async function (
             removeClickListener();
             removeClickListener = null;
         }
+        citationClusters.clear();
     };
 
     return cite;
