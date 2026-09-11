@@ -36603,7 +36603,7 @@ class Refs {
             for (const entry of container.querySelectorAll('.csl-entry')) {
                 entry.innerHTML = entry.innerHTML.replace(
                     // capture: any text up to the year in parentheses
-                    /^([^<]+?)(\s*\(\d{4}\))/,
+                    /^([^<]+?)(\s*\(\d{4}[a-z]?(?:,\s*[^)]+)?\))/,
                     (_, authors, rest) => `<span class="csl-author">${authors}</span>${rest}`
                 );
             }
