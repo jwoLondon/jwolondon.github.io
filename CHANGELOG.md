@@ -4,9 +4,11 @@ All notable changes to software provided from here will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and software release adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.5] - 2026-10-04
 
-_Nothing currently planned._
+- Updated to use citation.js 0.9.0. 
+- Database errors no longer prevent citation aggregation when publication year and author list are identical for multiple publications. 
+- Added more explanatory error messages when unknown citation is provided.
 
 
 ## [1.0.4] - 2025-08-05
