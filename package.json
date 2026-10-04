@@ -31,9 +31,9 @@
     "url": "https://github.com/jwoLondon/jwolondon.github.io/issues"
   },
   "dependencies": {
-    "@citation-js/core": "^0.7.18",
-    "@citation-js/plugin-bibtex": "^0.7.18",
-    "@citation-js/plugin-csl": "^0.7.18",
+    "@citation-js/core": "^0.9.0",
+    "@citation-js/plugin-bibtex": "^0.9.0",
+    "@citation-js/plugin-csl": "^0.9.0",
     "@observablehq/inputs": "^0.12.0",
     "citeproc": "^2.4.63"
   },
