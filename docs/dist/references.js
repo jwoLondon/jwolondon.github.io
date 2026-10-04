@@ -33,7 +33,7 @@ var log = /*#__PURE__*/Object.freeze({
 
 const formats$3 = ['real', 'string'];
 const types$3 = ['json', 'html', 'string', 'rtf'];
-const styles = ['csl', 'bibtex', 'bibtxt', 'citation-*', 'ris', 'ndjson'];
+const styles$1 = ['csl', 'bibtex', 'bibtxt', 'citation-*', 'ris', 'ndjson'];
 const wrapperTypes = ['string', 'function'];
 function validateOutputOptions(options) {
   if (typeof options !== 'object') {
@@ -51,8 +51,8 @@ function validateOutputOptions(options) {
     throw new TypeError(`Option format ("${format}") should be one of: ${formats$3}`);
   } else if (type && !types$3.includes(type)) {
     throw new TypeError(`Option type ("${type}") should be one of: ${types$3}`);
-  } else if (style && !styles.includes(style) && !/^citation/.test(style)) {
-    throw new TypeError(`Option style ("${style}") should be one of: ${styles}`);
+  } else if (style && !styles$1.includes(style) && !/^citation/.test(style)) {
+    throw new TypeError(`Option style ("${style}") should be one of: ${styles$1}`);
   } else if (lang && typeof lang !== 'string') {
     throw new TypeError(`Option lang should be a string, but is a ${typeof lang}`);
   } else if (prepend && !wrapperTypes.includes(typeof prepend)) {
@@ -479,8 +479,6 @@ var parser = /*#__PURE__*/Object.freeze({
   TypeParser: TypeParser
 });
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
@@ -894,7 +892,7 @@ function correctType(type, bestGuessConversions) {
   if (bestGuessConversions) {
     if (type in entryTypes) {
       return entryTypes[type];
-    } else if (type.toLowerCase() !== type) {
+    } else if (typeof type === 'string' && type.toLowerCase() !== type) {
       return correctType(type.toLowerCase(), bestGuessConversions);
     }
   }
@@ -1105,2088 +1103,6 @@ function deepCopy(value, seen = new Set()) {
   return copy;
 }
 
-var buffer = {};
-
-var base64Js = {};
-
-var hasRequiredBase64Js;
-
-function requireBase64Js () {
-	if (hasRequiredBase64Js) return base64Js;
-	hasRequiredBase64Js = 1;
-
-	base64Js.byteLength = byteLength;
-	base64Js.toByteArray = toByteArray;
-	base64Js.fromByteArray = fromByteArray;
-
-	var lookup = [];
-	var revLookup = [];
-	var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
-
-	var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-	for (var i = 0, len = code.length; i < len; ++i) {
-	  lookup[i] = code[i];
-	  revLookup[code.charCodeAt(i)] = i;
-	}
-
-	// Support decoding URL-safe base64 strings, as Node.js does.
-	// See: https://en.wikipedia.org/wiki/Base64#URL_applications
-	revLookup['-'.charCodeAt(0)] = 62;
-	revLookup['_'.charCodeAt(0)] = 63;
-
-	function getLens (b64) {
-	  var len = b64.length;
-
-	  if (len % 4 > 0) {
-	    throw new Error('Invalid string. Length must be a multiple of 4')
-	  }
-
-	  // Trim off extra bytes after placeholder bytes are found
-	  // See: https://github.com/beatgammit/base64-js/issues/42
-	  var validLen = b64.indexOf('=');
-	  if (validLen === -1) validLen = len;
-
-	  var placeHoldersLen = validLen === len
-	    ? 0
-	    : 4 - (validLen % 4);
-
-	  return [validLen, placeHoldersLen]
-	}
-
-	// base64 is 4/3 + up to two characters of the original data
-	function byteLength (b64) {
-	  var lens = getLens(b64);
-	  var validLen = lens[0];
-	  var placeHoldersLen = lens[1];
-	  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
-	}
-
-	function _byteLength (b64, validLen, placeHoldersLen) {
-	  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
-	}
-
-	function toByteArray (b64) {
-	  var tmp;
-	  var lens = getLens(b64);
-	  var validLen = lens[0];
-	  var placeHoldersLen = lens[1];
-
-	  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen));
-
-	  var curByte = 0;
-
-	  // if there are placeholders, only get up to the last complete 4 chars
-	  var len = placeHoldersLen > 0
-	    ? validLen - 4
-	    : validLen;
-
-	  var i;
-	  for (i = 0; i < len; i += 4) {
-	    tmp =
-	      (revLookup[b64.charCodeAt(i)] << 18) |
-	      (revLookup[b64.charCodeAt(i + 1)] << 12) |
-	      (revLookup[b64.charCodeAt(i + 2)] << 6) |
-	      revLookup[b64.charCodeAt(i + 3)];
-	    arr[curByte++] = (tmp >> 16) & 0xFF;
-	    arr[curByte++] = (tmp >> 8) & 0xFF;
-	    arr[curByte++] = tmp & 0xFF;
-	  }
-
-	  if (placeHoldersLen === 2) {
-	    tmp =
-	      (revLookup[b64.charCodeAt(i)] << 2) |
-	      (revLookup[b64.charCodeAt(i + 1)] >> 4);
-	    arr[curByte++] = tmp & 0xFF;
-	  }
-
-	  if (placeHoldersLen === 1) {
-	    tmp =
-	      (revLookup[b64.charCodeAt(i)] << 10) |
-	      (revLookup[b64.charCodeAt(i + 1)] << 4) |
-	      (revLookup[b64.charCodeAt(i + 2)] >> 2);
-	    arr[curByte++] = (tmp >> 8) & 0xFF;
-	    arr[curByte++] = tmp & 0xFF;
-	  }
-
-	  return arr
-	}
-
-	function tripletToBase64 (num) {
-	  return lookup[num >> 18 & 0x3F] +
-	    lookup[num >> 12 & 0x3F] +
-	    lookup[num >> 6 & 0x3F] +
-	    lookup[num & 0x3F]
-	}
-
-	function encodeChunk (uint8, start, end) {
-	  var tmp;
-	  var output = [];
-	  for (var i = start; i < end; i += 3) {
-	    tmp =
-	      ((uint8[i] << 16) & 0xFF0000) +
-	      ((uint8[i + 1] << 8) & 0xFF00) +
-	      (uint8[i + 2] & 0xFF);
-	    output.push(tripletToBase64(tmp));
-	  }
-	  return output.join('')
-	}
-
-	function fromByteArray (uint8) {
-	  var tmp;
-	  var len = uint8.length;
-	  var extraBytes = len % 3; // if we have 1 byte left, pad 2 bytes
-	  var parts = [];
-	  var maxChunkLength = 16383; // must be multiple of 3
-
-	  // go through the array every three bytes, we'll deal with trailing stuff later
-	  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-	    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)));
-	  }
-
-	  // pad the end with zeros, but make sure to not forget the extra bytes
-	  if (extraBytes === 1) {
-	    tmp = uint8[len - 1];
-	    parts.push(
-	      lookup[tmp >> 2] +
-	      lookup[(tmp << 4) & 0x3F] +
-	      '=='
-	    );
-	  } else if (extraBytes === 2) {
-	    tmp = (uint8[len - 2] << 8) + uint8[len - 1];
-	    parts.push(
-	      lookup[tmp >> 10] +
-	      lookup[(tmp >> 4) & 0x3F] +
-	      lookup[(tmp << 2) & 0x3F] +
-	      '='
-	    );
-	  }
-
-	  return parts.join('')
-	}
-	return base64Js;
-}
-
-var ieee754 = {};
-
-/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
-var hasRequiredIeee754;
-
-function requireIeee754 () {
-	if (hasRequiredIeee754) return ieee754;
-	hasRequiredIeee754 = 1;
-	ieee754.read = function (buffer, offset, isLE, mLen, nBytes) {
-	  var e, m;
-	  var eLen = (nBytes * 8) - mLen - 1;
-	  var eMax = (1 << eLen) - 1;
-	  var eBias = eMax >> 1;
-	  var nBits = -7;
-	  var i = isLE ? (nBytes - 1) : 0;
-	  var d = isLE ? -1 : 1;
-	  var s = buffer[offset + i];
-
-	  i += d;
-
-	  e = s & ((1 << (-nBits)) - 1);
-	  s >>= (-nBits);
-	  nBits += eLen;
-	  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
-
-	  m = e & ((1 << (-nBits)) - 1);
-	  e >>= (-nBits);
-	  nBits += mLen;
-	  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
-
-	  if (e === 0) {
-	    e = 1 - eBias;
-	  } else if (e === eMax) {
-	    return m ? NaN : ((s ? -1 : 1) * Infinity)
-	  } else {
-	    m = m + Math.pow(2, mLen);
-	    e = e - eBias;
-	  }
-	  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-	};
-
-	ieee754.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-	  var e, m, c;
-	  var eLen = (nBytes * 8) - mLen - 1;
-	  var eMax = (1 << eLen) - 1;
-	  var eBias = eMax >> 1;
-	  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0);
-	  var i = isLE ? 0 : (nBytes - 1);
-	  var d = isLE ? 1 : -1;
-	  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
-
-	  value = Math.abs(value);
-
-	  if (isNaN(value) || value === Infinity) {
-	    m = isNaN(value) ? 1 : 0;
-	    e = eMax;
-	  } else {
-	    e = Math.floor(Math.log(value) / Math.LN2);
-	    if (value * (c = Math.pow(2, -e)) < 1) {
-	      e--;
-	      c *= 2;
-	    }
-	    if (e + eBias >= 1) {
-	      value += rt / c;
-	    } else {
-	      value += rt * Math.pow(2, 1 - eBias);
-	    }
-	    if (value * c >= 2) {
-	      e++;
-	      c /= 2;
-	    }
-
-	    if (e + eBias >= eMax) {
-	      m = 0;
-	      e = eMax;
-	    } else if (e + eBias >= 1) {
-	      m = ((value * c) - 1) * Math.pow(2, mLen);
-	      e = e + eBias;
-	    } else {
-	      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
-	      e = 0;
-	    }
-	  }
-
-	  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-	  e = (e << mLen) | m;
-	  eLen += mLen;
-	  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
-
-	  buffer[offset + i - d] |= s * 128;
-	};
-	return ieee754;
-}
-
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <https://feross.org>
- * @license  MIT
- */
-
-var hasRequiredBuffer;
-
-function requireBuffer () {
-	if (hasRequiredBuffer) return buffer;
-	hasRequiredBuffer = 1;
-	(function (exports) {
-
-		var base64 = requireBase64Js();
-		var ieee754 = requireIeee754();
-		var customInspectSymbol =
-		  (typeof Symbol === 'function' && typeof Symbol['for'] === 'function') // eslint-disable-line dot-notation
-		    ? Symbol['for']('nodejs.util.inspect.custom') // eslint-disable-line dot-notation
-		    : null;
-
-		exports.Buffer = Buffer;
-		exports.SlowBuffer = SlowBuffer;
-		exports.INSPECT_MAX_BYTES = 50;
-
-		var K_MAX_LENGTH = 0x7fffffff;
-		exports.kMaxLength = K_MAX_LENGTH;
-
-		/**
-		 * If `Buffer.TYPED_ARRAY_SUPPORT`:
-		 *   === true    Use Uint8Array implementation (fastest)
-		 *   === false   Print warning and recommend using `buffer` v4.x which has an Object
-		 *               implementation (most compatible, even IE6)
-		 *
-		 * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
-		 * Opera 11.6+, iOS 4.2+.
-		 *
-		 * We report that the browser does not support typed arrays if the are not subclassable
-		 * using __proto__. Firefox 4-29 lacks support for adding new properties to `Uint8Array`
-		 * (See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438). IE 10 lacks support
-		 * for __proto__ and has a buggy typed array implementation.
-		 */
-		Buffer.TYPED_ARRAY_SUPPORT = typedArraySupport();
-
-		if (!Buffer.TYPED_ARRAY_SUPPORT && typeof console !== 'undefined' &&
-		    typeof console.error === 'function') {
-		  console.error(
-		    'This browser lacks typed array (Uint8Array) support which is required by ' +
-		    '`buffer` v5.x. Use `buffer` v4.x if you require old browser support.'
-		  );
-		}
-
-		function typedArraySupport () {
-		  // Can typed array instances can be augmented?
-		  try {
-		    var arr = new Uint8Array(1);
-		    var proto = { foo: function () { return 42 } };
-		    Object.setPrototypeOf(proto, Uint8Array.prototype);
-		    Object.setPrototypeOf(arr, proto);
-		    return arr.foo() === 42
-		  } catch (e) {
-		    return false
-		  }
-		}
-
-		Object.defineProperty(Buffer.prototype, 'parent', {
-		  enumerable: true,
-		  get: function () {
-		    if (!Buffer.isBuffer(this)) return undefined
-		    return this.buffer
-		  }
-		});
-
-		Object.defineProperty(Buffer.prototype, 'offset', {
-		  enumerable: true,
-		  get: function () {
-		    if (!Buffer.isBuffer(this)) return undefined
-		    return this.byteOffset
-		  }
-		});
-
-		function createBuffer (length) {
-		  if (length > K_MAX_LENGTH) {
-		    throw new RangeError('The value "' + length + '" is invalid for option "size"')
-		  }
-		  // Return an augmented `Uint8Array` instance
-		  var buf = new Uint8Array(length);
-		  Object.setPrototypeOf(buf, Buffer.prototype);
-		  return buf
-		}
-
-		/**
-		 * The Buffer constructor returns instances of `Uint8Array` that have their
-		 * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
-		 * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
-		 * and the `Uint8Array` methods. Square bracket notation works as expected -- it
-		 * returns a single octet.
-		 *
-		 * The `Uint8Array` prototype remains unmodified.
-		 */
-
-		function Buffer (arg, encodingOrOffset, length) {
-		  // Common case.
-		  if (typeof arg === 'number') {
-		    if (typeof encodingOrOffset === 'string') {
-		      throw new TypeError(
-		        'The "string" argument must be of type string. Received type number'
-		      )
-		    }
-		    return allocUnsafe(arg)
-		  }
-		  return from(arg, encodingOrOffset, length)
-		}
-
-		Buffer.poolSize = 8192; // not used by this implementation
-
-		function from (value, encodingOrOffset, length) {
-		  if (typeof value === 'string') {
-		    return fromString(value, encodingOrOffset)
-		  }
-
-		  if (ArrayBuffer.isView(value)) {
-		    return fromArrayView(value)
-		  }
-
-		  if (value == null) {
-		    throw new TypeError(
-		      'The first argument must be one of type string, Buffer, ArrayBuffer, Array, ' +
-		      'or Array-like Object. Received type ' + (typeof value)
-		    )
-		  }
-
-		  if (isInstance(value, ArrayBuffer) ||
-		      (value && isInstance(value.buffer, ArrayBuffer))) {
-		    return fromArrayBuffer(value, encodingOrOffset, length)
-		  }
-
-		  if (typeof SharedArrayBuffer !== 'undefined' &&
-		      (isInstance(value, SharedArrayBuffer) ||
-		      (value && isInstance(value.buffer, SharedArrayBuffer)))) {
-		    return fromArrayBuffer(value, encodingOrOffset, length)
-		  }
-
-		  if (typeof value === 'number') {
-		    throw new TypeError(
-		      'The "value" argument must not be of type number. Received type number'
-		    )
-		  }
-
-		  var valueOf = value.valueOf && value.valueOf();
-		  if (valueOf != null && valueOf !== value) {
-		    return Buffer.from(valueOf, encodingOrOffset, length)
-		  }
-
-		  var b = fromObject(value);
-		  if (b) return b
-
-		  if (typeof Symbol !== 'undefined' && Symbol.toPrimitive != null &&
-		      typeof value[Symbol.toPrimitive] === 'function') {
-		    return Buffer.from(
-		      value[Symbol.toPrimitive]('string'), encodingOrOffset, length
-		    )
-		  }
-
-		  throw new TypeError(
-		    'The first argument must be one of type string, Buffer, ArrayBuffer, Array, ' +
-		    'or Array-like Object. Received type ' + (typeof value)
-		  )
-		}
-
-		/**
-		 * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
-		 * if value is a number.
-		 * Buffer.from(str[, encoding])
-		 * Buffer.from(array)
-		 * Buffer.from(buffer)
-		 * Buffer.from(arrayBuffer[, byteOffset[, length]])
-		 **/
-		Buffer.from = function (value, encodingOrOffset, length) {
-		  return from(value, encodingOrOffset, length)
-		};
-
-		// Note: Change prototype *after* Buffer.from is defined to workaround Chrome bug:
-		// https://github.com/feross/buffer/pull/148
-		Object.setPrototypeOf(Buffer.prototype, Uint8Array.prototype);
-		Object.setPrototypeOf(Buffer, Uint8Array);
-
-		function assertSize (size) {
-		  if (typeof size !== 'number') {
-		    throw new TypeError('"size" argument must be of type number')
-		  } else if (size < 0) {
-		    throw new RangeError('The value "' + size + '" is invalid for option "size"')
-		  }
-		}
-
-		function alloc (size, fill, encoding) {
-		  assertSize(size);
-		  if (size <= 0) {
-		    return createBuffer(size)
-		  }
-		  if (fill !== undefined) {
-		    // Only pay attention to encoding if it's a string. This
-		    // prevents accidentally sending in a number that would
-		    // be interpreted as a start offset.
-		    return typeof encoding === 'string'
-		      ? createBuffer(size).fill(fill, encoding)
-		      : createBuffer(size).fill(fill)
-		  }
-		  return createBuffer(size)
-		}
-
-		/**
-		 * Creates a new filled Buffer instance.
-		 * alloc(size[, fill[, encoding]])
-		 **/
-		Buffer.alloc = function (size, fill, encoding) {
-		  return alloc(size, fill, encoding)
-		};
-
-		function allocUnsafe (size) {
-		  assertSize(size);
-		  return createBuffer(size < 0 ? 0 : checked(size) | 0)
-		}
-
-		/**
-		 * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
-		 * */
-		Buffer.allocUnsafe = function (size) {
-		  return allocUnsafe(size)
-		};
-		/**
-		 * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
-		 */
-		Buffer.allocUnsafeSlow = function (size) {
-		  return allocUnsafe(size)
-		};
-
-		function fromString (string, encoding) {
-		  if (typeof encoding !== 'string' || encoding === '') {
-		    encoding = 'utf8';
-		  }
-
-		  if (!Buffer.isEncoding(encoding)) {
-		    throw new TypeError('Unknown encoding: ' + encoding)
-		  }
-
-		  var length = byteLength(string, encoding) | 0;
-		  var buf = createBuffer(length);
-
-		  var actual = buf.write(string, encoding);
-
-		  if (actual !== length) {
-		    // Writing a hex string, for example, that contains invalid characters will
-		    // cause everything after the first invalid character to be ignored. (e.g.
-		    // 'abxxcd' will be treated as 'ab')
-		    buf = buf.slice(0, actual);
-		  }
-
-		  return buf
-		}
-
-		function fromArrayLike (array) {
-		  var length = array.length < 0 ? 0 : checked(array.length) | 0;
-		  var buf = createBuffer(length);
-		  for (var i = 0; i < length; i += 1) {
-		    buf[i] = array[i] & 255;
-		  }
-		  return buf
-		}
-
-		function fromArrayView (arrayView) {
-		  if (isInstance(arrayView, Uint8Array)) {
-		    var copy = new Uint8Array(arrayView);
-		    return fromArrayBuffer(copy.buffer, copy.byteOffset, copy.byteLength)
-		  }
-		  return fromArrayLike(arrayView)
-		}
-
-		function fromArrayBuffer (array, byteOffset, length) {
-		  if (byteOffset < 0 || array.byteLength < byteOffset) {
-		    throw new RangeError('"offset" is outside of buffer bounds')
-		  }
-
-		  if (array.byteLength < byteOffset + (length || 0)) {
-		    throw new RangeError('"length" is outside of buffer bounds')
-		  }
-
-		  var buf;
-		  if (byteOffset === undefined && length === undefined) {
-		    buf = new Uint8Array(array);
-		  } else if (length === undefined) {
-		    buf = new Uint8Array(array, byteOffset);
-		  } else {
-		    buf = new Uint8Array(array, byteOffset, length);
-		  }
-
-		  // Return an augmented `Uint8Array` instance
-		  Object.setPrototypeOf(buf, Buffer.prototype);
-
-		  return buf
-		}
-
-		function fromObject (obj) {
-		  if (Buffer.isBuffer(obj)) {
-		    var len = checked(obj.length) | 0;
-		    var buf = createBuffer(len);
-
-		    if (buf.length === 0) {
-		      return buf
-		    }
-
-		    obj.copy(buf, 0, 0, len);
-		    return buf
-		  }
-
-		  if (obj.length !== undefined) {
-		    if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
-		      return createBuffer(0)
-		    }
-		    return fromArrayLike(obj)
-		  }
-
-		  if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
-		    return fromArrayLike(obj.data)
-		  }
-		}
-
-		function checked (length) {
-		  // Note: cannot use `length < K_MAX_LENGTH` here because that fails when
-		  // length is NaN (which is otherwise coerced to zero.)
-		  if (length >= K_MAX_LENGTH) {
-		    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-		                         'size: 0x' + K_MAX_LENGTH.toString(16) + ' bytes')
-		  }
-		  return length | 0
-		}
-
-		function SlowBuffer (length) {
-		  if (+length != length) { // eslint-disable-line eqeqeq
-		    length = 0;
-		  }
-		  return Buffer.alloc(+length)
-		}
-
-		Buffer.isBuffer = function isBuffer (b) {
-		  return b != null && b._isBuffer === true &&
-		    b !== Buffer.prototype // so Buffer.isBuffer(Buffer.prototype) will be false
-		};
-
-		Buffer.compare = function compare (a, b) {
-		  if (isInstance(a, Uint8Array)) a = Buffer.from(a, a.offset, a.byteLength);
-		  if (isInstance(b, Uint8Array)) b = Buffer.from(b, b.offset, b.byteLength);
-		  if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
-		    throw new TypeError(
-		      'The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array'
-		    )
-		  }
-
-		  if (a === b) return 0
-
-		  var x = a.length;
-		  var y = b.length;
-
-		  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
-		    if (a[i] !== b[i]) {
-		      x = a[i];
-		      y = b[i];
-		      break
-		    }
-		  }
-
-		  if (x < y) return -1
-		  if (y < x) return 1
-		  return 0
-		};
-
-		Buffer.isEncoding = function isEncoding (encoding) {
-		  switch (String(encoding).toLowerCase()) {
-		    case 'hex':
-		    case 'utf8':
-		    case 'utf-8':
-		    case 'ascii':
-		    case 'latin1':
-		    case 'binary':
-		    case 'base64':
-		    case 'ucs2':
-		    case 'ucs-2':
-		    case 'utf16le':
-		    case 'utf-16le':
-		      return true
-		    default:
-		      return false
-		  }
-		};
-
-		Buffer.concat = function concat (list, length) {
-		  if (!Array.isArray(list)) {
-		    throw new TypeError('"list" argument must be an Array of Buffers')
-		  }
-
-		  if (list.length === 0) {
-		    return Buffer.alloc(0)
-		  }
-
-		  var i;
-		  if (length === undefined) {
-		    length = 0;
-		    for (i = 0; i < list.length; ++i) {
-		      length += list[i].length;
-		    }
-		  }
-
-		  var buffer = Buffer.allocUnsafe(length);
-		  var pos = 0;
-		  for (i = 0; i < list.length; ++i) {
-		    var buf = list[i];
-		    if (isInstance(buf, Uint8Array)) {
-		      if (pos + buf.length > buffer.length) {
-		        Buffer.from(buf).copy(buffer, pos);
-		      } else {
-		        Uint8Array.prototype.set.call(
-		          buffer,
-		          buf,
-		          pos
-		        );
-		      }
-		    } else if (!Buffer.isBuffer(buf)) {
-		      throw new TypeError('"list" argument must be an Array of Buffers')
-		    } else {
-		      buf.copy(buffer, pos);
-		    }
-		    pos += buf.length;
-		  }
-		  return buffer
-		};
-
-		function byteLength (string, encoding) {
-		  if (Buffer.isBuffer(string)) {
-		    return string.length
-		  }
-		  if (ArrayBuffer.isView(string) || isInstance(string, ArrayBuffer)) {
-		    return string.byteLength
-		  }
-		  if (typeof string !== 'string') {
-		    throw new TypeError(
-		      'The "string" argument must be one of type string, Buffer, or ArrayBuffer. ' +
-		      'Received type ' + typeof string
-		    )
-		  }
-
-		  var len = string.length;
-		  var mustMatch = (arguments.length > 2 && arguments[2] === true);
-		  if (!mustMatch && len === 0) return 0
-
-		  // Use a for loop to avoid recursion
-		  var loweredCase = false;
-		  for (;;) {
-		    switch (encoding) {
-		      case 'ascii':
-		      case 'latin1':
-		      case 'binary':
-		        return len
-		      case 'utf8':
-		      case 'utf-8':
-		        return utf8ToBytes(string).length
-		      case 'ucs2':
-		      case 'ucs-2':
-		      case 'utf16le':
-		      case 'utf-16le':
-		        return len * 2
-		      case 'hex':
-		        return len >>> 1
-		      case 'base64':
-		        return base64ToBytes(string).length
-		      default:
-		        if (loweredCase) {
-		          return mustMatch ? -1 : utf8ToBytes(string).length // assume utf8
-		        }
-		        encoding = ('' + encoding).toLowerCase();
-		        loweredCase = true;
-		    }
-		  }
-		}
-		Buffer.byteLength = byteLength;
-
-		function slowToString (encoding, start, end) {
-		  var loweredCase = false;
-
-		  // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
-		  // property of a typed array.
-
-		  // This behaves neither like String nor Uint8Array in that we set start/end
-		  // to their upper/lower bounds if the value passed is out of range.
-		  // undefined is handled specially as per ECMA-262 6th Edition,
-		  // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
-		  if (start === undefined || start < 0) {
-		    start = 0;
-		  }
-		  // Return early if start > this.length. Done here to prevent potential uint32
-		  // coercion fail below.
-		  if (start > this.length) {
-		    return ''
-		  }
-
-		  if (end === undefined || end > this.length) {
-		    end = this.length;
-		  }
-
-		  if (end <= 0) {
-		    return ''
-		  }
-
-		  // Force coercion to uint32. This will also coerce falsey/NaN values to 0.
-		  end >>>= 0;
-		  start >>>= 0;
-
-		  if (end <= start) {
-		    return ''
-		  }
-
-		  if (!encoding) encoding = 'utf8';
-
-		  while (true) {
-		    switch (encoding) {
-		      case 'hex':
-		        return hexSlice(this, start, end)
-
-		      case 'utf8':
-		      case 'utf-8':
-		        return utf8Slice(this, start, end)
-
-		      case 'ascii':
-		        return asciiSlice(this, start, end)
-
-		      case 'latin1':
-		      case 'binary':
-		        return latin1Slice(this, start, end)
-
-		      case 'base64':
-		        return base64Slice(this, start, end)
-
-		      case 'ucs2':
-		      case 'ucs-2':
-		      case 'utf16le':
-		      case 'utf-16le':
-		        return utf16leSlice(this, start, end)
-
-		      default:
-		        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-		        encoding = (encoding + '').toLowerCase();
-		        loweredCase = true;
-		    }
-		  }
-		}
-
-		// This property is used by `Buffer.isBuffer` (and the `is-buffer` npm package)
-		// to detect a Buffer instance. It's not possible to use `instanceof Buffer`
-		// reliably in a browserify context because there could be multiple different
-		// copies of the 'buffer' package in use. This method works even for Buffer
-		// instances that were created from another copy of the `buffer` package.
-		// See: https://github.com/feross/buffer/issues/154
-		Buffer.prototype._isBuffer = true;
-
-		function swap (b, n, m) {
-		  var i = b[n];
-		  b[n] = b[m];
-		  b[m] = i;
-		}
-
-		Buffer.prototype.swap16 = function swap16 () {
-		  var len = this.length;
-		  if (len % 2 !== 0) {
-		    throw new RangeError('Buffer size must be a multiple of 16-bits')
-		  }
-		  for (var i = 0; i < len; i += 2) {
-		    swap(this, i, i + 1);
-		  }
-		  return this
-		};
-
-		Buffer.prototype.swap32 = function swap32 () {
-		  var len = this.length;
-		  if (len % 4 !== 0) {
-		    throw new RangeError('Buffer size must be a multiple of 32-bits')
-		  }
-		  for (var i = 0; i < len; i += 4) {
-		    swap(this, i, i + 3);
-		    swap(this, i + 1, i + 2);
-		  }
-		  return this
-		};
-
-		Buffer.prototype.swap64 = function swap64 () {
-		  var len = this.length;
-		  if (len % 8 !== 0) {
-		    throw new RangeError('Buffer size must be a multiple of 64-bits')
-		  }
-		  for (var i = 0; i < len; i += 8) {
-		    swap(this, i, i + 7);
-		    swap(this, i + 1, i + 6);
-		    swap(this, i + 2, i + 5);
-		    swap(this, i + 3, i + 4);
-		  }
-		  return this
-		};
-
-		Buffer.prototype.toString = function toString () {
-		  var length = this.length;
-		  if (length === 0) return ''
-		  if (arguments.length === 0) return utf8Slice(this, 0, length)
-		  return slowToString.apply(this, arguments)
-		};
-
-		Buffer.prototype.toLocaleString = Buffer.prototype.toString;
-
-		Buffer.prototype.equals = function equals (b) {
-		  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
-		  if (this === b) return true
-		  return Buffer.compare(this, b) === 0
-		};
-
-		Buffer.prototype.inspect = function inspect () {
-		  var str = '';
-		  var max = exports.INSPECT_MAX_BYTES;
-		  str = this.toString('hex', 0, max).replace(/(.{2})/g, '$1 ').trim();
-		  if (this.length > max) str += ' ... ';
-		  return '<Buffer ' + str + '>'
-		};
-		if (customInspectSymbol) {
-		  Buffer.prototype[customInspectSymbol] = Buffer.prototype.inspect;
-		}
-
-		Buffer.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
-		  if (isInstance(target, Uint8Array)) {
-		    target = Buffer.from(target, target.offset, target.byteLength);
-		  }
-		  if (!Buffer.isBuffer(target)) {
-		    throw new TypeError(
-		      'The "target" argument must be one of type Buffer or Uint8Array. ' +
-		      'Received type ' + (typeof target)
-		    )
-		  }
-
-		  if (start === undefined) {
-		    start = 0;
-		  }
-		  if (end === undefined) {
-		    end = target ? target.length : 0;
-		  }
-		  if (thisStart === undefined) {
-		    thisStart = 0;
-		  }
-		  if (thisEnd === undefined) {
-		    thisEnd = this.length;
-		  }
-
-		  if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
-		    throw new RangeError('out of range index')
-		  }
-
-		  if (thisStart >= thisEnd && start >= end) {
-		    return 0
-		  }
-		  if (thisStart >= thisEnd) {
-		    return -1
-		  }
-		  if (start >= end) {
-		    return 1
-		  }
-
-		  start >>>= 0;
-		  end >>>= 0;
-		  thisStart >>>= 0;
-		  thisEnd >>>= 0;
-
-		  if (this === target) return 0
-
-		  var x = thisEnd - thisStart;
-		  var y = end - start;
-		  var len = Math.min(x, y);
-
-		  var thisCopy = this.slice(thisStart, thisEnd);
-		  var targetCopy = target.slice(start, end);
-
-		  for (var i = 0; i < len; ++i) {
-		    if (thisCopy[i] !== targetCopy[i]) {
-		      x = thisCopy[i];
-		      y = targetCopy[i];
-		      break
-		    }
-		  }
-
-		  if (x < y) return -1
-		  if (y < x) return 1
-		  return 0
-		};
-
-		// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
-		// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
-		//
-		// Arguments:
-		// - buffer - a Buffer to search
-		// - val - a string, Buffer, or number
-		// - byteOffset - an index into `buffer`; will be clamped to an int32
-		// - encoding - an optional encoding, relevant is val is a string
-		// - dir - true for indexOf, false for lastIndexOf
-		function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
-		  // Empty buffer means no match
-		  if (buffer.length === 0) return -1
-
-		  // Normalize byteOffset
-		  if (typeof byteOffset === 'string') {
-		    encoding = byteOffset;
-		    byteOffset = 0;
-		  } else if (byteOffset > 0x7fffffff) {
-		    byteOffset = 0x7fffffff;
-		  } else if (byteOffset < -2147483648) {
-		    byteOffset = -2147483648;
-		  }
-		  byteOffset = +byteOffset; // Coerce to Number.
-		  if (numberIsNaN(byteOffset)) {
-		    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
-		    byteOffset = dir ? 0 : (buffer.length - 1);
-		  }
-
-		  // Normalize byteOffset: negative offsets start from the end of the buffer
-		  if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
-		  if (byteOffset >= buffer.length) {
-		    if (dir) return -1
-		    else byteOffset = buffer.length - 1;
-		  } else if (byteOffset < 0) {
-		    if (dir) byteOffset = 0;
-		    else return -1
-		  }
-
-		  // Normalize val
-		  if (typeof val === 'string') {
-		    val = Buffer.from(val, encoding);
-		  }
-
-		  // Finally, search either indexOf (if dir is true) or lastIndexOf
-		  if (Buffer.isBuffer(val)) {
-		    // Special case: looking for empty string/buffer always fails
-		    if (val.length === 0) {
-		      return -1
-		    }
-		    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
-		  } else if (typeof val === 'number') {
-		    val = val & 0xFF; // Search for a byte value [0-255]
-		    if (typeof Uint8Array.prototype.indexOf === 'function') {
-		      if (dir) {
-		        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
-		      } else {
-		        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
-		      }
-		    }
-		    return arrayIndexOf(buffer, [val], byteOffset, encoding, dir)
-		  }
-
-		  throw new TypeError('val must be string, number or Buffer')
-		}
-
-		function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
-		  var indexSize = 1;
-		  var arrLength = arr.length;
-		  var valLength = val.length;
-
-		  if (encoding !== undefined) {
-		    encoding = String(encoding).toLowerCase();
-		    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
-		        encoding === 'utf16le' || encoding === 'utf-16le') {
-		      if (arr.length < 2 || val.length < 2) {
-		        return -1
-		      }
-		      indexSize = 2;
-		      arrLength /= 2;
-		      valLength /= 2;
-		      byteOffset /= 2;
-		    }
-		  }
-
-		  function read (buf, i) {
-		    if (indexSize === 1) {
-		      return buf[i]
-		    } else {
-		      return buf.readUInt16BE(i * indexSize)
-		    }
-		  }
-
-		  var i;
-		  if (dir) {
-		    var foundIndex = -1;
-		    for (i = byteOffset; i < arrLength; i++) {
-		      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
-		        if (foundIndex === -1) foundIndex = i;
-		        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
-		      } else {
-		        if (foundIndex !== -1) i -= i - foundIndex;
-		        foundIndex = -1;
-		      }
-		    }
-		  } else {
-		    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength;
-		    for (i = byteOffset; i >= 0; i--) {
-		      var found = true;
-		      for (var j = 0; j < valLength; j++) {
-		        if (read(arr, i + j) !== read(val, j)) {
-		          found = false;
-		          break
-		        }
-		      }
-		      if (found) return i
-		    }
-		  }
-
-		  return -1
-		}
-
-		Buffer.prototype.includes = function includes (val, byteOffset, encoding) {
-		  return this.indexOf(val, byteOffset, encoding) !== -1
-		};
-
-		Buffer.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
-		  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
-		};
-
-		Buffer.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
-		  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
-		};
-
-		function hexWrite (buf, string, offset, length) {
-		  offset = Number(offset) || 0;
-		  var remaining = buf.length - offset;
-		  if (!length) {
-		    length = remaining;
-		  } else {
-		    length = Number(length);
-		    if (length > remaining) {
-		      length = remaining;
-		    }
-		  }
-
-		  var strLen = string.length;
-
-		  if (length > strLen / 2) {
-		    length = strLen / 2;
-		  }
-		  for (var i = 0; i < length; ++i) {
-		    var parsed = parseInt(string.substr(i * 2, 2), 16);
-		    if (numberIsNaN(parsed)) return i
-		    buf[offset + i] = parsed;
-		  }
-		  return i
-		}
-
-		function utf8Write (buf, string, offset, length) {
-		  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
-		}
-
-		function asciiWrite (buf, string, offset, length) {
-		  return blitBuffer(asciiToBytes(string), buf, offset, length)
-		}
-
-		function base64Write (buf, string, offset, length) {
-		  return blitBuffer(base64ToBytes(string), buf, offset, length)
-		}
-
-		function ucs2Write (buf, string, offset, length) {
-		  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
-		}
-
-		Buffer.prototype.write = function write (string, offset, length, encoding) {
-		  // Buffer#write(string)
-		  if (offset === undefined) {
-		    encoding = 'utf8';
-		    length = this.length;
-		    offset = 0;
-		  // Buffer#write(string, encoding)
-		  } else if (length === undefined && typeof offset === 'string') {
-		    encoding = offset;
-		    length = this.length;
-		    offset = 0;
-		  // Buffer#write(string, offset[, length][, encoding])
-		  } else if (isFinite(offset)) {
-		    offset = offset >>> 0;
-		    if (isFinite(length)) {
-		      length = length >>> 0;
-		      if (encoding === undefined) encoding = 'utf8';
-		    } else {
-		      encoding = length;
-		      length = undefined;
-		    }
-		  } else {
-		    throw new Error(
-		      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
-		    )
-		  }
-
-		  var remaining = this.length - offset;
-		  if (length === undefined || length > remaining) length = remaining;
-
-		  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
-		    throw new RangeError('Attempt to write outside buffer bounds')
-		  }
-
-		  if (!encoding) encoding = 'utf8';
-
-		  var loweredCase = false;
-		  for (;;) {
-		    switch (encoding) {
-		      case 'hex':
-		        return hexWrite(this, string, offset, length)
-
-		      case 'utf8':
-		      case 'utf-8':
-		        return utf8Write(this, string, offset, length)
-
-		      case 'ascii':
-		      case 'latin1':
-		      case 'binary':
-		        return asciiWrite(this, string, offset, length)
-
-		      case 'base64':
-		        // Warning: maxLength not taken into account in base64Write
-		        return base64Write(this, string, offset, length)
-
-		      case 'ucs2':
-		      case 'ucs-2':
-		      case 'utf16le':
-		      case 'utf-16le':
-		        return ucs2Write(this, string, offset, length)
-
-		      default:
-		        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-		        encoding = ('' + encoding).toLowerCase();
-		        loweredCase = true;
-		    }
-		  }
-		};
-
-		Buffer.prototype.toJSON = function toJSON () {
-		  return {
-		    type: 'Buffer',
-		    data: Array.prototype.slice.call(this._arr || this, 0)
-		  }
-		};
-
-		function base64Slice (buf, start, end) {
-		  if (start === 0 && end === buf.length) {
-		    return base64.fromByteArray(buf)
-		  } else {
-		    return base64.fromByteArray(buf.slice(start, end))
-		  }
-		}
-
-		function utf8Slice (buf, start, end) {
-		  end = Math.min(buf.length, end);
-		  var res = [];
-
-		  var i = start;
-		  while (i < end) {
-		    var firstByte = buf[i];
-		    var codePoint = null;
-		    var bytesPerSequence = (firstByte > 0xEF)
-		      ? 4
-		      : (firstByte > 0xDF)
-		          ? 3
-		          : (firstByte > 0xBF)
-		              ? 2
-		              : 1;
-
-		    if (i + bytesPerSequence <= end) {
-		      var secondByte, thirdByte, fourthByte, tempCodePoint;
-
-		      switch (bytesPerSequence) {
-		        case 1:
-		          if (firstByte < 0x80) {
-		            codePoint = firstByte;
-		          }
-		          break
-		        case 2:
-		          secondByte = buf[i + 1];
-		          if ((secondByte & 0xC0) === 0x80) {
-		            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F);
-		            if (tempCodePoint > 0x7F) {
-		              codePoint = tempCodePoint;
-		            }
-		          }
-		          break
-		        case 3:
-		          secondByte = buf[i + 1];
-		          thirdByte = buf[i + 2];
-		          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
-		            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F);
-		            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
-		              codePoint = tempCodePoint;
-		            }
-		          }
-		          break
-		        case 4:
-		          secondByte = buf[i + 1];
-		          thirdByte = buf[i + 2];
-		          fourthByte = buf[i + 3];
-		          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
-		            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F);
-		            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
-		              codePoint = tempCodePoint;
-		            }
-		          }
-		      }
-		    }
-
-		    if (codePoint === null) {
-		      // we did not generate a valid codePoint so insert a
-		      // replacement char (U+FFFD) and advance only 1 byte
-		      codePoint = 0xFFFD;
-		      bytesPerSequence = 1;
-		    } else if (codePoint > 0xFFFF) {
-		      // encode to utf16 (surrogate pair dance)
-		      codePoint -= 0x10000;
-		      res.push(codePoint >>> 10 & 0x3FF | 0xD800);
-		      codePoint = 0xDC00 | codePoint & 0x3FF;
-		    }
-
-		    res.push(codePoint);
-		    i += bytesPerSequence;
-		  }
-
-		  return decodeCodePointsArray(res)
-		}
-
-		// Based on http://stackoverflow.com/a/22747272/680742, the browser with
-		// the lowest limit is Chrome, with 0x10000 args.
-		// We go 1 magnitude less, for safety
-		var MAX_ARGUMENTS_LENGTH = 0x1000;
-
-		function decodeCodePointsArray (codePoints) {
-		  var len = codePoints.length;
-		  if (len <= MAX_ARGUMENTS_LENGTH) {
-		    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
-		  }
-
-		  // Decode in chunks to avoid "call stack size exceeded".
-		  var res = '';
-		  var i = 0;
-		  while (i < len) {
-		    res += String.fromCharCode.apply(
-		      String,
-		      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
-		    );
-		  }
-		  return res
-		}
-
-		function asciiSlice (buf, start, end) {
-		  var ret = '';
-		  end = Math.min(buf.length, end);
-
-		  for (var i = start; i < end; ++i) {
-		    ret += String.fromCharCode(buf[i] & 0x7F);
-		  }
-		  return ret
-		}
-
-		function latin1Slice (buf, start, end) {
-		  var ret = '';
-		  end = Math.min(buf.length, end);
-
-		  for (var i = start; i < end; ++i) {
-		    ret += String.fromCharCode(buf[i]);
-		  }
-		  return ret
-		}
-
-		function hexSlice (buf, start, end) {
-		  var len = buf.length;
-
-		  if (!start || start < 0) start = 0;
-		  if (!end || end < 0 || end > len) end = len;
-
-		  var out = '';
-		  for (var i = start; i < end; ++i) {
-		    out += hexSliceLookupTable[buf[i]];
-		  }
-		  return out
-		}
-
-		function utf16leSlice (buf, start, end) {
-		  var bytes = buf.slice(start, end);
-		  var res = '';
-		  // If bytes.length is odd, the last 8 bits must be ignored (same as node.js)
-		  for (var i = 0; i < bytes.length - 1; i += 2) {
-		    res += String.fromCharCode(bytes[i] + (bytes[i + 1] * 256));
-		  }
-		  return res
-		}
-
-		Buffer.prototype.slice = function slice (start, end) {
-		  var len = this.length;
-		  start = ~~start;
-		  end = end === undefined ? len : ~~end;
-
-		  if (start < 0) {
-		    start += len;
-		    if (start < 0) start = 0;
-		  } else if (start > len) {
-		    start = len;
-		  }
-
-		  if (end < 0) {
-		    end += len;
-		    if (end < 0) end = 0;
-		  } else if (end > len) {
-		    end = len;
-		  }
-
-		  if (end < start) end = start;
-
-		  var newBuf = this.subarray(start, end);
-		  // Return an augmented `Uint8Array` instance
-		  Object.setPrototypeOf(newBuf, Buffer.prototype);
-
-		  return newBuf
-		};
-
-		/*
-		 * Need to make sure that buffer isn't trying to write out of bounds.
-		 */
-		function checkOffset (offset, ext, length) {
-		  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
-		  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
-		}
-
-		Buffer.prototype.readUintLE =
-		Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
-		  offset = offset >>> 0;
-		  byteLength = byteLength >>> 0;
-		  if (!noAssert) checkOffset(offset, byteLength, this.length);
-
-		  var val = this[offset];
-		  var mul = 1;
-		  var i = 0;
-		  while (++i < byteLength && (mul *= 0x100)) {
-		    val += this[offset + i] * mul;
-		  }
-
-		  return val
-		};
-
-		Buffer.prototype.readUintBE =
-		Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
-		  offset = offset >>> 0;
-		  byteLength = byteLength >>> 0;
-		  if (!noAssert) {
-		    checkOffset(offset, byteLength, this.length);
-		  }
-
-		  var val = this[offset + --byteLength];
-		  var mul = 1;
-		  while (byteLength > 0 && (mul *= 0x100)) {
-		    val += this[offset + --byteLength] * mul;
-		  }
-
-		  return val
-		};
-
-		Buffer.prototype.readUint8 =
-		Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 1, this.length);
-		  return this[offset]
-		};
-
-		Buffer.prototype.readUint16LE =
-		Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 2, this.length);
-		  return this[offset] | (this[offset + 1] << 8)
-		};
-
-		Buffer.prototype.readUint16BE =
-		Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 2, this.length);
-		  return (this[offset] << 8) | this[offset + 1]
-		};
-
-		Buffer.prototype.readUint32LE =
-		Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 4, this.length);
-
-		  return ((this[offset]) |
-		      (this[offset + 1] << 8) |
-		      (this[offset + 2] << 16)) +
-		      (this[offset + 3] * 0x1000000)
-		};
-
-		Buffer.prototype.readUint32BE =
-		Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 4, this.length);
-
-		  return (this[offset] * 0x1000000) +
-		    ((this[offset + 1] << 16) |
-		    (this[offset + 2] << 8) |
-		    this[offset + 3])
-		};
-
-		Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
-		  offset = offset >>> 0;
-		  byteLength = byteLength >>> 0;
-		  if (!noAssert) checkOffset(offset, byteLength, this.length);
-
-		  var val = this[offset];
-		  var mul = 1;
-		  var i = 0;
-		  while (++i < byteLength && (mul *= 0x100)) {
-		    val += this[offset + i] * mul;
-		  }
-		  mul *= 0x80;
-
-		  if (val >= mul) val -= Math.pow(2, 8 * byteLength);
-
-		  return val
-		};
-
-		Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
-		  offset = offset >>> 0;
-		  byteLength = byteLength >>> 0;
-		  if (!noAssert) checkOffset(offset, byteLength, this.length);
-
-		  var i = byteLength;
-		  var mul = 1;
-		  var val = this[offset + --i];
-		  while (i > 0 && (mul *= 0x100)) {
-		    val += this[offset + --i] * mul;
-		  }
-		  mul *= 0x80;
-
-		  if (val >= mul) val -= Math.pow(2, 8 * byteLength);
-
-		  return val
-		};
-
-		Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 1, this.length);
-		  if (!(this[offset] & 0x80)) return (this[offset])
-		  return ((0xff - this[offset] + 1) * -1)
-		};
-
-		Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 2, this.length);
-		  var val = this[offset] | (this[offset + 1] << 8);
-		  return (val & 0x8000) ? val | 0xFFFF0000 : val
-		};
-
-		Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 2, this.length);
-		  var val = this[offset + 1] | (this[offset] << 8);
-		  return (val & 0x8000) ? val | 0xFFFF0000 : val
-		};
-
-		Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 4, this.length);
-
-		  return (this[offset]) |
-		    (this[offset + 1] << 8) |
-		    (this[offset + 2] << 16) |
-		    (this[offset + 3] << 24)
-		};
-
-		Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 4, this.length);
-
-		  return (this[offset] << 24) |
-		    (this[offset + 1] << 16) |
-		    (this[offset + 2] << 8) |
-		    (this[offset + 3])
-		};
-
-		Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 4, this.length);
-		  return ieee754.read(this, offset, true, 23, 4)
-		};
-
-		Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 4, this.length);
-		  return ieee754.read(this, offset, false, 23, 4)
-		};
-
-		Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 8, this.length);
-		  return ieee754.read(this, offset, true, 52, 8)
-		};
-
-		Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
-		  offset = offset >>> 0;
-		  if (!noAssert) checkOffset(offset, 8, this.length);
-		  return ieee754.read(this, offset, false, 52, 8)
-		};
-
-		function checkInt (buf, value, offset, ext, max, min) {
-		  if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
-		  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
-		  if (offset + ext > buf.length) throw new RangeError('Index out of range')
-		}
-
-		Buffer.prototype.writeUintLE =
-		Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  byteLength = byteLength >>> 0;
-		  if (!noAssert) {
-		    var maxBytes = Math.pow(2, 8 * byteLength) - 1;
-		    checkInt(this, value, offset, byteLength, maxBytes, 0);
-		  }
-
-		  var mul = 1;
-		  var i = 0;
-		  this[offset] = value & 0xFF;
-		  while (++i < byteLength && (mul *= 0x100)) {
-		    this[offset + i] = (value / mul) & 0xFF;
-		  }
-
-		  return offset + byteLength
-		};
-
-		Buffer.prototype.writeUintBE =
-		Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  byteLength = byteLength >>> 0;
-		  if (!noAssert) {
-		    var maxBytes = Math.pow(2, 8 * byteLength) - 1;
-		    checkInt(this, value, offset, byteLength, maxBytes, 0);
-		  }
-
-		  var i = byteLength - 1;
-		  var mul = 1;
-		  this[offset + i] = value & 0xFF;
-		  while (--i >= 0 && (mul *= 0x100)) {
-		    this[offset + i] = (value / mul) & 0xFF;
-		  }
-
-		  return offset + byteLength
-		};
-
-		Buffer.prototype.writeUint8 =
-		Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
-		  this[offset] = (value & 0xff);
-		  return offset + 1
-		};
-
-		Buffer.prototype.writeUint16LE =
-		Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-		  this[offset] = (value & 0xff);
-		  this[offset + 1] = (value >>> 8);
-		  return offset + 2
-		};
-
-		Buffer.prototype.writeUint16BE =
-		Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-		  this[offset] = (value >>> 8);
-		  this[offset + 1] = (value & 0xff);
-		  return offset + 2
-		};
-
-		Buffer.prototype.writeUint32LE =
-		Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-		  this[offset + 3] = (value >>> 24);
-		  this[offset + 2] = (value >>> 16);
-		  this[offset + 1] = (value >>> 8);
-		  this[offset] = (value & 0xff);
-		  return offset + 4
-		};
-
-		Buffer.prototype.writeUint32BE =
-		Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-		  this[offset] = (value >>> 24);
-		  this[offset + 1] = (value >>> 16);
-		  this[offset + 2] = (value >>> 8);
-		  this[offset + 3] = (value & 0xff);
-		  return offset + 4
-		};
-
-		Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) {
-		    var limit = Math.pow(2, (8 * byteLength) - 1);
-
-		    checkInt(this, value, offset, byteLength, limit - 1, -limit);
-		  }
-
-		  var i = 0;
-		  var mul = 1;
-		  var sub = 0;
-		  this[offset] = value & 0xFF;
-		  while (++i < byteLength && (mul *= 0x100)) {
-		    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
-		      sub = 1;
-		    }
-		    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF;
-		  }
-
-		  return offset + byteLength
-		};
-
-		Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) {
-		    var limit = Math.pow(2, (8 * byteLength) - 1);
-
-		    checkInt(this, value, offset, byteLength, limit - 1, -limit);
-		  }
-
-		  var i = byteLength - 1;
-		  var mul = 1;
-		  var sub = 0;
-		  this[offset + i] = value & 0xFF;
-		  while (--i >= 0 && (mul *= 0x100)) {
-		    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
-		      sub = 1;
-		    }
-		    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF;
-		  }
-
-		  return offset + byteLength
-		};
-
-		Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -128);
-		  if (value < 0) value = 0xff + value + 1;
-		  this[offset] = (value & 0xff);
-		  return offset + 1
-		};
-
-		Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -32768);
-		  this[offset] = (value & 0xff);
-		  this[offset + 1] = (value >>> 8);
-		  return offset + 2
-		};
-
-		Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -32768);
-		  this[offset] = (value >>> 8);
-		  this[offset + 1] = (value & 0xff);
-		  return offset + 2
-		};
-
-		Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -2147483648);
-		  this[offset] = (value & 0xff);
-		  this[offset + 1] = (value >>> 8);
-		  this[offset + 2] = (value >>> 16);
-		  this[offset + 3] = (value >>> 24);
-		  return offset + 4
-		};
-
-		Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -2147483648);
-		  if (value < 0) value = 0xffffffff + value + 1;
-		  this[offset] = (value >>> 24);
-		  this[offset + 1] = (value >>> 16);
-		  this[offset + 2] = (value >>> 8);
-		  this[offset + 3] = (value & 0xff);
-		  return offset + 4
-		};
-
-		function checkIEEE754 (buf, value, offset, ext, max, min) {
-		  if (offset + ext > buf.length) throw new RangeError('Index out of range')
-		  if (offset < 0) throw new RangeError('Index out of range')
-		}
-
-		function writeFloat (buf, value, offset, littleEndian, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) {
-		    checkIEEE754(buf, value, offset, 4);
-		  }
-		  ieee754.write(buf, value, offset, littleEndian, 23, 4);
-		  return offset + 4
-		}
-
-		Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
-		  return writeFloat(this, value, offset, true, noAssert)
-		};
-
-		Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
-		  return writeFloat(this, value, offset, false, noAssert)
-		};
-
-		function writeDouble (buf, value, offset, littleEndian, noAssert) {
-		  value = +value;
-		  offset = offset >>> 0;
-		  if (!noAssert) {
-		    checkIEEE754(buf, value, offset, 8);
-		  }
-		  ieee754.write(buf, value, offset, littleEndian, 52, 8);
-		  return offset + 8
-		}
-
-		Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
-		  return writeDouble(this, value, offset, true, noAssert)
-		};
-
-		Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
-		  return writeDouble(this, value, offset, false, noAssert)
-		};
-
-		// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-		Buffer.prototype.copy = function copy (target, targetStart, start, end) {
-		  if (!Buffer.isBuffer(target)) throw new TypeError('argument should be a Buffer')
-		  if (!start) start = 0;
-		  if (!end && end !== 0) end = this.length;
-		  if (targetStart >= target.length) targetStart = target.length;
-		  if (!targetStart) targetStart = 0;
-		  if (end > 0 && end < start) end = start;
-
-		  // Copy 0 bytes; we're done
-		  if (end === start) return 0
-		  if (target.length === 0 || this.length === 0) return 0
-
-		  // Fatal error conditions
-		  if (targetStart < 0) {
-		    throw new RangeError('targetStart out of bounds')
-		  }
-		  if (start < 0 || start >= this.length) throw new RangeError('Index out of range')
-		  if (end < 0) throw new RangeError('sourceEnd out of bounds')
-
-		  // Are we oob?
-		  if (end > this.length) end = this.length;
-		  if (target.length - targetStart < end - start) {
-		    end = target.length - targetStart + start;
-		  }
-
-		  var len = end - start;
-
-		  if (this === target && typeof Uint8Array.prototype.copyWithin === 'function') {
-		    // Use built-in when available, missing from IE11
-		    this.copyWithin(targetStart, start, end);
-		  } else {
-		    Uint8Array.prototype.set.call(
-		      target,
-		      this.subarray(start, end),
-		      targetStart
-		    );
-		  }
-
-		  return len
-		};
-
-		// Usage:
-		//    buffer.fill(number[, offset[, end]])
-		//    buffer.fill(buffer[, offset[, end]])
-		//    buffer.fill(string[, offset[, end]][, encoding])
-		Buffer.prototype.fill = function fill (val, start, end, encoding) {
-		  // Handle string cases:
-		  if (typeof val === 'string') {
-		    if (typeof start === 'string') {
-		      encoding = start;
-		      start = 0;
-		      end = this.length;
-		    } else if (typeof end === 'string') {
-		      encoding = end;
-		      end = this.length;
-		    }
-		    if (encoding !== undefined && typeof encoding !== 'string') {
-		      throw new TypeError('encoding must be a string')
-		    }
-		    if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
-		      throw new TypeError('Unknown encoding: ' + encoding)
-		    }
-		    if (val.length === 1) {
-		      var code = val.charCodeAt(0);
-		      if ((encoding === 'utf8' && code < 128) ||
-		          encoding === 'latin1') {
-		        // Fast path: If `val` fits into a single byte, use that numeric value.
-		        val = code;
-		      }
-		    }
-		  } else if (typeof val === 'number') {
-		    val = val & 255;
-		  } else if (typeof val === 'boolean') {
-		    val = Number(val);
-		  }
-
-		  // Invalid ranges are not set to a default, so can range check early.
-		  if (start < 0 || this.length < start || this.length < end) {
-		    throw new RangeError('Out of range index')
-		  }
-
-		  if (end <= start) {
-		    return this
-		  }
-
-		  start = start >>> 0;
-		  end = end === undefined ? this.length : end >>> 0;
-
-		  if (!val) val = 0;
-
-		  var i;
-		  if (typeof val === 'number') {
-		    for (i = start; i < end; ++i) {
-		      this[i] = val;
-		    }
-		  } else {
-		    var bytes = Buffer.isBuffer(val)
-		      ? val
-		      : Buffer.from(val, encoding);
-		    var len = bytes.length;
-		    if (len === 0) {
-		      throw new TypeError('The value "' + val +
-		        '" is invalid for argument "value"')
-		    }
-		    for (i = 0; i < end - start; ++i) {
-		      this[i + start] = bytes[i % len];
-		    }
-		  }
-
-		  return this
-		};
-
-		// HELPER FUNCTIONS
-		// ================
-
-		var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g;
-
-		function base64clean (str) {
-		  // Node takes equal signs as end of the Base64 encoding
-		  str = str.split('=')[0];
-		  // Node strips out invalid characters like \n and \t from the string, base64-js does not
-		  str = str.trim().replace(INVALID_BASE64_RE, '');
-		  // Node converts strings with length < 2 to ''
-		  if (str.length < 2) return ''
-		  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
-		  while (str.length % 4 !== 0) {
-		    str = str + '=';
-		  }
-		  return str
-		}
-
-		function utf8ToBytes (string, units) {
-		  units = units || Infinity;
-		  var codePoint;
-		  var length = string.length;
-		  var leadSurrogate = null;
-		  var bytes = [];
-
-		  for (var i = 0; i < length; ++i) {
-		    codePoint = string.charCodeAt(i);
-
-		    // is surrogate component
-		    if (codePoint > 0xD7FF && codePoint < 0xE000) {
-		      // last char was a lead
-		      if (!leadSurrogate) {
-		        // no lead yet
-		        if (codePoint > 0xDBFF) {
-		          // unexpected trail
-		          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-		          continue
-		        } else if (i + 1 === length) {
-		          // unpaired lead
-		          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-		          continue
-		        }
-
-		        // valid lead
-		        leadSurrogate = codePoint;
-
-		        continue
-		      }
-
-		      // 2 leads in a row
-		      if (codePoint < 0xDC00) {
-		        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-		        leadSurrogate = codePoint;
-		        continue
-		      }
-
-		      // valid surrogate pair
-		      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000;
-		    } else if (leadSurrogate) {
-		      // valid bmp char, but last char was a lead
-		      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-		    }
-
-		    leadSurrogate = null;
-
-		    // encode utf8
-		    if (codePoint < 0x80) {
-		      if ((units -= 1) < 0) break
-		      bytes.push(codePoint);
-		    } else if (codePoint < 0x800) {
-		      if ((units -= 2) < 0) break
-		      bytes.push(
-		        codePoint >> 0x6 | 0xC0,
-		        codePoint & 0x3F | 0x80
-		      );
-		    } else if (codePoint < 0x10000) {
-		      if ((units -= 3) < 0) break
-		      bytes.push(
-		        codePoint >> 0xC | 0xE0,
-		        codePoint >> 0x6 & 0x3F | 0x80,
-		        codePoint & 0x3F | 0x80
-		      );
-		    } else if (codePoint < 0x110000) {
-		      if ((units -= 4) < 0) break
-		      bytes.push(
-		        codePoint >> 0x12 | 0xF0,
-		        codePoint >> 0xC & 0x3F | 0x80,
-		        codePoint >> 0x6 & 0x3F | 0x80,
-		        codePoint & 0x3F | 0x80
-		      );
-		    } else {
-		      throw new Error('Invalid code point')
-		    }
-		  }
-
-		  return bytes
-		}
-
-		function asciiToBytes (str) {
-		  var byteArray = [];
-		  for (var i = 0; i < str.length; ++i) {
-		    // Node's code seems to be doing this and not & 0x7F..
-		    byteArray.push(str.charCodeAt(i) & 0xFF);
-		  }
-		  return byteArray
-		}
-
-		function utf16leToBytes (str, units) {
-		  var c, hi, lo;
-		  var byteArray = [];
-		  for (var i = 0; i < str.length; ++i) {
-		    if ((units -= 2) < 0) break
-
-		    c = str.charCodeAt(i);
-		    hi = c >> 8;
-		    lo = c % 256;
-		    byteArray.push(lo);
-		    byteArray.push(hi);
-		  }
-
-		  return byteArray
-		}
-
-		function base64ToBytes (str) {
-		  return base64.toByteArray(base64clean(str))
-		}
-
-		function blitBuffer (src, dst, offset, length) {
-		  for (var i = 0; i < length; ++i) {
-		    if ((i + offset >= dst.length) || (i >= src.length)) break
-		    dst[i + offset] = src[i];
-		  }
-		  return i
-		}
-
-		// ArrayBuffer or Uint8Array objects from other contexts (i.e. iframes) do not pass
-		// the `instanceof` check but they should be treated as of that type.
-		// See: https://github.com/feross/buffer/issues/166
-		function isInstance (obj, type) {
-		  return obj instanceof type ||
-		    (obj != null && obj.constructor != null && obj.constructor.name != null &&
-		      obj.constructor.name === type.name)
-		}
-		function numberIsNaN (obj) {
-		  // For IE11 support
-		  return obj !== obj // eslint-disable-line no-self-compare
-		}
-
-		// Create lookup table for `toString('hex')`
-		// See: https://github.com/feross/buffer/issues/219
-		var hexSliceLookupTable = (function () {
-		  var alphabet = '0123456789abcdef';
-		  var table = new Array(256);
-		  for (var i = 0; i < 16; ++i) {
-		    var i16 = i * 16;
-		    for (var j = 0; j < 16; ++j) {
-		      table[i16 + j] = alphabet[i] + alphabet[j];
-		    }
-		  }
-		  return table
-		})(); 
-	} (buffer));
-	return buffer;
-}
-
 /* eslint-env browser */
 
 var browser;
@@ -3195,7 +1111,8 @@ var hasRequiredBrowser;
 function requireBrowser () {
 	if (hasRequiredBrowser) return browser;
 	hasRequiredBrowser = 1;
-	const { Buffer } = requireBuffer();
+	const textEncoder = new TextEncoder();
+	const textDecoder = new TextDecoder();
 
 	function syncFetch (...args) {
 	  const request = new syncFetch.Request(...args);
@@ -3223,7 +1140,7 @@ function requireBrowser () {
 	    xhr.setRequestHeader(...header);
 	  }
 
-	  xhr.send(request.body || null);
+	  xhr.send(request[INTERNALS].body || null);
 
 	  // Response
 	  let headers = xhr.getAllResponseHeaders();
@@ -3231,7 +1148,7 @@ function requireBrowser () {
 
 	  let body = xhr.response;
 	  if (useBinaryEncoding) {
-	    const buffer = Buffer.alloc(body.length);
+	    const buffer = new Uint8Array(body.length);
 	    for (let i = 0; i < body.length; i++) {
 	      buffer[i] = body.charCodeAt(i) & 0xff;
 	    }
@@ -3311,7 +1228,7 @@ function requireBrowser () {
 	    this[INTERNALS] = {
 	      method: init.method || 'GET',
 	      headers: new syncFetch.Headers(init.headers),
-	      body: init.body ? Buffer.from(init.body) : null,
+	      body: parseBody(init.body),
 	      credentials: init.credentials || 'omit',
 
 	      // Non-spec
@@ -3396,7 +1313,7 @@ function requireBrowser () {
 	class SyncResponse {
 	  constructor (body, init = {}) {
 	    this[INTERNALS] = {
-	      body: body ? Buffer.from(body) : null,
+	      body: parseBody(body),
 	      bodyUsed: false,
 
 	      headers: new syncFetch.Headers(init.headers),
@@ -3453,7 +1370,7 @@ function requireBrowser () {
 	class Body {
 	  constructor (body) {
 	    this[INTERNALS] = {
-	      body: Buffer.from(body),
+	      body: parseBody(body),
 	      bodyUsed: false
 	    };
 	  }
@@ -3481,19 +1398,15 @@ function requireBrowser () {
 	  }
 
 	  text () {
-	    return consumeBody(this).toString()
+	    return textDecoder.decode(consumeBody(this))
 	  }
 
 	  json () {
 	    try {
-	      return JSON.parse(consumeBody(this).toString())
+	      return JSON.parse(this.text())
 	    } catch (err) {
 	      throw new TypeError(`invalid json response body at ${this.url} reason: ${err.message}`, 'invalid-json')
 	    }
-	  }
-
-	  buffer () {
-	    return consumeBody(this).clone()
 	  }
 	}
 
@@ -3506,7 +1419,17 @@ function requireBrowser () {
 	function consumeBody (body) {
 	  checkBody(body);
 	  body[INTERNALS].bodyUsed = true;
-	  return body[INTERNALS].body || Buffer.alloc(0)
+	  return body[INTERNALS].body || new Uint8Array()
+	}
+
+	function parseBody (body) {
+	  if (typeof body === 'string') {
+	    return textEncoder.encode(body)
+	  } else if (body) {
+	    return body
+	  } else {
+	    return null
+	  }
 	}
 
 	Body.mixin(SyncRequest.prototype);
@@ -3600,682 +1523,10 @@ function requireBrowser () {
 
 requireBrowser();
 
-var fetchBrowser$1 = {exports: {}};
-
-var fetchBrowser = fetchBrowser$1.exports;
-
-var hasRequiredFetchBrowser;
-
-function requireFetchBrowser () {
-	if (hasRequiredFetchBrowser) return fetchBrowser$1.exports;
-	hasRequiredFetchBrowser = 1;
-	(function (module, exports) {
-		(function (global) {
-
-		  function fetchPonyfill(options) {
-		    var Promise = options && options.Promise || global.Promise;
-		    var XMLHttpRequest = options && options.XMLHttpRequest || global.XMLHttpRequest;
-
-		    return (function () {
-		      var globalThis = Object.create(global, {
-		        fetch: {
-		          value: undefined,
-		          writable: true
-		        }
-		      });
-
-		      (function (global, factory) {
-		        factory(exports) ;
-		      }(this, (function (exports) {
-		        var global =
-		          (typeof globalThis !== 'undefined' && globalThis) ||
-		          (typeof self !== 'undefined' && self) ||
-		          (typeof global !== 'undefined' && global);
-
-		        var support = {
-		          searchParams: 'URLSearchParams' in global,
-		          iterable: 'Symbol' in global && 'iterator' in Symbol,
-		          blob:
-		            'FileReader' in global &&
-		            'Blob' in global &&
-		            (function() {
-		              try {
-		                new Blob();
-		                return true
-		              } catch (e) {
-		                return false
-		              }
-		            })(),
-		          formData: 'FormData' in global,
-		          arrayBuffer: 'ArrayBuffer' in global
-		        };
-
-		        function isDataView(obj) {
-		          return obj && DataView.prototype.isPrototypeOf(obj)
-		        }
-
-		        if (support.arrayBuffer) {
-		          var viewClasses = [
-		            '[object Int8Array]',
-		            '[object Uint8Array]',
-		            '[object Uint8ClampedArray]',
-		            '[object Int16Array]',
-		            '[object Uint16Array]',
-		            '[object Int32Array]',
-		            '[object Uint32Array]',
-		            '[object Float32Array]',
-		            '[object Float64Array]'
-		          ];
-
-		          var isArrayBufferView =
-		            ArrayBuffer.isView ||
-		            function(obj) {
-		              return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
-		            };
-		        }
-
-		        function normalizeName(name) {
-		          if (typeof name !== 'string') {
-		            name = String(name);
-		          }
-		          if (/[^a-z0-9\-#$%&'*+.^_`|~!]/i.test(name) || name === '') {
-		            throw new TypeError('Invalid character in header field name')
-		          }
-		          return name.toLowerCase()
-		        }
-
-		        function normalizeValue(value) {
-		          if (typeof value !== 'string') {
-		            value = String(value);
-		          }
-		          return value
-		        }
-
-		        // Build a destructive iterator for the value list
-		        function iteratorFor(items) {
-		          var iterator = {
-		            next: function() {
-		              var value = items.shift();
-		              return {done: value === undefined, value: value}
-		            }
-		          };
-
-		          if (support.iterable) {
-		            iterator[Symbol.iterator] = function() {
-		              return iterator
-		            };
-		          }
-
-		          return iterator
-		        }
-
-		        function Headers(headers) {
-		          this.map = {};
-
-		          if (headers instanceof Headers) {
-		            headers.forEach(function(value, name) {
-		              this.append(name, value);
-		            }, this);
-		          } else if (Array.isArray(headers)) {
-		            headers.forEach(function(header) {
-		              this.append(header[0], header[1]);
-		            }, this);
-		          } else if (headers) {
-		            Object.getOwnPropertyNames(headers).forEach(function(name) {
-		              this.append(name, headers[name]);
-		            }, this);
-		          }
-		        }
-
-		        Headers.prototype.append = function(name, value) {
-		          name = normalizeName(name);
-		          value = normalizeValue(value);
-		          var oldValue = this.map[name];
-		          this.map[name] = oldValue ? oldValue + ', ' + value : value;
-		        };
-
-		        Headers.prototype['delete'] = function(name) {
-		          delete this.map[normalizeName(name)];
-		        };
-
-		        Headers.prototype.get = function(name) {
-		          name = normalizeName(name);
-		          return this.has(name) ? this.map[name] : null
-		        };
-
-		        Headers.prototype.has = function(name) {
-		          return this.map.hasOwnProperty(normalizeName(name))
-		        };
-
-		        Headers.prototype.set = function(name, value) {
-		          this.map[normalizeName(name)] = normalizeValue(value);
-		        };
-
-		        Headers.prototype.forEach = function(callback, thisArg) {
-		          for (var name in this.map) {
-		            if (this.map.hasOwnProperty(name)) {
-		              callback.call(thisArg, this.map[name], name, this);
-		            }
-		          }
-		        };
-
-		        Headers.prototype.keys = function() {
-		          var items = [];
-		          this.forEach(function(value, name) {
-		            items.push(name);
-		          });
-		          return iteratorFor(items)
-		        };
-
-		        Headers.prototype.values = function() {
-		          var items = [];
-		          this.forEach(function(value) {
-		            items.push(value);
-		          });
-		          return iteratorFor(items)
-		        };
-
-		        Headers.prototype.entries = function() {
-		          var items = [];
-		          this.forEach(function(value, name) {
-		            items.push([name, value]);
-		          });
-		          return iteratorFor(items)
-		        };
-
-		        if (support.iterable) {
-		          Headers.prototype[Symbol.iterator] = Headers.prototype.entries;
-		        }
-
-		        function consumed(body) {
-		          if (body.bodyUsed) {
-		            return Promise.reject(new TypeError('Already read'))
-		          }
-		          body.bodyUsed = true;
-		        }
-
-		        function fileReaderReady(reader) {
-		          return new Promise(function(resolve, reject) {
-		            reader.onload = function() {
-		              resolve(reader.result);
-		            };
-		            reader.onerror = function() {
-		              reject(reader.error);
-		            };
-		          })
-		        }
-
-		        function readBlobAsArrayBuffer(blob) {
-		          var reader = new FileReader();
-		          var promise = fileReaderReady(reader);
-		          reader.readAsArrayBuffer(blob);
-		          return promise
-		        }
-
-		        function readBlobAsText(blob) {
-		          var reader = new FileReader();
-		          var promise = fileReaderReady(reader);
-		          reader.readAsText(blob);
-		          return promise
-		        }
-
-		        function readArrayBufferAsText(buf) {
-		          var view = new Uint8Array(buf);
-		          var chars = new Array(view.length);
-
-		          for (var i = 0; i < view.length; i++) {
-		            chars[i] = String.fromCharCode(view[i]);
-		          }
-		          return chars.join('')
-		        }
-
-		        function bufferClone(buf) {
-		          if (buf.slice) {
-		            return buf.slice(0)
-		          } else {
-		            var view = new Uint8Array(buf.byteLength);
-		            view.set(new Uint8Array(buf));
-		            return view.buffer
-		          }
-		        }
-
-		        function Body() {
-		          this.bodyUsed = false;
-
-		          this._initBody = function(body) {
-		            /*
-		              fetch-mock wraps the Response object in an ES6 Proxy to
-		              provide useful test harness features such as flush. However, on
-		              ES5 browsers without fetch or Proxy support pollyfills must be used;
-		              the proxy-pollyfill is unable to proxy an attribute unless it exists
-		              on the object before the Proxy is created. This change ensures
-		              Response.bodyUsed exists on the instance, while maintaining the
-		              semantic of setting Request.bodyUsed in the constructor before
-		              _initBody is called.
-		            */
-		            this.bodyUsed = this.bodyUsed;
-		            this._bodyInit = body;
-		            if (!body) {
-		              this._bodyText = '';
-		            } else if (typeof body === 'string') {
-		              this._bodyText = body;
-		            } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
-		              this._bodyBlob = body;
-		            } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
-		              this._bodyFormData = body;
-		            } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-		              this._bodyText = body.toString();
-		            } else if (support.arrayBuffer && support.blob && isDataView(body)) {
-		              this._bodyArrayBuffer = bufferClone(body.buffer);
-		              // IE 10-11 can't handle a DataView body.
-		              this._bodyInit = new Blob([this._bodyArrayBuffer]);
-		            } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
-		              this._bodyArrayBuffer = bufferClone(body);
-		            } else {
-		              this._bodyText = body = Object.prototype.toString.call(body);
-		            }
-
-		            if (!this.headers.get('content-type')) {
-		              if (typeof body === 'string') {
-		                this.headers.set('content-type', 'text/plain;charset=UTF-8');
-		              } else if (this._bodyBlob && this._bodyBlob.type) {
-		                this.headers.set('content-type', this._bodyBlob.type);
-		              } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-		                this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
-		              }
-		            }
-		          };
-
-		          if (support.blob) {
-		            this.blob = function() {
-		              var rejected = consumed(this);
-		              if (rejected) {
-		                return rejected
-		              }
-
-		              if (this._bodyBlob) {
-		                return Promise.resolve(this._bodyBlob)
-		              } else if (this._bodyArrayBuffer) {
-		                return Promise.resolve(new Blob([this._bodyArrayBuffer]))
-		              } else if (this._bodyFormData) {
-		                throw new Error('could not read FormData body as blob')
-		              } else {
-		                return Promise.resolve(new Blob([this._bodyText]))
-		              }
-		            };
-
-		            this.arrayBuffer = function() {
-		              if (this._bodyArrayBuffer) {
-		                var isConsumed = consumed(this);
-		                if (isConsumed) {
-		                  return isConsumed
-		                }
-		                if (ArrayBuffer.isView(this._bodyArrayBuffer)) {
-		                  return Promise.resolve(
-		                    this._bodyArrayBuffer.buffer.slice(
-		                      this._bodyArrayBuffer.byteOffset,
-		                      this._bodyArrayBuffer.byteOffset + this._bodyArrayBuffer.byteLength
-		                    )
-		                  )
-		                } else {
-		                  return Promise.resolve(this._bodyArrayBuffer)
-		                }
-		              } else {
-		                return this.blob().then(readBlobAsArrayBuffer)
-		              }
-		            };
-		          }
-
-		          this.text = function() {
-		            var rejected = consumed(this);
-		            if (rejected) {
-		              return rejected
-		            }
-
-		            if (this._bodyBlob) {
-		              return readBlobAsText(this._bodyBlob)
-		            } else if (this._bodyArrayBuffer) {
-		              return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
-		            } else if (this._bodyFormData) {
-		              throw new Error('could not read FormData body as text')
-		            } else {
-		              return Promise.resolve(this._bodyText)
-		            }
-		          };
-
-		          if (support.formData) {
-		            this.formData = function() {
-		              return this.text().then(decode)
-		            };
-		          }
-
-		          this.json = function() {
-		            return this.text().then(JSON.parse)
-		          };
-
-		          return this
-		        }
-
-		        // HTTP methods whose capitalization should be normalized
-		        var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
-
-		        function normalizeMethod(method) {
-		          var upcased = method.toUpperCase();
-		          return methods.indexOf(upcased) > -1 ? upcased : method
-		        }
-
-		        function Request(input, options) {
-		          if (!(this instanceof Request)) {
-		            throw new TypeError('Please use the "new" operator, this DOM object constructor cannot be called as a function.')
-		          }
-
-		          options = options || {};
-		          var body = options.body;
-
-		          if (input instanceof Request) {
-		            if (input.bodyUsed) {
-		              throw new TypeError('Already read')
-		            }
-		            this.url = input.url;
-		            this.credentials = input.credentials;
-		            if (!options.headers) {
-		              this.headers = new Headers(input.headers);
-		            }
-		            this.method = input.method;
-		            this.mode = input.mode;
-		            this.signal = input.signal;
-		            if (!body && input._bodyInit != null) {
-		              body = input._bodyInit;
-		              input.bodyUsed = true;
-		            }
-		          } else {
-		            this.url = String(input);
-		          }
-
-		          this.credentials = options.credentials || this.credentials || 'same-origin';
-		          if (options.headers || !this.headers) {
-		            this.headers = new Headers(options.headers);
-		          }
-		          this.method = normalizeMethod(options.method || this.method || 'GET');
-		          this.mode = options.mode || this.mode || null;
-		          this.signal = options.signal || this.signal;
-		          this.referrer = null;
-
-		          if ((this.method === 'GET' || this.method === 'HEAD') && body) {
-		            throw new TypeError('Body not allowed for GET or HEAD requests')
-		          }
-		          this._initBody(body);
-
-		          if (this.method === 'GET' || this.method === 'HEAD') {
-		            if (options.cache === 'no-store' || options.cache === 'no-cache') {
-		              // Search for a '_' parameter in the query string
-		              var reParamSearch = /([?&])_=[^&]*/;
-		              if (reParamSearch.test(this.url)) {
-		                // If it already exists then set the value with the current time
-		                this.url = this.url.replace(reParamSearch, '$1_=' + new Date().getTime());
-		              } else {
-		                // Otherwise add a new '_' parameter to the end with the current time
-		                var reQueryString = /\?/;
-		                this.url += (reQueryString.test(this.url) ? '&' : '?') + '_=' + new Date().getTime();
-		              }
-		            }
-		          }
-		        }
-
-		        Request.prototype.clone = function() {
-		          return new Request(this, {body: this._bodyInit})
-		        };
-
-		        function decode(body) {
-		          var form = new FormData();
-		          body
-		            .trim()
-		            .split('&')
-		            .forEach(function(bytes) {
-		              if (bytes) {
-		                var split = bytes.split('=');
-		                var name = split.shift().replace(/\+/g, ' ');
-		                var value = split.join('=').replace(/\+/g, ' ');
-		                form.append(decodeURIComponent(name), decodeURIComponent(value));
-		              }
-		            });
-		          return form
-		        }
-
-		        function parseHeaders(rawHeaders) {
-		          var headers = new Headers();
-		          // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
-		          // https://tools.ietf.org/html/rfc7230#section-3.2
-		          var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
-		          // Avoiding split via regex to work around a common IE11 bug with the core-js 3.6.0 regex polyfill
-		          // https://github.com/github/fetch/issues/748
-		          // https://github.com/zloirock/core-js/issues/751
-		          preProcessedHeaders
-		            .split('\r')
-		            .map(function(header) {
-		              return header.indexOf('\n') === 0 ? header.substr(1, header.length) : header
-		            })
-		            .forEach(function(line) {
-		              var parts = line.split(':');
-		              var key = parts.shift().trim();
-		              if (key) {
-		                var value = parts.join(':').trim();
-		                headers.append(key, value);
-		              }
-		            });
-		          return headers
-		        }
-
-		        Body.call(Request.prototype);
-
-		        function Response(bodyInit, options) {
-		          if (!(this instanceof Response)) {
-		            throw new TypeError('Please use the "new" operator, this DOM object constructor cannot be called as a function.')
-		          }
-		          if (!options) {
-		            options = {};
-		          }
-
-		          this.type = 'default';
-		          this.status = options.status === undefined ? 200 : options.status;
-		          this.ok = this.status >= 200 && this.status < 300;
-		          this.statusText = 'statusText' in options ? options.statusText : '';
-		          this.headers = new Headers(options.headers);
-		          this.url = options.url || '';
-		          this._initBody(bodyInit);
-		        }
-
-		        Body.call(Response.prototype);
-
-		        Response.prototype.clone = function() {
-		          return new Response(this._bodyInit, {
-		            status: this.status,
-		            statusText: this.statusText,
-		            headers: new Headers(this.headers),
-		            url: this.url
-		          })
-		        };
-
-		        Response.error = function() {
-		          var response = new Response(null, {status: 0, statusText: ''});
-		          response.type = 'error';
-		          return response
-		        };
-
-		        var redirectStatuses = [301, 302, 303, 307, 308];
-
-		        Response.redirect = function(url, status) {
-		          if (redirectStatuses.indexOf(status) === -1) {
-		            throw new RangeError('Invalid status code')
-		          }
-
-		          return new Response(null, {status: status, headers: {location: url}})
-		        };
-
-		        exports.DOMException = global.DOMException;
-		        try {
-		          new exports.DOMException();
-		        } catch (err) {
-		          exports.DOMException = function(message, name) {
-		            this.message = message;
-		            this.name = name;
-		            var error = Error(message);
-		            this.stack = error.stack;
-		          };
-		          exports.DOMException.prototype = Object.create(Error.prototype);
-		          exports.DOMException.prototype.constructor = exports.DOMException;
-		        }
-
-		        function fetch(input, init) {
-		          return new Promise(function(resolve, reject) {
-		            var request = new Request(input, init);
-
-		            if (request.signal && request.signal.aborted) {
-		              return reject(new exports.DOMException('Aborted', 'AbortError'))
-		            }
-
-		            var xhr = new XMLHttpRequest();
-
-		            function abortXhr() {
-		              xhr.abort();
-		            }
-
-		            xhr.onload = function() {
-		              var options = {
-		                status: xhr.status,
-		                statusText: xhr.statusText,
-		                headers: parseHeaders(xhr.getAllResponseHeaders() || '')
-		              };
-		              options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
-		              var body = 'response' in xhr ? xhr.response : xhr.responseText;
-		              setTimeout(function() {
-		                resolve(new Response(body, options));
-		              }, 0);
-		            };
-
-		            xhr.onerror = function() {
-		              setTimeout(function() {
-		                reject(new TypeError('Network request failed'));
-		              }, 0);
-		            };
-
-		            xhr.ontimeout = function() {
-		              setTimeout(function() {
-		                reject(new TypeError('Network request failed'));
-		              }, 0);
-		            };
-
-		            xhr.onabort = function() {
-		              setTimeout(function() {
-		                reject(new exports.DOMException('Aborted', 'AbortError'));
-		              }, 0);
-		            };
-
-		            function fixUrl(url) {
-		              try {
-		                return url === '' && global.location.href ? global.location.href : url
-		              } catch (e) {
-		                return url
-		              }
-		            }
-
-		            xhr.open(request.method, fixUrl(request.url), true);
-
-		            if (request.credentials === 'include') {
-		              xhr.withCredentials = true;
-		            } else if (request.credentials === 'omit') {
-		              xhr.withCredentials = false;
-		            }
-
-		            if ('responseType' in xhr) {
-		              if (support.blob) {
-		                xhr.responseType = 'blob';
-		              } else if (
-		                support.arrayBuffer &&
-		                request.headers.get('Content-Type') &&
-		                request.headers.get('Content-Type').indexOf('application/octet-stream') !== -1
-		              ) {
-		                xhr.responseType = 'arraybuffer';
-		              }
-		            }
-
-		            if (init && typeof init.headers === 'object' && !(init.headers instanceof Headers)) {
-		              Object.getOwnPropertyNames(init.headers).forEach(function(name) {
-		                xhr.setRequestHeader(name, normalizeValue(init.headers[name]));
-		              });
-		            } else {
-		              request.headers.forEach(function(value, name) {
-		                xhr.setRequestHeader(name, value);
-		              });
-		            }
-
-		            if (request.signal) {
-		              request.signal.addEventListener('abort', abortXhr);
-
-		              xhr.onreadystatechange = function() {
-		                // DONE (success or failure)
-		                if (xhr.readyState === 4) {
-		                  request.signal.removeEventListener('abort', abortXhr);
-		                }
-		              };
-		            }
-
-		            xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit);
-		          })
-		        }
-
-		        fetch.polyfill = true;
-
-		        if (!global.fetch) {
-		          global.fetch = fetch;
-		          global.Headers = Headers;
-		          global.Request = Request;
-		          global.Response = Response;
-		        }
-
-		        exports.Headers = Headers;
-		        exports.Request = Request;
-		        exports.Response = Response;
-		        exports.fetch = fetch;
-
-		        Object.defineProperty(exports, '__esModule', { value: true });
-
-		      })));
-
-
-		      return {
-		        fetch: globalThis.fetch,
-		        Headers: globalThis.Headers,
-		        Request: globalThis.Request,
-		        Response: globalThis.Response,
-		        DOMException: globalThis.DOMException
-		      };
-		    }());
-		  }
-
-		  {
-		    module.exports = fetchPonyfill;
-		  }
-		}(typeof globalThis !== 'undefined' ? globalThis : typeof self !== 'undefined' ? self : typeof commonjsGlobal !== 'undefined' ? commonjsGlobal : fetchBrowser)); 
-	} (fetchBrowser$1, fetchBrowser$1.exports));
-	return fetchBrowser$1.exports;
-}
-
-var fetchBrowserExports = requireFetchBrowser();
-var fetchPolyfill = /*@__PURE__*/getDefaultExportFromCjs(fetchBrowserExports);
-
-var version$1 = "0.7.18";
+var version$1 = "0.9.0";
 var pkg = {
 	version: version$1};
 
-const isBrowser = typeof location !== 'undefined' && typeof navigator !== 'undefined';
-const {
-  fetch: asyncFetch,
-  Headers: asyncHeaders
-} = typeof fetch === 'function' && isBrowser ? {
-  fetch,
-  Headers
-} : fetchPolyfill();
 let userAgent = `Citation.js/${pkg.version}`;
 if (typeof process !== 'undefined' && process && process.release && process.release.name === 'node' && process.version) {
   userAgent += ` Node.js/${process.version}`;
@@ -4903,37 +2154,15 @@ function get$1(name) {
   }
   return register.get(name);
 }
-const htmlDict = {
-  wr_start: '<div class="csl-bib-body">',
-  wr_end: '</div>',
-  en_start: '<div class="csl-entry">',
-  en_end: '</div>',
-  ul_start: '<ul style="list-style-type:none">',
-  ul_end: '</ul>',
-  li_start: '<li>',
-  li_end: '</li>'
-};
-const textDict = {
-  wr_start: '',
-  wr_end: '\n',
-  en_start: '',
-  en_end: '\n',
-  ul_start: '\n',
-  ul_end: '',
-  li_start: '\t',
-  li_end: '\n'
-};
 
 var dict = /*#__PURE__*/Object.freeze({
   __proto__: null,
   add: add$2,
   get: get$1,
   has: has$1,
-  htmlDict: htmlDict,
   list: list$1,
   register: register,
-  remove: remove$1,
-  textDict: textDict
+  remove: remove$1
 });
 
 const configs = {};
@@ -6457,7 +3686,7 @@ var library = [
 	"field",
 	"literal"
 ];
-var location$1 = [
+var location = [
 	"list",
 	"literal"
 ];
@@ -6892,7 +4121,7 @@ var _fieldTypes = {
 	label: label,
 	language: language,
 	library: library,
-	location: location$1,
+	location: location,
 	mainsubtitle: mainsubtitle,
 	maintitle: maintitle,
 	maintitleaddon: maintitleaddon,
@@ -7754,7 +4983,8 @@ const MONTHS = {
   september: 9,
   october: 10,
   november: 11,
-  december: 12
+  december: 12,
+  sept: 9
 };
 const TYPE_KEYS = {
   bathesis: 'Bachelor\'s thesis',
@@ -9230,8 +6460,8 @@ function crossref(target, entry, registry) {
   return entry;
 }
 
-function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var s = Object.getOwnPropertySymbols(e); for (r = 0; r < s.length; r++) o = s[r], t.includes(o) || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
-function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (e.includes(n)) continue; t[n] = r[n]; } return t; }
+function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
+function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (-1 !== e.indexOf(n)) continue; t[n] = r[n]; } return t; }
 function ownKeys$2(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread$2(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys$2(Object(t), true).forEach(function (r) { _defineProperty$2(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys$2(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty$2(e, r, t) { return (r = _toPropertyKey$2(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: true, configurable: true, writable: true }) : e[r] = t, e; }
@@ -10264,25 +7494,25 @@ add(ref, {
 });
 
 var defaultLocales = {
-	"en-US": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"en-US\"><info><translator><name>Andrew Dunning</name></translator><translator><name>Sebastian Karcher</name></translator><translator><name>Rintze M. Zelle</name></translator><translator><name>Denis Meier</name></translator><translator><name>Brenton M. Wiernik</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2015-10-10T23:31:02+00:00</updated></info><style-options punctuation-in-quote=\"true\"/><date form=\"text\"><date-part name=\"month\" suffix=\" \"/><date-part name=\"day\" suffix=\", \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"year\"/></date><terms><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"audio-recording\">audio recording</term><term name=\"film\">film</term><term name=\"henceforth\">henceforth</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no-place\">no place</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\">no publisher</term> <!-- sine nomine --><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"on\">on</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">original work published</term><term name=\"personal-communication\">personal communication</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term><term name=\"accessed\">accessed</term><term name=\"and\">and</term><term name=\"and others\">and others</term><term name=\"anonymous\">anonymous</term><term name=\"anonymous\" form=\"short\">anon.</term><term name=\"at\">at</term><term name=\"available at\">available at</term><term name=\"by\">by</term><term name=\"circa\">circa</term><term name=\"circa\" form=\"short\">c.</term><term name=\"cited\">cited</term><term name=\"edition\"><single>edition</single><multiple>editions</multiple></term><term name=\"edition\" form=\"short\">ed.</term><term name=\"et-al\">et al.</term><term name=\"forthcoming\">forthcoming</term><term name=\"from\">from</term><term name=\"ibid\">ibid.</term><term name=\"in\">in</term><term name=\"in press\">in press</term><term name=\"internet\">internet</term><term name=\"interview\">interview</term><term name=\"letter\">letter</term><term name=\"no date\">no date</term><term name=\"no date\" form=\"short\">n.d.</term><term name=\"online\">online</term><term name=\"presented at\">presented at the</term><term name=\"reference\"><single>reference</single><multiple>references</multiple></term><term name=\"reference\" form=\"short\"><single>ref.</single><multiple>refs.</multiple></term><term name=\"retrieved\">retrieved</term><term name=\"scale\">scale</term><term name=\"version\">version</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><term name=\"book\">book</term><term name=\"broadcast\">broadcast</term><term name=\"chapter\">book chapter</term><term name=\"classic\">classic</term><term name=\"collection\">collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">interview</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">personal communication</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">journal art.</term><term name=\"article-magazine\" form=\"short\">mag. art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><term name=\"book\" form=\"short\">bk.</term><term name=\"chapter\" form=\"short\">bk. chap.</term><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">AD</term><term name=\"bc\">BC</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">“</term><term name=\"close-quote\">”</term><term name=\"open-inner-quote\">‘</term><term name=\"close-inner-quote\">’</term><term name=\"page-range-delimiter\">–</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">th</term><term name=\"ordinal-01\">st</term><term name=\"ordinal-02\">nd</term><term name=\"ordinal-03\">rd</term><term name=\"ordinal-11\">th</term><term name=\"ordinal-12\">th</term><term name=\"ordinal-13\">th</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">first</term><term name=\"long-ordinal-02\">second</term><term name=\"long-ordinal-03\">third</term><term name=\"long-ordinal-04\">fourth</term><term name=\"long-ordinal-05\">fifth</term><term name=\"long-ordinal-06\">sixth</term><term name=\"long-ordinal-07\">seventh</term><term name=\"long-ordinal-08\">eighth</term><term name=\"long-ordinal-09\">ninth</term><term name=\"long-ordinal-10\">tenth</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\">\t\t\t <single>act</single><multiple>acts</multiple>\t\t\t\t\t\t </term><term name=\"appendix\">\t\t\t <single>appendix</single><multiple>appendices</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>article</single><multiple>articles</multiple>\t\t\t\t\t\t </term><term name=\"canon\">\t\t\t <single>canon</single><multiple>canons</multiple>\t\t\t\t\t\t </term><term name=\"elocation\">\t\t\t <single>location</single><multiple>locations</multiple>\t\t\t\t\t\t </term><term name=\"equation\">\t\t\t <single>equation</single><multiple>equations</multiple>\t\t\t\t\t\t </term><term name=\"rule\">\t\t\t <single>rule</single><multiple>rules</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>scene</single><multiple>scenes</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>table</single><multiple>tables</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>title</single><multiple>titles</multiple>\t\t\t\t\t\t </term><term name=\"book\"><single>book</single><multiple>books</multiple></term><term name=\"chapter\"><single>chapter</single><multiple>chapters</multiple></term><term name=\"column\"><single>column</single><multiple>columns</multiple></term><term name=\"figure\"><single>figure</single><multiple>figures</multiple></term><term name=\"folio\"><single>folio</single><multiple>folios</multiple></term><term name=\"issue\"><single>number</single><multiple>numbers</multiple></term><term name=\"line\"><single>line</single><multiple>lines</multiple></term><term name=\"note\"><single>note</single><multiple>notes</multiple></term><term name=\"opus\"><single>opus</single><multiple>opera</multiple></term><term name=\"page\"><single>page</single><multiple>pages</multiple></term><term name=\"number-of-pages\"><single>page</single><multiple>pages</multiple></term><term name=\"paragraph\"><single>paragraph</single><multiple>paragraphs</multiple></term><term name=\"part\"><single>part</single><multiple>parts</multiple></term><term name=\"section\"><single>section</single><multiple>sections</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"verse\"><single>verse</single><multiple>verses</multiple></term><term name=\"volume\"><single>volume</single><multiple>volumes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\" form=\"short\">\t\t\t <single>app.</single><multiple>apps.</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\" form=\"short\">\t\t\t <single>art.</single><multiple>arts.</multiple></term><term name=\"elocation\" form=\"short\">\t\t\t <single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\" form=\"short\">\t\t\t <single>eq.</single><multiple>eqs.</multiple></term><term name=\"rule\" form=\"short\">\t\t\t <single>r.</single><multiple>rr.</multiple>\t\t\t\t\t\t </term><term name=\"scene\" form=\"short\">\t\t\t <single>sc.</single><multiple>scs.</multiple>\t\t\t\t\t\t </term><term name=\"table\" form=\"short\">\t\t\t <single>tbl.</single><multiple>tbls.</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\" form=\"short\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\" form=\"short\">\t\t\t <single>tit.</single><multiple>tits.</multiple></term><term name=\"book\" form=\"short\"><single>bk.</single><multiple>bks.</multiple></term><term name=\"chapter\" form=\"short\"><single>chap.</single><multiple>chaps.</multiple></term><term name=\"column\" form=\"short\"><single>col.</single><multiple>cols.</multiple></term><term name=\"figure\" form=\"short\"><single>fig.</single><multiple>figs.</multiple></term><term name=\"folio\" form=\"short\"><single>fol.</single><multiple>fols.</multiple></term><term name=\"issue\" form=\"short\"><single>no.</single><multiple>nos.</multiple></term><term name=\"line\" form=\"short\"><single>l.</single><multiple>ll.</multiple></term><term name=\"note\" form=\"short\"><single>n.</single><multiple>nn.</multiple></term><term name=\"opus\" form=\"short\"><single>op.</single><multiple>opp.</multiple></term><term name=\"page\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"paragraph\" form=\"short\"><single>para.</single><multiple>paras.</multiple></term><term name=\"part\" form=\"short\"><single>pt.</single><multiple>pts.</multiple></term><term name=\"section\" form=\"short\"><single>sec.</single><multiple>secs.</multiple></term><term name=\"sub-verbo\" form=\"short\"><single>s.v.</single><multiple>s.vv.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>vv.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term>\n<!-- SYMBOL LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>¶</single><multiple>¶¶</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§§</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"director\"><single>director</single><multiple>directors</multiple></term><term name=\"editor\"><single>editor</single><multiple>editors</multiple></term><term name=\"editorial-director\"><single>editor</single><multiple>editors</multiple></term><term name=\"illustrator\"><single>illustrator</single><multiple>illustrators</multiple></term><term name=\"translator\"><single>translator</single><multiple>translators</multiple></term><term name=\"editortranslator\"><single>editor &amp; translator</single><multiple>editors &amp; translators</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>cre.</single><multiple>cres.</multiple></term><term name=\"director\" form=\"short\"><single>dir.</single><multiple>dirs.</multiple></term><term name=\"editor\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ill.</single><multiple>ills.</multiple></term><term name=\"translator\" form=\"short\"><single>tran.</single><multiple>trans.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>ed. &amp; tran.</single><multiple>eds. &amp; trans.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term name=\"guest\" form=\"verb\">with guest</term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"container-author\" form=\"verb\">by</term><term name=\"director\" form=\"verb\">directed by</term><term name=\"editor\" form=\"verb\">edited by</term><term name=\"editorial-director\" form=\"verb\">edited by</term><term name=\"illustrator\" form=\"verb\">illustrated by</term><term name=\"interviewer\" form=\"verb\">interview by</term><term name=\"recipient\" form=\"verb\">to</term><term name=\"reviewed-author\" form=\"verb\">by</term><term name=\"translator\" form=\"verb\">translated by</term><term name=\"editortranslator\" form=\"verb\">edited &amp; translated by</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"contributor\" form=\"verb-short\">w.</term><term name=\"curator\" form=\"verb-short\">cur. by</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">hosted by</term><term name=\"narrator\" form=\"verb-short\">narr. by</term><term name=\"organizer\" form=\"verb-short\">org. by</term><term name=\"performer\" form=\"verb-short\">perf. by</term><term name=\"producer\" form=\"verb-short\">prod. by</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">cre. by</term><term name=\"director\" form=\"verb-short\">dir. by</term><term name=\"editor\" form=\"verb-short\">ed. by</term><term name=\"editorial-director\" form=\"verb-short\">ed. by</term><term name=\"illustrator\" form=\"verb-short\">illus. by</term><term name=\"translator\" form=\"verb-short\">trans. by</term><term name=\"editortranslator\" form=\"verb-short\">ed. &amp; trans. by</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">January</term><term name=\"month-02\">February</term><term name=\"month-03\">March</term><term name=\"month-04\">April</term><term name=\"month-05\">May</term><term name=\"month-06\">June</term><term name=\"month-07\">July</term><term name=\"month-08\">August</term><term name=\"month-09\">September</term><term name=\"month-10\">October</term><term name=\"month-11\">November</term><term name=\"month-12\">December</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">Jan.</term><term name=\"month-02\" form=\"short\">Feb.</term><term name=\"month-03\" form=\"short\">Mar.</term><term name=\"month-04\" form=\"short\">Apr.</term><term name=\"month-05\" form=\"short\">May</term><term name=\"month-06\" form=\"short\">Jun.</term><term name=\"month-07\" form=\"short\">Jul.</term><term name=\"month-08\" form=\"short\">Aug.</term><term name=\"month-09\" form=\"short\">Sep.</term><term name=\"month-10\" form=\"short\">Oct.</term><term name=\"month-11\" form=\"short\">Nov.</term><term name=\"month-12\" form=\"short\">Dec.</term>\n<!-- SEASONS --><term name=\"season-01\">Spring</term><term name=\"season-02\">Summer</term><term name=\"season-03\">Autumn</term><term name=\"season-04\">Winter</term></terms>\n</locale>\n",
-	"nl-NL": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"nl-NL\"><info><translator><name>Rintze M. Zelle</name><uri>http://twitter.com/rintzezelle</uri></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2017-04-01T12:00:00+00:00</updated></info><style-options punctuation-in-quote=\"false\"/><date form=\"text\"><date-part name=\"day\" suffix=\" \"/><date-part name=\"month\" suffix=\" \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" suffix=\"-\" range-delimiter=\"/\"/><date-part name=\"month\" form=\"numeric\" suffix=\"-\" range-delimiter=\"/\"/><date-part name=\"year\"/></date><terms><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"audio-recording\">audio recording</term><term name=\"film\">film</term><term name=\"henceforth\">henceforth</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no-place\">no place</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\">no publisher</term> <!-- sine nomine --><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"on\">on</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">original work published</term><term name=\"personal-communication\">persoonlijke communicatie</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term><term name=\"accessed\">geraadpleegd</term><term name=\"and\">en</term><term name=\"and others\">en anderen</term><term name=\"anonymous\">anoniem</term><term name=\"anonymous\" form=\"short\">anon.</term><term name=\"at\">bij</term><term name=\"available at\">beschikbaar op</term><term name=\"by\">door</term><term name=\"circa\">circa</term><term name=\"circa\" form=\"short\">c.</term><term name=\"cited\">geciteerd</term><term name=\"edition\"><single>druk</single><multiple>drukken</multiple></term><term name=\"edition\" form=\"short\">dr.</term><term name=\"et-al\">e.a.</term><term name=\"forthcoming\">in voorbereiding</term><term name=\"from\">van</term><term name=\"ibid\">ibid.</term><term name=\"in\">in</term><term name=\"in press\">in druk</term><term name=\"internet\">internet</term><term name=\"interview\">interview</term><term name=\"letter\">brief</term><term name=\"no date\">zonder datum</term><term name=\"no date\" form=\"short\">z.d.</term><term name=\"online\">online</term><term name=\"presented at\">gepresenteerd bij</term><term name=\"reference\"><single>referentie</single><multiple>referenties</multiple></term><term name=\"reference\" form=\"short\"><single>ref.</single><multiple>refs.</multiple></term><term name=\"retrieved\">geraadpleegd</term><term name=\"scale\">schaal</term><term name=\"version\">versie</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><term name=\"book\">book</term><term name=\"broadcast\">broadcast</term><term name=\"chapter\">book chapter</term><term name=\"classic\">classic</term><term name=\"collection\">collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">interview</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">persoonlijke communicatie</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">journal art.</term><term name=\"article-magazine\" form=\"short\">mag. art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><term name=\"book\" form=\"short\">bk.</term><term name=\"chapter\" form=\"short\">bk. chap.</term><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">AD</term><term name=\"bc\">BC</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">‘</term><term name=\"close-quote\">’</term><term name=\"open-inner-quote\">“</term><term name=\"close-inner-quote\">”</term><term name=\"page-range-delimiter\">–</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">ste</term><term name=\"ordinal-00\" match=\"whole-number\">de</term><term name=\"ordinal-02\" match=\"last-two-digits\">de</term><term name=\"ordinal-03\" match=\"last-two-digits\">de</term><term name=\"ordinal-04\" match=\"last-two-digits\">de</term><term name=\"ordinal-05\" match=\"last-two-digits\">de</term><term name=\"ordinal-06\" match=\"last-two-digits\">de</term><term name=\"ordinal-07\" match=\"last-two-digits\">de</term><term name=\"ordinal-09\" match=\"last-two-digits\">de</term><term name=\"ordinal-10\">de</term><term name=\"ordinal-11\">de</term><term name=\"ordinal-12\">de</term><term name=\"ordinal-13\">de</term><term name=\"ordinal-14\">de</term><term name=\"ordinal-15\">de</term><term name=\"ordinal-16\">de</term><term name=\"ordinal-17\">de</term><term name=\"ordinal-18\">de</term><term name=\"ordinal-19\">de</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">eerste</term><term name=\"long-ordinal-02\">tweede</term><term name=\"long-ordinal-03\">derde</term><term name=\"long-ordinal-04\">vierde</term><term name=\"long-ordinal-05\">vijfde</term><term name=\"long-ordinal-06\">zesde</term><term name=\"long-ordinal-07\">zevende</term><term name=\"long-ordinal-08\">achtste</term><term name=\"long-ordinal-09\">negende</term><term name=\"long-ordinal-10\">tiende</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\">\t\t\t <single>act</single><multiple>acts</multiple>\t\t\t\t\t\t </term><term name=\"appendix\">\t\t\t <single>appendix</single><multiple>appendices</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>article</single><multiple>articles</multiple>\t\t\t\t\t\t </term><term name=\"canon\">\t\t\t <single>canon</single><multiple>canons</multiple>\t\t\t\t\t\t </term><term name=\"elocation\">\t\t\t <single>location</single><multiple>locations</multiple>\t\t\t\t\t\t </term><term name=\"equation\">\t\t\t <single>equation</single><multiple>equations</multiple>\t\t\t\t\t\t </term><term name=\"rule\">\t\t\t <single>rule</single><multiple>rules</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>scene</single><multiple>scenes</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>table</single><multiple>tables</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>title</single><multiple>titles</multiple>\t\t\t\t\t\t </term><term name=\"book\"><single>boek</single><multiple>boeken</multiple></term><term name=\"chapter\"><single>hoofdstuk</single><multiple>hoofdstukken</multiple></term><term name=\"column\"><single>column</single><multiple>columns</multiple></term><term name=\"figure\"><single>figuur</single><multiple>figuren</multiple></term><term name=\"folio\"><single>folio</single><multiple>folio's</multiple></term><term name=\"issue\"><single>nummer</single><multiple>nummers</multiple></term><term name=\"line\"><single>regel</single><multiple>regels</multiple></term><term name=\"note\"><single>aantekening</single><multiple>aantekeningen</multiple></term><term name=\"opus\"><single>opus</single><multiple>opera</multiple></term><term name=\"page\"><single>pagina</single><multiple>pagina's</multiple></term><term name=\"number-of-pages\"><single>pagina</single><multiple>pagina's</multiple></term><term name=\"paragraph\"><single>paragraaf</single><multiple>paragrafen</multiple></term><term name=\"part\"><single>deel</single><multiple>delen</multiple></term><term name=\"section\"><single>sectie</single><multiple>secties</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"verse\"><single>vers</single><multiple>versen</multiple></term><term name=\"volume\"><single>volume</single><multiple>volumes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\">\t\t\t <single>app.</single><multiple>apps.</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>art.</single><multiple>arts.</multiple></term><term name=\"elocation\">\t\t\t <single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\">\t\t\t <single>eq.</single><multiple>eqs.</multiple></term><term name=\"rule\">\t\t\t <single>r.</single><multiple>rr.</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>sc.</single><multiple>scs.</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>tbl.</single><multiple>tbls.</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>tit.</single><multiple>tits.</multiple></term><term name=\"book\" form=\"short\">bk.</term><term name=\"chapter\" form=\"short\">hfdst.</term><term name=\"column\" form=\"short\">col.</term><term name=\"figure\" form=\"short\">fig.</term><term name=\"folio\" form=\"short\">f.</term><term name=\"issue\" form=\"short\">nr.</term><term name=\"line\" form=\"short\">l.</term><term name=\"note\" form=\"short\">n.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"paragraph\" form=\"short\">par.</term><term name=\"part\" form=\"short\">deel</term><term name=\"section\" form=\"short\">sec.</term><term name=\"sub-verbo\" form=\"short\"><single>s.v.</single><multiple>s.vv.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>vv.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term>\n<!-- SYMBOL LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>¶</single><multiple>¶¶</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§§</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"director\"><single>regisseur</single><multiple>regisseurs</multiple></term><term name=\"editor\"><single>redacteur</single><multiple>redacteuren</multiple></term><term name=\"editorial-director\"><single>redacteur</single><multiple>redacteuren</multiple></term><term name=\"illustrator\"><single>illustrator</single><multiple>illustrators</multiple></term><term name=\"translator\"><single>vertaler</single><multiple>vertalers</multiple></term><term name=\"editortranslator\"><single>redacteur &amp; vertaler</single><multiple>redacteuren &amp; vertalers</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>cre.</single><multiple>cres.</multiple></term><term name=\"director\" form=\"short\"><single>reg.</single><multiple>reg.</multiple></term><term name=\"editor\" form=\"short\"><single>red.</single><multiple>red.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>red.</single><multiple>red.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ill.</single><multiple>ill.</multiple></term><term name=\"translator\" form=\"short\"><single>vert.</single><multiple>vert.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>red. &amp; vert.</single><multiple>red. &amp; vert.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term name=\"guest\" form=\"verb\">with guest</term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"container-author\" form=\"verb\">door</term><term name=\"director\" form=\"verb\">geregisseerd door</term><term name=\"editor\" form=\"verb\">onder redactie van</term><term name=\"editorial-director\" form=\"verb\">onder redactie van</term><term name=\"illustrator\" form=\"verb\">geïllustreerd door</term><term name=\"interviewer\" form=\"verb\">geïnterviewd door</term><term name=\"recipient\" form=\"verb\">ontvangen door</term><term name=\"reviewed-author\" form=\"verb\">door</term><term name=\"translator\" form=\"verb\">vertaald door</term><term name=\"editortranslator\" form=\"verb\">bewerkt &amp; vertaald door</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"contributor\" form=\"verb-short\">w.</term><term name=\"curator\" form=\"verb-short\">cur. by</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">hosted by</term><term name=\"narrator\" form=\"verb-short\">narr. by</term><term name=\"organizer\" form=\"verb-short\">org. by</term><term name=\"performer\" form=\"verb-short\">perf. by</term><term name=\"producer\" form=\"verb-short\">prod. by</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">cre. by</term><term name=\"director\" form=\"verb-short\">geregisseerd door</term><term name=\"editor\" form=\"verb-short\">onder redactie van</term><term name=\"editorial-director\" form=\"verb-short\">bewerkt door</term><term name=\"illustrator\" form=\"verb-short\">geïllustreerd door</term><term name=\"translator\" form=\"verb-short\">vertaald door</term><term name=\"editortranslator\" form=\"verb-short\">bewerkt &amp; vertaald door</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">januari</term><term name=\"month-02\">februari</term><term name=\"month-03\">maart</term><term name=\"month-04\">april</term><term name=\"month-05\">mei</term><term name=\"month-06\">juni</term><term name=\"month-07\">juli</term><term name=\"month-08\">augustus</term><term name=\"month-09\">september</term><term name=\"month-10\">oktober</term><term name=\"month-11\">november</term><term name=\"month-12\">december</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">jan.</term><term name=\"month-02\" form=\"short\">feb.</term><term name=\"month-03\" form=\"short\">mrt.</term><term name=\"month-04\" form=\"short\">apr.</term><term name=\"month-05\" form=\"short\">mei</term><term name=\"month-06\" form=\"short\">jun.</term><term name=\"month-07\" form=\"short\">jul.</term><term name=\"month-08\" form=\"short\">aug.</term><term name=\"month-09\" form=\"short\">sep.</term><term name=\"month-10\" form=\"short\">okt.</term><term name=\"month-11\" form=\"short\">nov.</term><term name=\"month-12\" form=\"short\">dec.</term>\n<!-- SEASONS --><term name=\"season-01\">lente</term><term name=\"season-02\">zomer</term><term name=\"season-03\">herst</term><term name=\"season-04\">winter</term></terms>\n</locale>\n",
-	"fr-FR": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"fr-FR\"><info><translator><name>Grégoire Colly</name></translator><translator><name>Collectif Zotero francophone</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2012-07-04T23:31:02+00:00</updated></info><style-options punctuation-in-quote=\"false\" limit-day-ordinals-to-day-1=\"true\"/><date form=\"text\"><date-part name=\"day\" suffix=\" \"/><date-part name=\"month\" suffix=\" \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"year\"/></date><terms><term name=\"advance-online-publication\">publication en ligne anticipée</term><term name=\"album\">album</term><term name=\"audio-recording\">enregistrement audio</term><term name=\"film\">film</term><term name=\"henceforth\">désormais</term><term name=\"loc-cit\">loc.&#160;cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no-place\">sans lieu</term><term name=\"no-place\" form=\"short\">s.&#160;l.</term><term name=\"no-publisher\">sans nom</term> <!-- sine nomine --><term name=\"no-publisher\" form=\"short\">s.&#160;n.</term><term name=\"on\">sur</term><term name=\"op-cit\">op.&#160;cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">édition originale</term><term name=\"personal-communication\">communication personnelle</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">épisode de podcast</term><term name=\"preprint\">prépublication</term><term name=\"radio-broadcast\">émission de radio</term><term name=\"radio-series\">série radiophonique</term><term name=\"radio-series-episode\">épisode de série radiophonique</term><term name=\"special-issue\">numéro spécial</term><term name=\"special-section\">section spéciale</term><term name=\"television-broadcast\">émission de télévision</term><term name=\"television-series\">série télévisée</term><term name=\"television-series-episode\">épisode de série télévisée</term><term name=\"video\">vidéo</term><term name=\"working-paper\">document de travail</term><term name=\"accessed\">consulté le</term><term name=\"and\">et</term><term name=\"and others\">et autres</term><term name=\"anonymous\">anonyme</term><term name=\"anonymous\" form=\"short\">anon.</term><term name=\"at\">sur</term><term name=\"available at\">disponible sur</term><term name=\"by\">par</term><term name=\"circa\">vers</term><term name=\"circa\" form=\"short\">v.</term><term name=\"cited\">cité</term><term name=\"edition\" gender=\"feminine\"><single>édition</single><multiple>éditions</multiple></term><term name=\"edition\" form=\"short\">éd.</term><term name=\"et-al\">et al.</term><term name=\"forthcoming\">à paraître</term><term name=\"from\">à l'adresse</term><term name=\"ibid\">ibid.</term><term name=\"in\">in</term><term name=\"in press\">sous presse</term><term name=\"internet\">Internet</term><term name=\"interview\">entretien</term><term name=\"letter\">lettre</term><term name=\"no date\">sans date</term><term name=\"no date\" form=\"short\">s.&#160;d.</term><term name=\"online\">en ligne</term><term name=\"presented at\">présenté à</term><term name=\"reference\"><single>référence</single><multiple>références</multiple></term><term name=\"reference\" form=\"short\"><single>réf.</single><multiple>réf.</multiple></term><term name=\"retrieved\">consulté</term><term name=\"scale\">échelle</term><term name=\"version\">version</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">article</term><term name=\"article-journal\">article de revue</term><term name=\"article-magazine\">article de magazine</term><term name=\"article-newspaper\">article de presse</term><term name=\"bill\">projet de loi</term><term name=\"book\">livre</term><term name=\"broadcast\">émission</term><term name=\"chapter\">chapitre de livre</term><term name=\"classic\">classique</term><term name=\"collection\">collection</term><term name=\"dataset\">jeu de données</term><term name=\"document\">document</term><term name=\"entry\">entrée</term><term name=\"entry-dictionary\">entrée de dictionnaire</term><term name=\"entry-encyclopedia\">entrée d'encyclopédie</term><term name=\"event\">événement</term><!-- figure is in the list of locator terms --><term name=\"graphic\">image</term><term name=\"hearing\">audience</term><term name=\"interview\">interview</term><term name=\"legal_case\">affaire</term><term name=\"legislation\">acte juridique</term><term name=\"manuscript\">manuscrit</term><term name=\"map\">carte</term><term name=\"motion_picture\">enregistrement vidéo</term><term name=\"musical_score\">partition</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">article de colloque</term><term name=\"patent\">brevet</term><term name=\"performance\">interprétation</term><term name=\"periodical\">périodique</term><term name=\"personal_communication\">communication personnelle</term><term name=\"post\">billet</term><term name=\"post-weblog\">billet de blog</term><term name=\"regulation\">règlement</term><term name=\"report\">rapport</term><term name=\"review\">recension</term><term name=\"review-book\">recension de livre</term><term name=\"software\">logiciel</term><term name=\"song\">chanson</term><term name=\"speech\">présentation</term><term name=\"standard\">norme</term><term name=\"thesis\">thèse</term><term name=\"treaty\">traité</term><term name=\"webpage\">page web</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">art. de revue</term><term name=\"article-magazine\" form=\"short\">art. de mag.</term><term name=\"article-newspaper\" form=\"short\">art. de presse</term><term name=\"book\" form=\"short\">liv.</term><term name=\"chapter\" form=\"short\">chap. de liv.</term><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">ms</term><term name=\"motion_picture\" form=\"short\">enr. vidéo</term><term name=\"report\" form=\"short\">rap.</term><term name=\"review\" form=\"short\">recens.</term><term name=\"review-book\" form=\"short\">recens. de liv.</term><term name=\"song\" form=\"short\">enr. audio</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">apr. J.-C.</term><term name=\"bc\">av. J.-C.</term><term name=\"bce\">av. n. è.</term><term name=\"ce\">n. è.</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">«&#160;</term><term name=\"close-quote\">&#160;»</term><term name=\"open-inner-quote\">“</term><term name=\"close-inner-quote\">”</term><term name=\"page-range-delimiter\">&#8209;</term> <!-- non-breaking hyphen --><term name=\"colon\">&#160;:</term><term name=\"comma\">,</term><term name=\"semicolon\">&#160;;</term>\n<!-- ORDINALS --><term name=\"ordinal\">ᵉ</term><term name=\"ordinal-01\" gender-form=\"feminine\" match=\"whole-number\">ʳᵉ</term><term name=\"ordinal-01\" gender-form=\"masculine\" match=\"whole-number\">ᵉʳ</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">premier</term><term name=\"long-ordinal-02\">deuxième</term><term name=\"long-ordinal-03\">troisième</term><term name=\"long-ordinal-04\">quatrième</term><term name=\"long-ordinal-05\">cinquième</term><term name=\"long-ordinal-06\">sixième</term><term name=\"long-ordinal-07\">septième</term><term name=\"long-ordinal-08\">huitième</term><term name=\"long-ordinal-09\">neuvième</term><term name=\"long-ordinal-10\">dixième</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\"><single>acte</single><multiple>actes</multiple></term><term name=\"appendix\"><single>appendice</single><multiple>appendices</multiple></term><term name=\"article-locator\"><single>article</single><multiple>articles</multiple></term><term name=\"canon\"><single>canon</single><multiple>canons</multiple></term><term name=\"elocation\"><single>emplacement</single><multiple>emplacements</multiple></term><term name=\"equation\"><single>équation</single><multiple>équations</multiple></term><term name=\"rule\"><single>règle</single><multiple>règles</multiple></term><term name=\"scene\"><single>scène</single><multiple>scènes</multiple></term><term name=\"table\"><single>tableau</single><multiple>tableaux</multiple></term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple></term><term name=\"title-locator\"><single>titre</single><multiple>titres</multiple></term><term name=\"book\"><single>livre</single><multiple>livres</multiple></term><term name=\"chapter\"><single>chapitre</single><multiple>chapitres</multiple></term><term name=\"column\"><single>colonne</single><multiple>colonnes</multiple></term><term name=\"figure\"><single>figure</single><multiple>figures</multiple></term><term name=\"folio\"><single>folio</single><multiple>folios</multiple></term><term name=\"issue\" gender=\"masculine\"><single>numéro</single><multiple>numéros</multiple></term><term name=\"line\"><single>ligne</single><multiple>lignes</multiple></term><term name=\"note\"><single>note</single><multiple>notes</multiple></term><term name=\"opus\"><single>opus</single><multiple>opus</multiple></term><term name=\"page\"><single>page</single><multiple>pages</multiple></term><term name=\"number-of-pages\"><single>page</single><multiple>pages</multiple></term><term name=\"paragraph\"><single>paragraphe</single><multiple>paragraphes</multiple></term><term name=\"part\"><single>partie</single><multiple>parties</multiple></term><term name=\"section\"><single>section</single><multiple>sections</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"verse\"><single>verset</single><multiple>versets</multiple></term><term name=\"volume\" gender=\"masculine\"><single>volume</single><multiple>volumes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\"><single>append.</single><multiple>append.</multiple></term><term name=\"article-locator\"><single>art.</single><multiple>art.</multiple></term><term name=\"elocation\"><single>emplact</single><multiple>emplact</multiple></term><term name=\"equation\"><single>eq.</single><multiple>eq.</multiple></term><term name=\"rule\"><single>règle</single><multiple>règles</multiple></term><term name=\"scene\"><single>sc.</single><multiple>sc.</multiple></term><term name=\"table\"><single>tab.</single><multiple>tab.</multiple></term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple></term><term name=\"title-locator\"><single>tit.</single><multiple>tit.</multiple></term><term name=\"book\" form=\"short\">liv.</term><term name=\"chapter\" form=\"short\">chap.</term><term name=\"column\" form=\"short\">col.</term><term name=\"figure\" form=\"short\">fig.</term><term name=\"folio\" form=\"short\"><single>fᵒ</single><multiple>fᵒˢ</multiple></term><term name=\"issue\" form=\"short\"><single>nᵒ</single><multiple>nᵒˢ</multiple></term><term name=\"line\" form=\"short\">l.</term><term name=\"note\" form=\"short\">n.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>p.</single><multiple>p.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>p.</multiple></term><term name=\"paragraph\" form=\"short\">paragr.</term><term name=\"part\" form=\"short\">part.</term><term name=\"section\" form=\"short\">sect.</term><term name=\"sub-verbo\" form=\"short\"><single>s.&#160;v.</single><multiple>s.&#160;vv.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>v.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vol.</multiple></term>\n<!-- SYMBOL LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>§</single><multiple>§</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"chair\"><single>président</single><multiple>présidents</multiple></term><term name=\"compiler\"><single>compilateur</single><multiple>compilateurs</multiple></term><term name=\"contributor\"><single>contributeur</single><multiple>contributeurs</multiple></term><term name=\"curator\"><single>commissaire</single><multiple>commissaires</multiple></term><term name=\"executive-producer\"><single>producteur exécutif</single><multiple>producteurs exécutifs</multiple></term><term name=\"guest\"><single>invité</single><multiple>invités</multiple></term><term name=\"host\"><single>hôte</single><multiple>hôtes</multiple></term><term name=\"narrator\"><single>narrateur</single><multiple>narrateurs</multiple></term><term name=\"organizer\"><single>organisateur</single><multiple>organisateurs</multiple></term><term name=\"performer\"><single>interprète</single><multiple>interprètes</multiple></term><term name=\"producer\"><single>producteur</single><multiple>producteurs</multiple></term><term name=\"script-writer\"><single>scénariste</single><multiple>scénaristes</multiple></term><term name=\"series-creator\"><single>créateur de série</single><multiple>créateurs de série</multiple></term><term name=\"director\"><single>réalisateur</single><multiple>réalisateurs</multiple></term><term name=\"editor\"><single>éditeur</single><multiple>éditeurs</multiple></term><term name=\"editorial-director\"><single>directeur</single><multiple>directeurs</multiple></term><term name=\"illustrator\"><single>illustrateur</single><multiple>illustrateurs</multiple></term><term name=\"translator\"><single>traducteur</single><multiple>traducteurs</multiple></term><term name=\"editortranslator\"><single>éditeur et traducteur</single><multiple>éditeurs et traducteurs</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>compil.</single><multiple>compil.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contrib.</multiple></term><term name=\"curator\" form=\"short\"><single>commiss.</single><multiple>commiss.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>prod. exé.</single><multiple>prod. exé.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narr.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>org.</multiple></term><term name=\"performer\" form=\"short\"><single>interpr.</single><multiple>interpr.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prod.</multiple></term><term name=\"script-writer\" form=\"short\"><single>scénar.</single><multiple>scénar.</multiple></term><term name=\"series-creator\" form=\"short\"><single>créat.</single><multiple>créat.</multiple></term><term name=\"director\" form=\"short\"><single>réal.</single><multiple>réal.</multiple></term><term name=\"editor\" form=\"short\"><single>éd.</single><multiple>éd.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>dir.</single><multiple>dir.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ill.</single><multiple>ill.</multiple></term><term name=\"translator\" form=\"short\"><single>trad.</single><multiple>trad.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>éd. et trad.</single><multiple>éd. et trad.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">présidé par</term><term name=\"compiler\" form=\"verb\">compilé par</term><term name=\"contributor\" form=\"verb\">avec</term><term name=\"curator\" form=\"verb\">organisé par</term><term name=\"executive-producer\" form=\"verb\">production exécutive par</term><term name=\"guest\" form=\"verb\">avec pour invité</term><term name=\"host\" form=\"verb\">animé par</term><term name=\"narrator\" form=\"verb\">lu par</term><term name=\"organizer\" form=\"verb\">organisé par</term><term name=\"performer\" form=\"verb\">interprété par</term><term name=\"producer\" form=\"verb\">produit par</term><term name=\"script-writer\" form=\"verb\">scénario de</term><term name=\"series-creator\" form=\"verb\">créé par</term><term name=\"container-author\" form=\"verb\">par</term><term name=\"director\" form=\"verb\">réalisé par</term><term name=\"editor\" form=\"verb\">édité par</term><term name=\"editorial-director\" form=\"verb\">sous la direction de</term><term name=\"illustrator\" form=\"verb\">illustré par</term><term name=\"interviewer\" form=\"verb\">entretien réalisé par</term><term name=\"recipient\" form=\"verb\">à</term><term name=\"reviewed-author\" form=\"verb\">par</term><term name=\"translator\" form=\"verb\">traduit par</term><term name=\"editortranslator\" form=\"verb\">édité et traduit par</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"compiler\" form=\"verb-short\">compil. par</term><term name=\"contributor\" form=\"verb-short\">ac</term><term name=\"curator\" form=\"verb-short\">org. par</term><term name=\"executive-producer\" form=\"verb-short\">prod. exé. par</term><term name=\"guest\" form=\"verb-short\">ac pr inv.</term><term name=\"host\" form=\"verb-short\">anim. par</term><term name=\"narrator\" form=\"verb-short\">lu par</term><term name=\"organizer\" form=\"verb-short\">org. par</term><term name=\"performer\" form=\"verb-short\">interpr. par</term><term name=\"producer\" form=\"verb-short\">prod. par</term><term name=\"script-writer\" form=\"verb-short\">scénar. de</term><term name=\"series-creator\" form=\"verb-short\">créé par</term><term name=\"director\" form=\"verb-short\">réal. par</term><term name=\"editor\" form=\"verb-short\">éd. par</term><term name=\"editorial-director\" form=\"verb-short\">ss la dir. de</term><term name=\"illustrator\" form=\"verb-short\">ill. par</term><term name=\"translator\" form=\"verb-short\">trad. par</term><term name=\"editortranslator\" form=\"verb-short\">éd. et trad. par</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\" gender=\"masculine\">janvier</term><term name=\"month-02\" gender=\"masculine\">février</term><term name=\"month-03\" gender=\"masculine\">mars</term><term name=\"month-04\" gender=\"masculine\">avril</term><term name=\"month-05\" gender=\"masculine\">mai</term><term name=\"month-06\" gender=\"masculine\">juin</term><term name=\"month-07\" gender=\"masculine\">juillet</term><term name=\"month-08\" gender=\"masculine\">août</term><term name=\"month-09\" gender=\"masculine\">septembre</term><term name=\"month-10\" gender=\"masculine\">octobre</term><term name=\"month-11\" gender=\"masculine\">novembre</term><term name=\"month-12\" gender=\"masculine\">décembre</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">janv.</term><term name=\"month-02\" form=\"short\">févr.</term><term name=\"month-03\" form=\"short\">mars</term><term name=\"month-04\" form=\"short\">avr.</term><term name=\"month-05\" form=\"short\">mai</term><term name=\"month-06\" form=\"short\">juin</term><term name=\"month-07\" form=\"short\">juill.</term><term name=\"month-08\" form=\"short\">août</term><term name=\"month-09\" form=\"short\">sept.</term><term name=\"month-10\" form=\"short\">oct.</term><term name=\"month-11\" form=\"short\">nov.</term><term name=\"month-12\" form=\"short\">déc.</term>\n<!-- SEASONS --><term name=\"season-01\">printemps</term><term name=\"season-02\">été</term><term name=\"season-03\">automne</term><term name=\"season-04\">hiver</term></terms>\n</locale>\n",
-	"de-DE": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"de-DE\"><info><translator><name>Till A. Heilmann</name></translator><translator><name>Ulrich</name></translator><translator><name>Rintze M. Zelle</name></translator><translator><name>Sebastian Karcher</name></translator><translator><name>jakov</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2012-07-04T23:31:02+00:00</updated></info><style-options punctuation-in-quote=\"false\"/><date form=\"text\"><date-part name=\"day\" form=\"ordinal\" suffix=\" \"/><date-part name=\"month\" suffix=\" \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\".\"/><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\".\"/><date-part name=\"year\"/></date><terms><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"audio-recording\">audio recording</term><term name=\"film\">film</term><term name=\"henceforth\">henceforth</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no-place\">no place</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\">no publisher</term> <!-- sine nomine --><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"on\">on</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">original work published</term><term name=\"personal-communication\">persönliche Kommunikation</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term><term name=\"accessed\">zugegriffen</term><term name=\"and\">und</term><term name=\"and others\">und andere</term><term name=\"anonymous\">ohne Autor</term><term name=\"anonymous\" form=\"short\">o.&#160;A.</term><term name=\"at\">auf</term><term name=\"available at\">verfügbar unter</term><term name=\"by\">von</term><term name=\"circa\">circa</term><term name=\"circa\" form=\"short\">ca.</term><term name=\"cited\">zitiert</term><term name=\"edition\"><single>Auflage</single><multiple>Auflagen</multiple></term><term name=\"edition\" form=\"short\">Aufl.</term><term name=\"et-al\">u.&#160;a.</term><term name=\"forthcoming\">i.&#160;E.</term><term name=\"from\">von</term><term name=\"ibid\">ebd.</term><term name=\"in\">in</term><term name=\"in press\">im Druck</term><term name=\"internet\">Internet</term><term name=\"interview\">Interview</term><term name=\"letter\">Brief</term><term name=\"no date\">ohne Datum</term><term name=\"no date\" form=\"short\">o.&#160;J.</term><term name=\"online\">online</term><term name=\"presented at\">gehalten auf der</term><term name=\"reference\"><single>Referenz</single><multiple>Referenzen</multiple></term><term name=\"reference\" form=\"short\"><single>Ref.</single><multiple>Ref.</multiple></term><term name=\"retrieved\">abgerufen</term><term name=\"scale\">Maßstab</term><term name=\"version\">Version</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><term name=\"book\">book</term><term name=\"broadcast\">broadcast</term><term name=\"chapter\">book chapter</term><term name=\"classic\">classic</term><term name=\"collection\">collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">interview</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">persönliche Kommunikation</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">journal art.</term><term name=\"article-magazine\" form=\"short\">mag. art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><term name=\"book\" form=\"short\">bk.</term><term name=\"chapter\" form=\"short\">bk. chap.</term><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">&#160;n.&#160;Chr.</term><term name=\"bc\">&#160;v.&#160;Chr.</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">„</term><term name=\"close-quote\">“</term><term name=\"open-inner-quote\">‚</term><term name=\"close-inner-quote\">‘</term><term name=\"page-range-delimiter\">–</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">.</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">erster</term><term name=\"long-ordinal-02\">zweiter</term><term name=\"long-ordinal-03\">dritter</term><term name=\"long-ordinal-04\">vierter</term><term name=\"long-ordinal-05\">fünfter</term><term name=\"long-ordinal-06\">sechster</term><term name=\"long-ordinal-07\">siebter</term><term name=\"long-ordinal-08\">achter</term><term name=\"long-ordinal-09\">neunter</term><term name=\"long-ordinal-10\">zehnter</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\">\t\t\t <single>act</single><multiple>acts</multiple>\t\t\t\t\t\t </term><term name=\"appendix\">\t\t\t <single>appendix</single><multiple>appendices</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>article</single><multiple>articles</multiple>\t\t\t\t\t\t </term><term name=\"canon\">\t\t\t <single>canon</single><multiple>canons</multiple>\t\t\t\t\t\t </term><term name=\"elocation\">\t\t\t <single>location</single><multiple>locations</multiple>\t\t\t\t\t\t </term><term name=\"equation\">\t\t\t <single>equation</single><multiple>equations</multiple>\t\t\t\t\t\t </term><term name=\"rule\">\t\t\t <single>rule</single><multiple>rules</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>scene</single><multiple>scenes</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>table</single><multiple>tables</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>title</single><multiple>titles</multiple>\t\t\t\t\t\t </term><term name=\"book\"><single>Buch</single><multiple>Bücher</multiple></term><term name=\"chapter\"><single>Kapitel</single><multiple>Kapitel</multiple></term><term name=\"column\"><single>Spalte</single><multiple>Spalten</multiple></term><term name=\"figure\"><single>Abbildung</single><multiple>Abbildungen</multiple></term><term name=\"folio\"><single>Blatt</single><multiple>Blätter</multiple></term><term name=\"issue\"><single>Nummer</single><multiple>Nummern</multiple></term><term name=\"line\"><single>Zeile</single><multiple>Zeilen</multiple></term><term name=\"note\"><single>Note</single><multiple>Noten</multiple></term><term name=\"opus\"><single>Opus</single><multiple>Opera</multiple></term><term name=\"page\"><single>Seite</single><multiple>Seiten</multiple></term><term name=\"number-of-pages\"><single>Seite</single><multiple>Seiten</multiple></term><term name=\"paragraph\"><single>Absatz</single><multiple>Absätze</multiple></term><term name=\"part\"><single>Teil</single><multiple>Teile</multiple></term><term name=\"section\"><single>Abschnitt</single><multiple>Abschnitte</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"verse\"><single>Vers</single><multiple>Verse</multiple></term><term name=\"volume\"><single>Band</single><multiple>Bände</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\">\t\t\t <single>app.</single><multiple>apps.</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>art.</single><multiple>arts.</multiple></term><term name=\"elocation\">\t\t\t <single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\">\t\t\t <single>eq.</single><multiple>eqs.</multiple></term><term name=\"rule\">\t\t\t <single>r.</single><multiple>rr.</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>sc.</single><multiple>scs.</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>tbl.</single><multiple>tbls.</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>tit.</single><multiple>tits.</multiple></term><term name=\"book\" form=\"short\">B.</term><term name=\"chapter\" form=\"short\">Kap.</term><term name=\"column\" form=\"short\">Sp.</term><term name=\"figure\" form=\"short\">Abb.</term><term name=\"folio\" form=\"short\">Fol.</term><term name=\"issue\" form=\"short\">Nr.</term><term name=\"line\" form=\"short\">Z.</term><term name=\"note\" form=\"short\">N.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>S.</single><multiple>S.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>S.</single><multiple>S.</multiple></term><term name=\"paragraph\" form=\"short\">Abs.</term><term name=\"part\" form=\"short\">Teil</term><term name=\"section\" form=\"short\">Abschn.</term><term name=\"sub-verbo\" form=\"short\"><single>s.&#160;v.</single><multiple>s.&#160;vv.</multiple></term><term name=\"verse\" form=\"short\"><single>V.</single><multiple>V.</multiple></term><term name=\"volume\" form=\"short\"><single>Bd.</single><multiple>Bde.</multiple></term>\n<!-- SYMBOL LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>¶</single><multiple>¶¶</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§§</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"director\"><single>Regisseur</single><multiple>Regisseure</multiple></term><term name=\"editor\"><single>Herausgeber</single><multiple>Herausgeber</multiple></term><term name=\"collection-editor\"><single>Reihenherausgeber</single><multiple>Reihenherausgeber</multiple></term><term name=\"editorial-director\"><single>Herausgeber</single><multiple>Herausgeber</multiple></term><term name=\"illustrator\"><single>Illustrator</single><multiple>Illustratoren</multiple></term><term name=\"translator\"><single>Übersetzer</single><multiple>Übersetzer</multiple></term><term name=\"editortranslator\"><single>Herausgeber&#160;&amp; Übersetzer</single><multiple>Herausgeber&#160;&amp; Übersetzer</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>cre.</single><multiple>cres.</multiple></term><term name=\"director\" form=\"short\"><single>Reg.</single><multiple>Reg.</multiple></term><term name=\"editor\" form=\"short\"><single>Hrsg.</single><multiple>Hrsg.</multiple></term><term name=\"collection-editor\" form=\"short\"><single>Hrsg.</single><multiple>Hrsg.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>Hrsg.</single><multiple>Hrsg.</multiple></term><term name=\"illustrator\" form=\"short\"><single>Ill.</single><multiple>Ill.</multiple></term><term name=\"translator\" form=\"short\"><single>Übers.</single><multiple>Übers.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>Hrsg.&#160;&amp; Übers.</single><multiple>Hrsg.&#160;&amp; Übers.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term name=\"guest\" form=\"verb\">with guest</term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"container-author\" form=\"verb\">von</term><term name=\"director\" form=\"verb\">Regie von</term><term name=\"editor\" form=\"verb\">herausgegeben von</term><term name=\"collection-editor\" form=\"verb\">herausgegeben von</term><term name=\"editorial-director\" form=\"verb\">herausgegeben von</term><term name=\"illustrator\" form=\"verb\">illustriert von</term><term name=\"interviewer\" form=\"verb\">interviewt von</term><term name=\"recipient\" form=\"verb\">an</term><term name=\"reviewed-author\" form=\"verb\">von</term><term name=\"translator\" form=\"verb\">übersetzt von</term><term name=\"editortranslator\" form=\"verb\">herausgegeben und übersetzt von</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"contributor\" form=\"verb-short\">w.</term><term name=\"curator\" form=\"verb-short\">cur. by</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">hosted by</term><term name=\"narrator\" form=\"verb-short\">narr. by</term><term name=\"organizer\" form=\"verb-short\">org. by</term><term name=\"performer\" form=\"verb-short\">perf. by</term><term name=\"producer\" form=\"verb-short\">prod. by</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">cre. by</term><term name=\"director\" form=\"verb-short\">Reg.</term><term name=\"editor\" form=\"verb-short\">hg. von</term><term name=\"collection-editor\" form=\"verb-short\">hg. von</term><term name=\"editorial-director\" form=\"verb-short\">hg. von</term><term name=\"illustrator\" form=\"verb-short\">illus. von</term><term name=\"translator\" form=\"verb-short\">übers. von</term><term name=\"editortranslator\" form=\"verb-short\">hg.&#160;&amp; übers. von</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">Januar</term><term name=\"month-02\">Februar</term><term name=\"month-03\">März</term><term name=\"month-04\">April</term><term name=\"month-05\">Mai</term><term name=\"month-06\">Juni</term><term name=\"month-07\">Juli</term><term name=\"month-08\">August</term><term name=\"month-09\">September</term><term name=\"month-10\">Oktober</term><term name=\"month-11\">November</term><term name=\"month-12\">Dezember</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">Jan.</term><term name=\"month-02\" form=\"short\">Feb.</term><term name=\"month-03\" form=\"short\">März</term><term name=\"month-04\" form=\"short\">Apr.</term><term name=\"month-05\" form=\"short\">Mai</term><term name=\"month-06\" form=\"short\">Juni</term><term name=\"month-07\" form=\"short\">Juli</term><term name=\"month-08\" form=\"short\">Aug.</term><term name=\"month-09\" form=\"short\">Sep.</term><term name=\"month-10\" form=\"short\">Okt.</term><term name=\"month-11\" form=\"short\">Nov.</term><term name=\"month-12\" form=\"short\">Dez.</term>\n<!-- SEASONS --><term name=\"season-01\">Frühjahr</term><term name=\"season-02\">Sommer</term><term name=\"season-03\">Herbst</term><term name=\"season-04\">Winter</term></terms>\n</locale>\n",
-	"es-ES": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"es-ES\"><info><translator><name>javimat</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2012-07-04T23:31:02+00:00</updated></info><style-options punctuation-in-quote=\"false\"/><date form=\"text\"><date-part name=\"day\" suffix=\" de \"/><date-part name=\"month\" suffix=\" de \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"year\"/></date><terms><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"audio-recording\">audio recording</term><term name=\"film\">film</term><term name=\"henceforth\">henceforth</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no-place\">no place</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\">no publisher</term> <!-- sine nomine --><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"on\">on</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">original work published</term><term name=\"personal-communication\">comunicación personal</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term><term name=\"accessed\">accedido</term><term name=\"and\">y</term><term name=\"and others\">y otros</term><term name=\"anonymous\">anónimo</term><term name=\"anonymous\" form=\"short\">anón.</term><term name=\"at\">en</term><term name=\"available at\">disponible en</term><term name=\"by\">de</term><term name=\"circa\">circa</term><term name=\"circa\" form=\"short\">c.</term><term name=\"cited\">citado</term><term name=\"edition\"><single>edición</single><multiple>ediciones</multiple></term><term name=\"edition\" form=\"short\">ed.</term><term name=\"et-al\">et&#160;al.</term><term name=\"forthcoming\">previsto</term><term name=\"from\">a partir de</term><term name=\"ibid\">ibid.</term><term name=\"in\">en</term><term name=\"in press\">en imprenta</term><term name=\"internet\">internet</term><term name=\"interview\">entrevista</term><term name=\"letter\">carta</term><term name=\"no date\">sin fecha</term><term name=\"no date\" form=\"short\">s.&#160;f.</term><term name=\"online\">en línea</term><term name=\"presented at\">presentado en</term><term name=\"reference\"><single>referencia</single><multiple>referencias</multiple></term><term name=\"reference\" form=\"short\"><single>ref.</single><multiple>refs.</multiple></term><term name=\"retrieved\">recuperado</term><term name=\"scale\">escala</term><term name=\"version\">versión</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><term name=\"book\">book</term><term name=\"broadcast\">broadcast</term><term name=\"chapter\">book chapter</term><term name=\"classic\">classic</term><term name=\"collection\">collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">interview</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">comunicación personal</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">journal art.</term><term name=\"article-magazine\" form=\"short\">mag. art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><term name=\"book\" form=\"short\">bk.</term><term name=\"chapter\" form=\"short\">bk. chap.</term><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">d.&#160;C.</term><term name=\"bc\">a.&#160;C.</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">«</term><term name=\"close-quote\">»</term><term name=\"open-inner-quote\">“</term><term name=\"close-inner-quote\">”</term><term name=\"page-range-delimiter\">-</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">.ª</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">primera</term><term name=\"long-ordinal-02\">segunda</term><term name=\"long-ordinal-03\">tercera</term><term name=\"long-ordinal-04\">cuarta</term><term name=\"long-ordinal-05\">quinta</term><term name=\"long-ordinal-06\">sexta</term><term name=\"long-ordinal-07\">séptima</term><term name=\"long-ordinal-08\">octava</term><term name=\"long-ordinal-09\">novena</term><term name=\"long-ordinal-10\">décima</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\">\t\t\t <single>act</single><multiple>acts</multiple>\t\t\t\t\t\t </term><term name=\"appendix\">\t\t\t <single>appendix</single><multiple>appendices</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>article</single><multiple>articles</multiple>\t\t\t\t\t\t </term><term name=\"canon\">\t\t\t <single>canon</single><multiple>canons</multiple>\t\t\t\t\t\t </term><term name=\"elocation\">\t\t\t <single>location</single><multiple>locations</multiple>\t\t\t\t\t\t </term><term name=\"equation\">\t\t\t <single>equation</single><multiple>equations</multiple>\t\t\t\t\t\t </term><term name=\"rule\">\t\t\t <single>rule</single><multiple>rules</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>scene</single><multiple>scenes</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>table</single><multiple>tables</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>title</single><multiple>titles</multiple>\t\t\t\t\t\t </term><term name=\"book\"><single>libro</single><multiple>libros</multiple></term><term name=\"chapter\"><single>capítulo</single><multiple>capítulos</multiple></term><term name=\"column\"><single>columna</single><multiple>columnas</multiple></term><term name=\"figure\"><single>figura</single><multiple>figuras</multiple></term><term name=\"folio\"><single>folio</single><multiple>folios</multiple></term><term name=\"issue\"><single>número</single><multiple>números</multiple></term><term name=\"line\"><single>línea</single><multiple>líneas</multiple></term><term name=\"note\"><single>nota</single><multiple>notas</multiple></term><term name=\"opus\"><single>opus</single><multiple>opera</multiple></term><term name=\"page\"><single>página</single><multiple>páginas</multiple></term><term name=\"number-of-pages\"><single>página</single><multiple>páginas</multiple></term><term name=\"paragraph\"><single>párrafo</single><multiple>párrafos</multiple></term><term name=\"part\"><single>parte</single><multiple>partes</multiple></term><term name=\"section\"><single>sección</single><multiple>secciones</multiple></term><term name=\"sub-verbo\"><single>sub voce</single><multiple>sub vocibus</multiple></term><term name=\"verse\"><single>verso</single><multiple>versos</multiple></term><term name=\"volume\"><single>volumen</single><multiple>volúmenes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\">\t\t\t <single>app.</single><multiple>apps.</multiple>\t\t\t\t\t\t </term><term name=\"article-locator\">\t\t\t <single>art.</single><multiple>arts.</multiple></term><term name=\"elocation\">\t\t\t <single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\">\t\t\t <single>eq.</single><multiple>eqs.</multiple></term><term name=\"rule\">\t\t\t <single>r.</single><multiple>rr.</multiple>\t\t\t\t\t\t </term><term name=\"scene\">\t\t\t <single>sc.</single><multiple>scs.</multiple>\t\t\t\t\t\t </term><term name=\"table\">\t\t\t <single>tbl.</single><multiple>tbls.</multiple>\t\t\t\t\t\t </term><term name=\"timestamp\"> <!-- generally blank --><single></single><multiple></multiple>\t\t\t\t\t\t </term><term name=\"title-locator\">\t\t\t <single>tit.</single><multiple>tits.</multiple></term><term name=\"book\" form=\"short\">lib.</term><term name=\"chapter\" form=\"short\">cap.</term><term name=\"column\" form=\"short\">col.</term><term name=\"figure\" form=\"short\">fig.</term><term name=\"folio\" form=\"short\">f.</term><term name=\"issue\" form=\"short\">n.º</term><term name=\"line\" form=\"short\">l.</term><term name=\"note\" form=\"short\">n.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"paragraph\" form=\"short\">párr.</term><term name=\"part\" form=\"short\">pt.</term><term name=\"section\" form=\"short\">sec.</term><term name=\"sub-verbo\" form=\"short\"><single>s.&#160;v.</single><multiple>s.&#160;vv.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>vv.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term>\n<!-- SYMBOL LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>§</single><multiple>§</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"director\"><single>director</single><multiple>directores</multiple></term><term name=\"editor\"><single>editor</single><multiple>editores</multiple></term><term name=\"editorial-director\"><single>editor</single><multiple>editores</multiple></term><term name=\"illustrator\"><single>ilustrador</single><multiple>ilustradores</multiple></term><term name=\"translator\"><single>traductor</single><multiple>traductores</multiple></term><term name=\"editortranslator\"><single>editor y traductor</single><multiple>editores y traductores</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>cre.</single><multiple>cres.</multiple></term><term name=\"director\" form=\"short\"><single>dir.</single><multiple>dirs.</multiple></term><term name=\"editor\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ilust.</single><multiple>ilusts.</multiple></term><term name=\"translator\" form=\"short\"><single>trad.</single><multiple>trads.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>ed. y trad.</single><multiple>eds. y trads.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term name=\"guest\" form=\"verb\">with guest</term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"container-author\" form=\"verb\">de</term><term name=\"director\" form=\"verb\">dirigido por</term><term name=\"editor\" form=\"verb\">editado por</term><term name=\"editorial-director\" form=\"verb\">editado por</term><term name=\"illustrator\" form=\"verb\">ilustrado por</term><term name=\"interviewer\" form=\"verb\">entrevistado por</term><term name=\"recipient\" form=\"verb\">a</term><term name=\"reviewed-author\" form=\"verb\">por</term><term name=\"translator\" form=\"verb\">traducido por</term><term name=\"editortranslator\" form=\"verb\">editado y traducido por</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"contributor\" form=\"verb-short\">w.</term><term name=\"curator\" form=\"verb-short\">cur. by</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">hosted by</term><term name=\"narrator\" form=\"verb-short\">narr. by</term><term name=\"organizer\" form=\"verb-short\">org. by</term><term name=\"performer\" form=\"verb-short\">perf. by</term><term name=\"producer\" form=\"verb-short\">prod. by</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">cre. by</term><term name=\"director\" form=\"verb-short\">dir.</term><term name=\"editor\" form=\"verb-short\">ed.</term><term name=\"editorial-director\" form=\"verb-short\">ed.</term><term name=\"illustrator\" form=\"verb-short\">ilust.</term><term name=\"translator\" form=\"verb-short\">trad.</term><term name=\"editortranslator\" form=\"verb-short\">ed. y trad.</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">enero</term><term name=\"month-02\">febrero</term><term name=\"month-03\">marzo</term><term name=\"month-04\">abril</term><term name=\"month-05\">mayo</term><term name=\"month-06\">junio</term><term name=\"month-07\">julio</term><term name=\"month-08\">agosto</term><term name=\"month-09\">septiembre</term><term name=\"month-10\">octubre</term><term name=\"month-11\">noviembre</term><term name=\"month-12\">diciembre</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">ene.</term><term name=\"month-02\" form=\"short\">feb.</term><term name=\"month-03\" form=\"short\">mar.</term><term name=\"month-04\" form=\"short\">abr.</term><term name=\"month-05\" form=\"short\">may</term><term name=\"month-06\" form=\"short\">jun.</term><term name=\"month-07\" form=\"short\">jul.</term><term name=\"month-08\" form=\"short\">ago.</term><term name=\"month-09\" form=\"short\">sep.</term><term name=\"month-10\" form=\"short\">oct.</term><term name=\"month-11\" form=\"short\">nov.</term><term name=\"month-12\" form=\"short\">dic.</term>\n<!-- SEASONS --><term name=\"season-01\">primavera</term><term name=\"season-02\">verano</term><term name=\"season-03\">otoño</term><term name=\"season-04\">invierno</term></terms>\n</locale>\n"
+	"en-US": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"en-US\"><!-- The abbreviations in this file follow the recommendations of The Chicago Manual of Style, 18th ed. (2024), sec. 10.48 (cited hereafter as CMOS), unless stated otherwise. --><!-- Additional abbreviations are from:1. Oxford Dictionary for Writers and Editors (2000), https://archive.org/details/oxfordstylemanua0000unse (cited hereafter as ODWE): reference has also been made to the New Oxford Dictionary for Writers and Editors (NODWE), but periods must be added to contractions in these later editions to reflect US English usage2. Oxford Dictionary of Abbreviations (2011), https://doi.org/10.1093/acref/9780199698295.001.0001 (cited hereafter as ODA)--><info><translator><name>Andrew Dunning</name><uri>https://orcid.org/0000-0003-0464-5036</uri></translator><translator><name>Sebastian Karcher</name><uri>https://orcid.org/0000-0001-8249-7388</uri></translator><translator><name>Rintze M. Zelle</name><uri>https://orcid.org/0000-0003-1779-8883</uri></translator><translator><name>Denis Meier</name></translator><translator><name>Brenton M. Wiernik</name><uri>https://orcid.org/0000-0001-9560-6336</uri></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2026-01-10T00:00:00+00:00</updated></info><style-options punctuation-in-quote=\"true\"/><date form=\"text\"><date-part name=\"month\" suffix=\" \"/><date-part name=\"day\" suffix=\", \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"year\"/></date><terms><!-- LONG GENERAL TERMS --><term name=\"accessed\">accessed</term><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"and\">and</term><term name=\"and others\">and others</term><term name=\"anonymous\">anonymous</term><term name=\"at\">at</term><term name=\"audio-recording\">audio recording</term><term name=\"available at\">available at</term><term name=\"by\">by</term><term name=\"circa\">circa</term><term name=\"cited\">cited</term><term name=\"et-al\">et al.</term><term name=\"film\">film</term><term name=\"forthcoming\">forthcoming</term><term name=\"from\">from</term><term name=\"henceforth\">henceforth</term><term name=\"ibid\">ibid.</term><term name=\"in\">in</term><term name=\"in press\">in press</term><term name=\"internet\">internet</term><term name=\"letter\">letter</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no date\">no date</term><term name=\"no-place\">no place</term><term name=\"no-publisher\">no publisher</term><term name=\"on\">on</term><term name=\"online\">online</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">original work published</term><term name=\"personal-communication\">personal communication</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"presented at\">presented at the</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"reference\"><single>reference</single><multiple>references</multiple></term><term name=\"retrieved\">retrieved</term><term name=\"review-of\">review of</term><term name=\"scale\">scale</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term>\n<!-- SHORT GENERAL TERMS --><!-- Omitted short forms: accessed, album, and (symbol), and others, at (symbol), forthcoming, henceforth, ibid, in, in press, internet, loc-cit, on, online, op-cit, podcast, preprint, presented at --><term name=\"advance-online-publication\" form=\"short\">adv. online pub.</term> <!-- ODA --><term name=\"anonymous\" form=\"short\">anon.</term><term name=\"audio-recording\" form=\"short\">au. rec.</term> <!-- ODA --><term name=\"available at\" form=\"short\">avail. at</term> <!-- ODA --><term name=\"circa\" form=\"short\">c.</term><!-- CMOS 10.48 recommends \"ca.\" for \"circa\" but also allows \"c.\", which CSL has used historically --><term name=\"cited\" form=\"short\">cit.</term> <!-- ODA --><term name=\"film\" form=\"short\">flm.</term> <!-- ODA --><term name=\"from\" form=\"short\">fr.</term><term name=\"letter\" form=\"short\">let.</term> <!-- ODA --><term name=\"no date\" form=\"short\">n.d.</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"original-work-published\" form=\"short\">orig. pub.</term> <!-- Oxford Guide to Style --><term name=\"personal-communication\" form=\"short\">pers. comm.</term><term name=\"podcast-episode\" form=\"short\">podcast ep.</term><term name=\"radio-broadcast\" form=\"short\">radio bdcst.</term> <!-- ODA --><term name=\"radio-series\" form=\"short\">radio ser.</term> <!-- ODA --><term name=\"radio-series-episode\" form=\"short\">radio ser. ep.</term> <!-- ODA --><term name=\"reference\" form=\"short\"><single>ref.</single><multiple>refs.</multiple></term><term name=\"retrieved\" form=\"short\">rtvd.</term> <!-- ODA --><term name=\"review-of\" form=\"short\">rev. of</term><term name=\"scale\" form=\"short\">sc.</term> <!-- ODA --><term name=\"special-issue\" form=\"short\">spec. iss.</term> <!-- ODA --><term name=\"special-section\" form=\"short\">spec. sec.</term> <!-- ODA/CMOS --><term name=\"television-broadcast\" form=\"short\">TV bdcst.</term> <!-- ODA --><term name=\"television-series\" form=\"short\">TV ser.</term> <!-- ODA --><term name=\"television-series-episode\" form=\"short\">TV ser. ep.</term> <!-- ODA --><term name=\"video\" form=\"short\">vid.</term> <!-- ODA --><term name=\"working-paper\" form=\"short\">wkg. paper</term> <!-- ODA -->\n<!-- SYMBOLIC GENERAL FORMS --><term name=\"and\" form=\"symbol\">&amp;</term><term name=\"at\" form=\"symbol\">@</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><!-- book is in the list of locator terms --><term name=\"broadcast\">broadcast</term><!-- chapter is in the list of locator terms --><term name=\"classic\">classical work</term><term name=\"collection\">archival collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">interview</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">personal communication</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><!-- Omitted short forms: article, bill, entry, event, hearing, map, periodical, speech, treaty --><term name=\"article-journal\" form=\"short\">jour. art.</term> <!-- ODWE --><term name=\"article-magazine\" form=\"short\">mag. art.</term> <!-- ODWE --><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><term name=\"broadcast\" form=\"short\">bdcst.</term> <!-- ODA --><!-- book is in the list of locator terms --><!-- chapter is in the list of locator terms --><term name=\"classic\" form=\"short\">class. wk.</term> <!-- ODWE --><term name=\"collection\" form=\"short\">arch. coll.</term> <!-- ODA --><term name=\"document\" form=\"short\">doc.</term><term name=\"entry-dictionary\" form=\"short\">dict. entry</term><term name=\"entry-encyclopedia\" form=\"short\">ency. entry</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">gr.</term> <!-- ODA --><term name=\"interview\" form=\"short\">int.</term> <!-- ODA --><term name=\"legal_case\" form=\"short\">leg. case</term> <!-- ODA --><term name=\"legislation\" form=\"short\">legis.</term> <!-- ODA --><term name=\"manuscript\" form=\"short\"><single>MS</single><multiple>MSS</multiple></term><term name=\"motion_picture\" form=\"short\">vid. rec.</term> <!-- ODA --><term name=\"musical_score\" form=\"short\">mus. score</term> <!-- ODWE --><term name=\"pamphlet\" form=\"short\">pam.</term> <!-- ODWE --><term name=\"paper-conference\" form=\"short\">conf. paper</term> <!-- ODA --><term name=\"patent\" form=\"short\">pat.</term> <!-- ODWE --><term name=\"performance\" form=\"short\">prfm.</term> <!-- ODA --><term name=\"personal_communication\" form=\"short\">pers. comm.</term><term name=\"regulation\" form=\"short\">reg.</term> <!-- ODA --><term name=\"report\" form=\"short\">rep.</term> <!-- ODWE --><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"software\" form=\"short\">sftw.</term> <!-- ODA --><term name=\"song\" form=\"short\">au. rec.</term> <!-- ODA --><term name=\"standard\" form=\"short\">std.</term> <!-- ODA --><term name=\"thesis\" form=\"short\">thes.</term> <!-- ODA --><term name=\"webpage\" form=\"short\">webpg.</term> <!-- ODA -->\n<!-- LONG VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb\">testimony of</term><term name=\"review\" form=\"verb\">review of</term><term name=\"review-book\" form=\"verb\">review of the book</term>\n<!-- SHORT VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb-short\">test. of</term> <!-- ODA --><term name=\"review\" form=\"verb-short\">rev. of</term><term name=\"review-book\" form=\"verb-short\">rev. of the bk.</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\"> AD</term><term name=\"bc\"> BC</term><term name=\"bce\"> BCE</term><term name=\"ce\"> CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">“</term><term name=\"close-quote\">”</term><term name=\"open-inner-quote\">‘</term><term name=\"close-inner-quote\">’</term><term name=\"page-range-delimiter\">–</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">th</term><term name=\"ordinal-01\">st</term><term name=\"ordinal-02\">nd</term><term name=\"ordinal-03\">rd</term><term name=\"ordinal-11\">th</term><term name=\"ordinal-12\">th</term><term name=\"ordinal-13\">th</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">first</term><term name=\"long-ordinal-02\">second</term><term name=\"long-ordinal-03\">third</term><term name=\"long-ordinal-04\">fourth</term><term name=\"long-ordinal-05\">fifth</term><term name=\"long-ordinal-06\">sixth</term><term name=\"long-ordinal-07\">seventh</term><term name=\"long-ordinal-08\">eighth</term><term name=\"long-ordinal-09\">ninth</term><term name=\"long-ordinal-10\">tenth</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\"><single>act</single><multiple>acts</multiple></term><term name=\"appendix\"><single>appendix</single><multiple>appendices</multiple></term><term name=\"article-locator\"><single>article</single><multiple>articles</multiple></term><term name=\"book\"><single>book</single><multiple>books</multiple></term><term name=\"canon\"><single>canon</single><multiple>canons</multiple></term><term name=\"chapter\"><single>chapter</single><multiple>chapters</multiple></term><term name=\"column\"><single>column</single><multiple>columns</multiple></term><term name=\"elocation\"><single>location</single><multiple>locations</multiple></term><term name=\"equation\"><single>equation</single><multiple>equations</multiple></term><term name=\"figure\"><single>figure</single><multiple>figures</multiple></term><term name=\"folio\"><single>folio</single><multiple>folios</multiple></term><term name=\"issue\"><single>issue</single><multiple>issues</multiple></term><term name=\"line\"><single>line</single><multiple>lines</multiple></term><term name=\"note\"><single>note</single><multiple>notes</multiple></term><term name=\"opus\"><single>opus</single><multiple>opera</multiple></term><term name=\"page\"><single>page</single><multiple>pages</multiple></term><term name=\"paragraph\"><single>paragraph</single><multiple>paragraphs</multiple></term><term name=\"part\"><single>part</single><multiple>parts</multiple></term><term name=\"rule\"><single>rule</single><multiple>rules</multiple></term><term name=\"scene\"><single>scene</single><multiple>scenes</multiple></term><term name=\"section\"><single>section</single><multiple>sections</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"supplement\"><single>supplement</single><multiple>supplements</multiple></term><term name=\"table\"><single>table</single><multiple>tables</multiple></term><!-- A timestamp is a composite of hours, minutes, etc. and therefore has no default label. --><term name=\"timestamp\"/><term name=\"title-locator\"><single>title</single><multiple>titles</multiple></term><term name=\"verse\"><single>verse</single><multiple>verses</multiple></term><term name=\"volume\"><single>volume</single><multiple>volumes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><!-- Omitted short forms: act, timestamp --><term name=\"appendix\" form=\"short\"><single>app.</single><multiple>apps.</multiple></term><term name=\"article-locator\" form=\"short\"><single>art.</single><multiple>arts.</multiple></term><term name=\"book\" form=\"short\"><single>bk.</single><multiple>bks.</multiple></term><term name=\"canon\" form=\"short\"><!-- Oxford Dictionary for Writers and Editors --><single>can.</single><multiple>cann.</multiple></term><term name=\"chapter\" form=\"short\"><single>chap.</single><multiple>chaps.</multiple></term><term name=\"column\" form=\"short\"><single>col.</single><multiple>cols.</multiple></term><term name=\"elocation\" form=\"short\"><single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\" form=\"short\"><single>eq.</single><multiple>eqq.</multiple></term><term name=\"figure\" form=\"short\"><single>fig.</single><multiple>figs.</multiple></term><term name=\"folio\" form=\"short\"><single>fol.</single><multiple>fols.</multiple></term><term name=\"issue\" form=\"short\"><single>no.</single><multiple>nos.</multiple></term><term name=\"line\" form=\"short\"><single>l.</single><multiple>ll.</multiple></term><term name=\"note\" form=\"short\"><single>n.</single><multiple>nn.</multiple></term><term name=\"opus\" form=\"short\"><single>op.</single><multiple>opp.</multiple></term><term name=\"page\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"paragraph\" form=\"short\"><single>para.</single><multiple>paras.</multiple></term><term name=\"part\" form=\"short\"><single>pt.</single><multiple>pts.</multiple></term><term name=\"rule\" form=\"short\"><!-- legal abbreviations in the Oxford Guide to Style, sec. 13.2.1 --><single>r.</single><multiple>rr.</multiple></term><term name=\"scene\" form=\"short\"><single>sc.</single><multiple>scs.</multiple></term><term name=\"section\" form=\"short\"><single>sec.</single><multiple>secs.</multiple></term><term name=\"sub-verbo\" form=\"short\"><single>s.v.</single><multiple>s.vv.</multiple></term><term name=\"supplement\" form=\"short\"><single>supp.</single><multiple>supps.</multiple></term><term name=\"table\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>tbl.</single><multiple>tbls.</multiple></term><term name=\"title-locator\" form=\"short\"><!-- Oxford Dictionary for Writers and Editors --><single>tit.</single><multiple>titt.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>vv.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term>\n<!-- SYMBOLIC LOCATOR FORMS --><term name=\"chapter\" form=\"symbol\"><!-- caput/capita, esp. in legal works; cf. CMOS 14.196 --><single>c.</single><multiple>cc.</multiple></term><term name=\"paragraph\" form=\"symbol\"><single>¶</single><multiple>¶¶</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§§</multiple></term>\n<!-- LONG NUMBER VARIABLE FORMS --><term name=\"chapter-number\"><single>chapter</single><multiple>chapters</multiple></term><term name=\"citation-number\"><single>citation</single><multiple>citations</multiple></term><term name=\"collection-number\"><single>number</single><multiple>numbers</multiple></term><term name=\"edition\"><single>edition</single><multiple>editions</multiple></term><term name=\"first-reference-note-number\"><single>note</single><multiple>notes</multiple></term><term name=\"number\"><single>number</single><multiple>numbers</multiple></term><term name=\"number-of-pages\"><single>page</single><multiple>pages</multiple></term><term name=\"number-of-volumes\"><single>volume</single><multiple>volumes</multiple></term><term name=\"page-first\"><single>page</single><multiple>pages</multiple></term><term name=\"printing\"><single>printing</single><multiple>printings</multiple></term><term name=\"version\"><single>version</single><multiple>versions</multiple></term>\n<!-- SHORT NUMBER VARIABLE FORMS --><term name=\"chapter-number\" form=\"short\"><single>chap.</single><multiple>chaps.</multiple></term><term name=\"citation-number\" form=\"short\"><single>cit.</single><multiple>cits.</multiple></term><term name=\"collection-number\" form=\"short\"><single>no.</single><multiple>nos.</multiple></term><term name=\"edition\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"first-reference-note-number\" form=\"short\"><single>n.</single><multiple>nn.</multiple></term><term name=\"number\" form=\"short\"><single>no.</single><multiple>nos.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"number-of-volumes\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term><term name=\"page-first\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"printing\" form=\"short\"><!-- Oxford Dictionary for Writers and Editors --><single>ptg.</single><multiple>ptgs.</multiple></term><term name=\"version\" form=\"short\">v.</term> <!-- no plural -->\n<!-- LONG ROLE FORMS --><term name=\"author\"/> <!-- generally blank --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"collection-editor\"><single>editor</single><multiple>editors</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"composer\"/> <!-- generally blank --><term name=\"container-author\"/> <!-- generally blank --><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"director\"><single>director</single><multiple>directors</multiple></term><term name=\"editor\"><single>editor</single><multiple>editors</multiple></term><term name=\"editor-translator\"><single>editor &amp; translator</single><multiple>editors &amp; translators</multiple></term><term name=\"editortranslator\"><single>editor &amp; translator</single><multiple>editors &amp; translators</multiple></term><term name=\"editorial-director\"><single>editor</single><multiple>editors</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"illustrator\"><single>illustrator</single><multiple>illustrators</multiple></term><term name=\"interviewer\"/> <!-- generally blank --><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"original-author\"/> <!-- generally blank --><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"recipient\"/> <!-- generally blank --><term name=\"reviewed-author\"/> <!-- generally blank --><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"translator\"><single>translator</single><multiple>translators</multiple></term>\n<!-- SHORT ROLE FORMS --><!-- Omitted roles:author, chair, composer, container-author, guest, host, interviewer, original-author, recipient, reviewed-author--><term name=\"collection-editor\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><!-- Oxford Art Online <https://www.oxfordartonline.com/page/1661> --><single>cur.</single><multiple>curs.</multiple></term><term name=\"director\" form=\"short\"><single>dir.</single><multiple>dirs.</multiple></term><term name=\"editor\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"editor-translator\" form=\"short\"><single>ed. &amp; trans.</single><multiple>eds. &amp; trans.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>ed. &amp; trans.</single><multiple>eds. &amp; trans.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"executive-producer\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ill.</single><multiple>ills.</multiple></term><term name=\"narrator\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><!-- possibly misleading: Oxford Dictionary of Abbreviations only defines this as organization or organized --><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><!-- Oxford Dictionary of Abbreviations --><single>wrtr.</single><multiple>wrtrs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>ser. creator</single><multiple>ser. creators</multiple></term><term name=\"translator\" form=\"short\">trans.</term> <!-- no plural -->\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"collection-editor\" form=\"verb\">edited by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"composer\" form=\"verb\">composed by</term><term name=\"container-author\" form=\"verb\">by</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"director\" form=\"verb\">directed by</term><term name=\"editor\" form=\"verb\">edited by</term><term name=\"editor-translator\" form=\"verb\">edited &amp; translated by</term><term name=\"editortranslator\" form=\"verb\">edited &amp; translated by</term><term name=\"editorial-director\" form=\"verb\">edited by</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term form=\"verb\" name=\"guest\"><single>with guest</single><multiple>with guests</multiple></term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"illustrator\" form=\"verb\">illustrated by</term><term name=\"interviewer\" form=\"verb\">interview by</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"original-author\" form=\"verb\">by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"recipient\" form=\"verb\">to</term><term name=\"reviewed-author\" form=\"verb\">by</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"translator\" form=\"verb\">translated by</term>\n<!-- SHORT VERB ROLE FORMS --><!-- Omitted roles:author, chair, container-author, contributor, guest, host, interviewer, original-author, recipient, reviewed-author, series-creator--><term name=\"collection-editor\" form=\"verb-short\">ed. by</term><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"composer\" form=\"verb-short\">comp. by</term> <!-- ODWE --><term name=\"curator\" form=\"verb-short\">cur. by</term> <!-- Oxford Art Online --><term name=\"director\" form=\"verb-short\">dir. by</term><term name=\"editor\" form=\"verb-short\">ed. by</term><term name=\"editor-translator\" form=\"verb-short\">ed. &amp; trans. by</term><term name=\"editortranslator\" form=\"verb-short\">ed. &amp; trans. by</term><term name=\"editorial-director\" form=\"verb-short\">ed. by</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term> <!-- ODA --><term name=\"illustrator\" form=\"verb-short\">ill. by</term><term name=\"narrator\" form=\"verb-short\">narr. by</term> <!-- ODA --><term name=\"organizer\" form=\"verb-short\">org. by</term> <!-- ODA --><term name=\"performer\" form=\"verb-short\">perf. by</term> <!-- ODA --><term name=\"producer\" form=\"verb-short\">prod. by</term> <!-- ODA --><term name=\"script-writer\" form=\"verb-short\">writ. by</term> <!-- ODA --><term name=\"translator\" form=\"verb-short\">trans. by</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">January</term><term name=\"month-02\">February</term><term name=\"month-03\">March</term><term name=\"month-04\">April</term><term name=\"month-05\">May</term><term name=\"month-06\">June</term><term name=\"month-07\">July</term><term name=\"month-08\">August</term><term name=\"month-09\">September</term><term name=\"month-10\">October</term><term name=\"month-11\">November</term><term name=\"month-12\">December</term>\n<!-- SHORT MONTH FORMS --><!-- Chicago Manual of Style, 18th ed., sec. 10.44 (identical to New Hart's Rules, 2nd ed., sec. 10.2.6) --><term name=\"month-01\" form=\"short\">Jan.</term><term name=\"month-02\" form=\"short\">Feb.</term><term name=\"month-03\" form=\"short\">Mar.</term><term name=\"month-04\" form=\"short\">Apr.</term><term name=\"month-05\" form=\"short\">May</term><term name=\"month-06\" form=\"short\">June</term><term name=\"month-07\" form=\"short\">July</term><term name=\"month-08\" form=\"short\">Aug.</term><term name=\"month-09\" form=\"short\">Sept.</term><term name=\"month-10\" form=\"short\">Oct.</term><term name=\"month-11\" form=\"short\">Nov.</term><term name=\"month-12\" form=\"short\">Dec.</term>\n<!-- SEASONS --><term name=\"season-01\">Spring</term><term name=\"season-02\">Summer</term><term name=\"season-03\">Autumn</term><term name=\"season-04\">Winter</term></terms>\n</locale>\n",
+	"nl-NL": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"nl-NL\"><info><translator><name>Rintze M. Zelle</name><uri>http://twitter.com/rintzezelle</uri></translator><translator><name>K. Avonts</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2026-01-10T00:00:00+00:00</updated></info><style-options punctuation-in-quote=\"false\"/><date form=\"text\"><date-part name=\"day\" suffix=\" \"/><date-part name=\"month\" suffix=\" \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" suffix=\"-\" range-delimiter=\"/\"/><date-part name=\"month\" form=\"numeric\" suffix=\"-\" range-delimiter=\"/\"/><date-part name=\"year\"/></date><terms><!-- LONG GENERAL TERMS --><term name=\"accessed\">geraadpleegd</term><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"and\">en</term><term name=\"and others\">en anderen</term><term name=\"anonymous\">anoniem</term><term name=\"at\">bij</term><term name=\"audio-recording\">audio recording</term><term name=\"available at\">beschikbaar op</term><term name=\"by\">door</term><term name=\"circa\">circa</term><term name=\"cited\">geciteerd</term><term name=\"et-al\">e.a.</term><term name=\"film\">film</term><term name=\"forthcoming\">in voorbereiding</term><term name=\"from\">van</term><term name=\"henceforth\">henceforth</term><term name=\"ibid\">ibid.</term><term name=\"in\">in</term><term name=\"in press\">in druk</term><term name=\"internet\">internet</term><term name=\"letter\">brief</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no date\">zonder datum</term><term name=\"no-place\">no place</term><term name=\"no-publisher\">no publisher</term> <!-- sine nomine --><term name=\"on\">on</term><term name=\"online\">online</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">original work published</term><term name=\"personal-communication\">persoonlijke communicatie</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"presented at\">gepresenteerd bij</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"reference\"><single>referentie</single><multiple>referenties</multiple></term><term name=\"retrieved\">geraadpleegd</term><term name=\"review-of\">review of</term><term name=\"scale\">schaal</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term>\n<!-- SHORT GENERAL TERMS --><term name=\"anonymous\" form=\"short\">anon.</term><term name=\"circa\" form=\"short\">c.</term><term name=\"no date\" form=\"short\">z.d.</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"reference\" form=\"short\"><single>ref.</single><multiple>refs.</multiple></term><term name=\"review-of\" form=\"short\">rev. of</term>\n<!-- SYMBOLIC GENERAL FORMS -->\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><!-- book is in the list of locator terms --><term name=\"broadcast\">broadcast</term><!-- chapter is in the list of locator terms --><term name=\"classic\">classic</term><term name=\"collection\">collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">interview</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">persoonlijke communicatie</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">journal art.</term><term name=\"article-magazine\" form=\"short\">mag. art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><!-- book is in the list of locator terms --><!-- chapter is in the list of locator terms --><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- LONG VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb\">testimony of</term><term name=\"review\" form=\"verb\">review of</term><term name=\"review-book\" form=\"verb\">review of the book</term>\n<!-- SHORT VERB ITEM TYPE FORMS -->\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">AD</term><term name=\"bc\">BC</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">“</term><term name=\"close-quote\">”</term><term name=\"open-inner-quote\">‘</term><term name=\"close-inner-quote\">’</term><term name=\"page-range-delimiter\">-</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">ste</term><term name=\"ordinal-00\" match=\"whole-number\">de</term><term name=\"ordinal-02\" match=\"last-two-digits\">de</term><term name=\"ordinal-03\" match=\"last-two-digits\">de</term><term name=\"ordinal-04\" match=\"last-two-digits\">de</term><term name=\"ordinal-05\" match=\"last-two-digits\">de</term><term name=\"ordinal-06\" match=\"last-two-digits\">de</term><term name=\"ordinal-07\" match=\"last-two-digits\">de</term><term name=\"ordinal-09\" match=\"last-two-digits\">de</term><term name=\"ordinal-10\">de</term><term name=\"ordinal-11\">de</term><term name=\"ordinal-12\">de</term><term name=\"ordinal-13\">de</term><term name=\"ordinal-14\">de</term><term name=\"ordinal-15\">de</term><term name=\"ordinal-16\">de</term><term name=\"ordinal-17\">de</term><term name=\"ordinal-18\">de</term><term name=\"ordinal-19\">de</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">eerste</term><term name=\"long-ordinal-02\">tweede</term><term name=\"long-ordinal-03\">derde</term><term name=\"long-ordinal-04\">vierde</term><term name=\"long-ordinal-05\">vijfde</term><term name=\"long-ordinal-06\">zesde</term><term name=\"long-ordinal-07\">zevende</term><term name=\"long-ordinal-08\">achtste</term><term name=\"long-ordinal-09\">negende</term><term name=\"long-ordinal-10\">tiende</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\"><single>act</single><multiple>acts</multiple></term><term name=\"appendix\"><single>appendix</single><multiple>appendices</multiple></term><term name=\"article-locator\"><single>article</single><multiple>articles</multiple></term><term name=\"book\"><single>boek</single><multiple>boeken</multiple></term><term name=\"canon\"><single>canon</single><multiple>canons</multiple></term><term name=\"chapter\"><single>hoofdstuk</single><multiple>hoofdstukken</multiple></term><term name=\"column\"><single>column</single><multiple>columns</multiple></term><term name=\"elocation\"><single>location</single><multiple>locations</multiple></term><term name=\"equation\"><single>equation</single><multiple>equations</multiple></term><term name=\"figure\"><single>figuur</single><multiple>figuren</multiple></term><term name=\"folio\"><single>folio</single><multiple>folio's</multiple></term><term name=\"issue\"><single>nummer</single><multiple>nummers</multiple></term><term name=\"line\"><single>regel</single><multiple>regels</multiple></term><term name=\"note\"><single>aantekening</single><multiple>aantekeningen</multiple></term><term name=\"opus\"><single>opus</single><multiple>opera</multiple></term><term name=\"page\"><single>pagina</single><multiple>pagina's</multiple></term><term name=\"paragraph\"><single>paragraaf</single><multiple>paragrafen</multiple></term><term name=\"part\"><single>deel</single><multiple>delen</multiple></term><term name=\"rule\"><single>rule</single><multiple>rules</multiple></term><term name=\"scene\"><single>scene</single><multiple>scenes</multiple></term><term name=\"section\"><single>sectie</single><multiple>secties</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"supplement\"><single>supplement</single><multiple>supplements</multiple></term><term name=\"table\"><single>table</single><multiple>tables</multiple></term><term name=\"timestamp\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\"><single>title</single><multiple>titles</multiple></term><term name=\"verse\"><single>vers</single><multiple>versen</multiple></term><term name=\"volume\"><single>volume</single><multiple>volumes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\" form=\"short\"><single>app.</single><multiple>apps.</multiple></term><term name=\"article-locator\" form=\"short\"><single>art.</single><multiple>arts.</multiple></term><term name=\"book\" form=\"short\">bk.</term><term name=\"chapter\" form=\"short\">hfdst.</term><term name=\"column\" form=\"short\">col.</term><term name=\"elocation\" form=\"short\"><single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\" form=\"short\"><single>eq.</single><multiple>eqs.</multiple></term><term name=\"figure\" form=\"short\">fig.</term><term name=\"folio\" form=\"short\">f.</term><term name=\"issue\" form=\"short\">nr.</term><term name=\"line\" form=\"short\">l.</term><term name=\"note\" form=\"short\">n.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"paragraph\" form=\"short\">par.</term><term name=\"part\" form=\"short\">deel</term><term name=\"rule\" form=\"short\"><single>r.</single><multiple>rr.</multiple></term><term name=\"scene\" form=\"short\"><single>sc.</single><multiple>scs.</multiple></term><term name=\"section\" form=\"short\">sec.</term><term name=\"sub-verbo\" form=\"short\"><single>s.v.</single><multiple>s.vv.</multiple></term><term name=\"supplement\" form=\"short\"><single>supp.</single><multiple>supps.</multiple></term><term name=\"table\" form=\"short\"><single>tbl.</single><multiple>tbls.</multiple></term><term name=\"timestamp\" form=\"short\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\" form=\"short\"><single>tit.</single><multiple>tits.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>vv.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term>\n<!-- SYMBOLIC LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>¶</single><multiple>¶¶</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§§</multiple></term>\n<!-- LONG NUMBER VARIABLE FORMS --><term name=\"chapter-number\"><single>chapter</single><multiple>chapters</multiple></term><term name=\"citation-number\"><single>citation</single><multiple>citations</multiple></term><term name=\"collection-number\"><single>nummer</single><multiple>nummers</multiple></term><term name=\"edition\"><single>druk</single><multiple>drukken</multiple></term><term name=\"first-reference-note-number\"><single>aantekening</single><multiple>aantekeningen</multiple></term><term name=\"number\"><single>number</single><multiple>numbers</multiple></term><term name=\"number-of-pages\"><single>pagina</single><multiple>pagina's</multiple></term><term name=\"number-of-volumes\"><single>volume</single><multiple>volumes</multiple></term><term name=\"page-first\"><single>page</single><multiple>pages</multiple></term><term name=\"printing\"><single>printing</single><multiple>printings</multiple></term><term name=\"version\">versie</term>\n<!-- SHORT NUMBER VARIABLE FORMS --><term name=\"chapter-number\" form=\"short\"><single>chap.</single><multiple>chaps.</multiple></term><term name=\"citation-number\" form=\"short\"><single>cit.</single><multiple>cits.</multiple></term><term name=\"collection-number\" form=\"short\">nr.</term><term name=\"edition\" form=\"short\">dr.</term><term name=\"first-reference-note-number\" form=\"short\">n.</term><term name=\"number\" form=\"short\"><single>no.</single><multiple>nos.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"number-of-volumes\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term><term name=\"page-first\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"printing\" form=\"short\"><single>print.</single><multiple>prints.</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"author\"/> <!-- generally blank --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"collection-editor\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"composer\"/> <!-- generally blank --><term name=\"container-author\"/> <!-- generally blank --><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"director\"><single>regisseur</single><multiple>regisseurs</multiple></term><term name=\"editor\"><single>redacteur</single><multiple>redacteuren</multiple></term><term name=\"editor-translator\"><single>redacteur &amp; vertaler</single><multiple>redacteuren &amp; vertalers</multiple></term><term name=\"editortranslator\"><single>redacteur &amp; vertaler</single><multiple>redacteuren &amp; vertalers</multiple></term><term name=\"editorial-director\"><single>redacteur</single><multiple>redacteuren</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"illustrator\"><single>illustrator</single><multiple>illustrators</multiple></term><term name=\"interviewer\"/> <!-- generally blank --><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"original-author\"/> <!-- generally blank --><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"recipient\"/> <!-- generally blank --><term name=\"reviewed-author\"/> <!-- generally blank --><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"translator\"><single>vertaler</single><multiple>vertalers</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"director\" form=\"short\"><single>reg.</single><multiple>reg.</multiple></term><term name=\"editor\" form=\"short\"><single>red.</single><multiple>red.</multiple></term><term name=\"editor-translator\" form=\"short\"><single>red. &amp; vert.</single><multiple>red. &amp; vert.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>red. &amp; vert.</single><multiple>red. &amp; vert.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>red.</single><multiple>red.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ill.</single><multiple>ill.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>cre.</single><multiple>cres.</multiple></term><term name=\"translator\" form=\"short\"><single>vert.</single><multiple>vert.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"collection-editor\" form=\"verb\">edited by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"container-author\" form=\"verb\">door</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"director\" form=\"verb\">geregisseerd door</term><term name=\"editor\" form=\"verb\">onder redactie van</term><term name=\"editor-translator\" form=\"verb\">bewerkt &amp; vertaald door</term><term name=\"editortranslator\" form=\"verb\">bewerkt &amp; vertaald door</term><term name=\"editorial-director\" form=\"verb\">onder redactie van</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term name=\"guest\" form=\"verb\">with guest</term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"illustrator\" form=\"verb\">geïllustreerd door</term><term name=\"interviewer\" form=\"verb\">geïnterviewd door</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"recipient\" form=\"verb\">ontvangen door</term><term name=\"reviewed-author\" form=\"verb\">door</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"translator\" form=\"verb\">vertaald door</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"collection-editor\" form=\"verb-short\">ed. by</term><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"contributor\" form=\"verb-short\">w.</term><term name=\"curator\" form=\"verb-short\">cur. by</term><term name=\"director\" form=\"verb-short\">geregisseerd door</term><term name=\"editor\" form=\"verb-short\">onder redactie van</term><term name=\"editor-translator\" form=\"verb-short\">bewerkt &amp; vertaald door</term><term name=\"editortranslator\" form=\"verb-short\">bewerkt &amp; vertaald door</term><term name=\"editorial-director\" form=\"verb-short\">bewerkt door</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">hosted by</term><term name=\"illustrator\" form=\"verb-short\">geïllustreerd door</term><term name=\"narrator\" form=\"verb-short\">narr. by</term><term name=\"organizer\" form=\"verb-short\">org. by</term><term name=\"performer\" form=\"verb-short\">perf. by</term><term name=\"producer\" form=\"verb-short\">prod. by</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">cre. by</term><term name=\"translator\" form=\"verb-short\">vertaald door</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">januari</term><term name=\"month-02\">februari</term><term name=\"month-03\">maart</term><term name=\"month-04\">april</term><term name=\"month-05\">mei</term><term name=\"month-06\">juni</term><term name=\"month-07\">juli</term><term name=\"month-08\">augustus</term><term name=\"month-09\">september</term><term name=\"month-10\">oktober</term><term name=\"month-11\">november</term><term name=\"month-12\">december</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">jan.</term><term name=\"month-02\" form=\"short\">feb.</term><term name=\"month-03\" form=\"short\">mrt.</term><term name=\"month-04\" form=\"short\">apr.</term><term name=\"month-05\" form=\"short\">mei</term><term name=\"month-06\" form=\"short\">jun.</term><term name=\"month-07\" form=\"short\">jul.</term><term name=\"month-08\" form=\"short\">aug.</term><term name=\"month-09\" form=\"short\">sep.</term><term name=\"month-10\" form=\"short\">okt.</term><term name=\"month-11\" form=\"short\">nov.</term><term name=\"month-12\" form=\"short\">dec.</term>\n<!-- SEASONS --><term name=\"season-01\">lente</term><term name=\"season-02\">zomer</term><term name=\"season-03\">herfst</term><term name=\"season-04\">winter</term></terms>\n</locale>\n",
+	"fr-FR": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"fr-FR\"><info><translator><name>Grégoire Colly</name></translator><translator><name>Collectif Zotero francophone</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2025-10-18T05:52:35+00:00</updated></info><style-options punctuation-in-quote=\"false\" limit-day-ordinals-to-day-1=\"true\"/><date form=\"text\"><date-part name=\"day\" suffix=\" \"/><date-part name=\"month\" suffix=\" \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"year\"/></date><terms><!-- LONG GENERAL TERMS --><term name=\"accessed\">consulté le</term><term name=\"advance-online-publication\">publication en ligne anticipée</term><term name=\"album\">album</term><term name=\"and\">et</term><term name=\"and others\">et autres</term><term name=\"anonymous\">anonyme</term><term name=\"at\">sur</term><term name=\"audio-recording\">enregistrement audio</term><term name=\"available at\">disponible sur</term><term name=\"by\">par</term><term name=\"circa\">vers</term><term name=\"cited\">cité</term><term name=\"et-al\">et al.</term><term name=\"film\">film</term><term name=\"forthcoming\">à paraître</term><term name=\"from\">à l'adresse</term><term name=\"henceforth\">désormais</term><term name=\"ibid\">ibid.</term><term name=\"in\">in</term><term name=\"in press\">sous presse</term><term name=\"internet\">Internet</term><term name=\"letter\">lettre</term><term name=\"loc-cit\">loc.&#160;cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no date\">sans date</term><term name=\"no-place\">sans lieu</term><term name=\"no-publisher\">sans nom</term> <!-- sine nomine --><term name=\"on\">sur</term><term name=\"online\">en ligne</term><term name=\"op-cit\">op.&#160;cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">édition originale</term><term name=\"personal-communication\">communication personnelle</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">épisode de podcast</term><term name=\"preprint\">prépublication</term><term name=\"presented at\">présenté à</term><term name=\"radio-broadcast\">émission de radio</term><term name=\"radio-series\">série radiophonique</term><term name=\"radio-series-episode\">épisode de série radiophonique</term><term name=\"reference\"><single>référence</single><multiple>références</multiple></term><term name=\"retrieved\">consulté</term><term name=\"review-of\">recension de</term><term name=\"scale\">échelle</term><term name=\"special-issue\">numéro spécial</term><term name=\"special-section\">section spéciale</term><term name=\"television-broadcast\">émission de télévision</term><term name=\"television-series\">série télévisée</term><term name=\"television-series-episode\">épisode de série télévisée</term><term name=\"video\">vidéo</term><term name=\"working-paper\">document de travail</term>\n<!-- SHORT GENERAL TERMS --><!-- Omitted short forms: accessed, album, and (symbol), and others, at (symbol), forthcoming, henceforth, ibid, in, in press, internet, loc-cit, on, online, op-cit, podcast, preprint, presented at -->\n<term name=\"advance-online-publication\" form=\"short\">publ. en ligne antic.</term><term name=\"anonymous\" form=\"short\">anon.</term><term name=\"audio-recording\" form=\"short\">enr. audio</term><term name=\"available at\" form=\"short\">dispo. sur</term><term name=\"circa\" form=\"short\">v.</term><term name=\"cited\" form=\"short\">cité</term><term name=\"film\" form=\"short\">film</term><term name=\"from\" form=\"short\">à l'adr.</term><term name=\"letter\" form=\"short\">let.</term><term name=\"no date\" form=\"short\">s.&#160;d.</term><term name=\"no-place\" form=\"short\">s.&#160;l.</term><term name=\"no-publisher\" form=\"short\">s.&#160;n.</term><term name=\"original-work-published\" form=\"short\">éd. orig.</term><term name=\"personal-communication\" form=\"short\">comm. perso.</term><term name=\"podcast-episode\" form=\"short\">épis. de podcast</term><term name=\"radio-broadcast\" form=\"short\">émiss. de radio</term><term name=\"radio-series-episode\" form=\"short\">épis. de série radio</term><term name=\"reference\" form=\"short\"><single>réf.</single><multiple>réf.</multiple></term><term name=\"retrieved\" form=\"short\">consulté</term><term name=\"review-of\" form=\"short\">recens. de</term><term name=\"scale\" form=\"short\">éch.</term><term name=\"special-issue\" form=\"short\">nᵒ spéc.</term><term name=\"special-section\" form=\"short\">sect. spéc.</term><term name=\"television-broadcast\" form=\"short\">émiss. de TV</term><term name=\"television-series\" form=\"short\">série TV</term><term name=\"television-series-episode\" form=\"short\">épis. de série TV</term><term name=\"video\" form=\"short\">vidéo</term><term name=\"working-paper\" form=\"short\">doc. de travail</term>\n<!-- SYMBOLIC GENERAL FORMS --><term name=\"and\" form=\"symbol\">&amp;</term><term name=\"at\" form=\"symbol\">@</term>\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">article</term><term name=\"article-journal\">article de revue</term><term name=\"article-magazine\">article de magazine</term><term name=\"article-newspaper\">article de presse</term><term name=\"bill\">projet de loi</term><!-- book is in the list of locator terms --><term name=\"broadcast\">émission</term><!-- chapter is in the list of locator terms --><term name=\"classic\">classique</term><term name=\"collection\">collection</term><term name=\"dataset\">jeu de données</term><term name=\"document\">document</term><term name=\"entry\">entrée</term><term name=\"entry-dictionary\">entrée de dictionnaire</term><term name=\"entry-encyclopedia\">entrée d'encyclopédie</term><term name=\"event\">événement</term><!-- figure is in the list of locator terms --><term name=\"graphic\">image</term><term name=\"hearing\">audience</term><term name=\"interview\">entretien</term><term name=\"legal_case\">affaire</term><term name=\"legislation\">acte juridique</term><term name=\"manuscript\">manuscrit</term><term name=\"map\">carte</term><term name=\"motion_picture\">enregistrement vidéo</term><term name=\"musical_score\">partition musicale</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">article de colloque</term><term name=\"patent\">brevet</term><term name=\"performance\">interprétation</term><term name=\"periodical\">périodique</term><term name=\"personal_communication\">communication personnelle</term><term name=\"post\">billet</term><term name=\"post-weblog\">billet de blog</term><term name=\"regulation\">règlement</term><term name=\"report\">rapport</term><term name=\"review\">recension</term><term name=\"review-book\">recension de livre</term><term name=\"software\">logiciel</term><term name=\"song\">chanson</term><term name=\"speech\">présentation</term><term name=\"standard\">norme</term><term name=\"thesis\">thèse</term><term name=\"treaty\">traité</term><term name=\"webpage\">page web</term>\n<!-- SHORT ITEM TYPE FORMS --><!-- Omitted short forms: article, bill, entry, event, hearing, map, periodical, speech, treaty --><term name=\"article-journal\" form=\"short\">art. de revue</term><term name=\"article-magazine\" form=\"short\">art. de mag.</term><term name=\"article-newspaper\" form=\"short\">art. de presse</term><!-- book is in the list of locator terms --><!-- chapter is in the list of locator terms --><term name=\"classic\" form=\"short\">class.</term><term name=\"collection\" form=\"short\">coll.</term><term name=\"document\" form=\"short\">doc.</term><term name=\"entry-dictionary\" form=\"short\">entrée de dict.</term><term name=\"entry-encyclopedia\" form=\"short\">entrée d'encycl.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">img.</term><term name=\"interview\" form=\"short\">entret.</term><term name=\"legal_case\" form=\"short\">aff.</term><term name=\"legislation\" form=\"short\">acte jurid.</term><term name=\"manuscript\" form=\"short\"><single>ms.</single><multiple>mss.</multiple></term><term name=\"motion_picture\" form=\"short\">enr. vidéo</term><term name=\"musical_score\" form=\"short\">partit. music.</term><term name=\"pamphlet\" form=\"short\">pamph.</term><term name=\"paper-conference\" form=\"short\">art. de conf.</term><term name=\"patent\" form=\"short\">brevet</term><term name=\"performance\" form=\"short\">interprét.</term><term name=\"personal_communication\" form=\"short\">comm. perso.</term><term name=\"regulation\" form=\"short\">règl.</term><term name=\"report\" form=\"short\">rapp.</term><term name=\"review\" form=\"short\">recens.</term><term name=\"review-book\" form=\"short\">recens. de livre</term><term name=\"software\" form=\"short\">logic.</term><term name=\"song\" form=\"short\">enr. audio</term><term name=\"standard\" form=\"short\">norme</term><term name=\"thesis\" form=\"short\">thèse</term><term name=\"webpage\" form=\"short\">p. web</term>\n<!-- LONG VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb\">témoignage de</term><term name=\"review\" form=\"verb\">recension</term><term name=\"review-book\" form=\"verb\">recension de livre</term>\n<!-- SHORT VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb-short\">témoign. de</term> <!-- ODA --><term name=\"review\" form=\"verb-short\">recens. de</term><term name=\"review-book\" form=\"verb-short\">recens. de livre</term>\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">apr. J.-C.</term><term name=\"bc\">av. J.-C.</term><term name=\"bce\">av. n. è.</term><term name=\"ce\">n. è.</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">«&#160;</term><term name=\"close-quote\">&#160;»</term><term name=\"open-inner-quote\">“</term><term name=\"close-inner-quote\">”</term><term name=\"page-range-delimiter\">&#8209;</term> <!-- non-breaking hyphen --><term name=\"colon\">&#160;:</term><term name=\"comma\">,</term><term name=\"semicolon\">&#160;;</term>\n<!-- ORDINALS --><term name=\"ordinal\">ᵉ</term><term name=\"ordinal-01\" gender-form=\"feminine\" match=\"whole-number\">ʳᵉ</term><term name=\"ordinal-01\" gender-form=\"masculine\" match=\"whole-number\">ᵉʳ</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">premier</term><term name=\"long-ordinal-02\">deuxième</term><term name=\"long-ordinal-03\">troisième</term><term name=\"long-ordinal-04\">quatrième</term><term name=\"long-ordinal-05\">cinquième</term><term name=\"long-ordinal-06\">sixième</term><term name=\"long-ordinal-07\">septième</term><term name=\"long-ordinal-08\">huitième</term><term name=\"long-ordinal-09\">neuvième</term><term name=\"long-ordinal-10\">dixième</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\"><single>acte</single><multiple>actes</multiple></term><term name=\"appendix\"><single>appendice</single><multiple>appendices</multiple></term><term name=\"article-locator\"><single>article</single><multiple>articles</multiple></term><term name=\"book\"><single>livre</single><multiple>livres</multiple></term><term name=\"canon\"><single>canon</single><multiple>canons</multiple></term><term name=\"chapter\"><single>chapitre</single><multiple>chapitres</multiple></term><term name=\"column\"><single>colonne</single><multiple>colonnes</multiple></term><term name=\"elocation\"><single>emplacement</single><multiple>emplacements</multiple></term><term name=\"equation\"><single>équation</single><multiple>équations</multiple></term><term name=\"figure\"><single>figure</single><multiple>figures</multiple></term><term name=\"folio\"><single>folio</single><multiple>folios</multiple></term><term name=\"issue\" gender=\"masculine\"><single>numéro</single><multiple>numéros</multiple></term><term name=\"line\"><single>ligne</single><multiple>lignes</multiple></term><term name=\"note\"><single>note</single><multiple>notes</multiple></term><term name=\"opus\"><single>opus</single><multiple>opus</multiple></term><term name=\"page\"><single>page</single><multiple>pages</multiple></term><term name=\"paragraph\"><single>paragraphe</single><multiple>paragraphes</multiple></term><term name=\"part\"><single>partie</single><multiple>parties</multiple></term><term name=\"rule\"><single>règle</single><multiple>règles</multiple></term><term name=\"scene\"><single>scène</single><multiple>scènes</multiple></term><term name=\"section\"><single>section</single><multiple>sections</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"supplement\"><single>supplément</single><multiple>suppléments</multiple></term><term name=\"table\"><single>tableau</single><multiple>tableaux</multiple></term><term name=\"timestamp\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\"><single>titre</single><multiple>titres</multiple></term><term name=\"verse\"><single>verset</single><multiple>versets</multiple></term><term name=\"volume\" gender=\"masculine\"><single>volume</single><multiple>volumes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><!-- Omitted short forms: act, timestamp --><term name=\"appendix\" form=\"short\"><single>append.</single><multiple>append.</multiple></term><term name=\"article-locator\" form=\"short\"><single>art.</single><multiple>art.</multiple></term><term name=\"book\" form=\"short\"><single>livre</single><multiple>livres</multiple></term><term name=\"canon\" form=\"short\"><single>can.</single><multiple>can.</multiple></term><term name=\"chapter\" form=\"short\"><single>chap.</single><multiple>chap.</multiple></term><term name=\"column\" form=\"short\"><single>col.</single><multiple>col.</multiple></term><term name=\"elocation\" form=\"short\"><single>emplact</single><multiple>emplact</multiple></term><term name=\"equation\" form=\"short\"><single>eqt.</single><multiple>eqt.</multiple></term><term name=\"figure\" form=\"short\"><single>fig.</single><multiple>fig.</multiple></term><term name=\"folio\" form=\"short\"><single>fᵒ</single><multiple>fᵒˢ</multiple></term><term name=\"issue\" form=\"short\"><single>nᵒ</single><multiple>nᵒˢ</multiple></term><term name=\"line\" form=\"short\"><single>l.</single><multiple>l.</multiple></term><term name=\"note\" form=\"short\"><single>n.</single><multiple>n.</multiple></term><term name=\"opus\" form=\"short\"><single>op.</single><multiple>op.</multiple></term><term name=\"page\" form=\"short\"><single>p.</single><multiple>p.</multiple></term><term name=\"paragraph\" form=\"short\"><single>paragr.</single><multiple>paragr.</multiple></term><term name=\"part\" form=\"short\"><single>part.</single><multiple>part.</multiple></term><term name=\"rule\" form=\"short\"><single>règle</single><multiple>règles</multiple></term><term name=\"scene\" form=\"short\"><single>sc.</single><multiple>sc.</multiple></term><term name=\"section\" form=\"short\"><single>sect.</single><multiple>sect.</multiple></term><term name=\"sub-verbo\" form=\"short\"><single>s.&#160;v.</single><multiple>s.&#160;v.</multiple></term><term name=\"supplement\" form=\"short\"><single>suppl.</single><multiple>suppl.</multiple></term><term name=\"table\" form=\"short\"><single>tab.</single><multiple>tab.</multiple></term><term name=\"timestamp\" form=\"short\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\" form=\"short\"><single>tit.</single><multiple>tit.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>v.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vol.</multiple></term>\n<!-- SYMBOLIC LOCATOR FORMS --><term name=\"chapter\" form=\"symbol\"><!-- caput/capita, esp. in legal works; cf. CMOS 14.196 --><single>c.</single><multiple>c.</multiple></term><term name=\"paragraph\" form=\"symbol\"><single>§</single><multiple>§</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§</multiple></term>\n<!-- LONG NUMBER VARIABLE FORMS --><term name=\"chapter-number\"><single>chapitre</single><multiple>chapitres</multiple></term><term name=\"citation-number\"><single>citation</single><multiple>citations</multiple></term><term name=\"collection-number\" gender=\"masculine\"><single>numéro</single><multiple>numéros</multiple></term><term name=\"edition\" gender=\"feminine\"><single>édition</single><multiple>éditions</multiple></term><term name=\"first-reference-note-number\"><single>référence</single><multiple>références</multiple></term><term name=\"number\"><single>numéro</single><multiple>numéros</multiple></term><term name=\"number-of-pages\"><single>page</single><multiple>pages</multiple></term><term name=\"number-of-volumes\"><single>volume</single><multiple>volumes</multiple></term><term name=\"page-first\"><single>page</single><multiple>pages</multiple></term><term name=\"printing\"><single>impression</single><multiple>impressions</multiple></term><term name=\"version\"><single>version</single><multiple>versions</multiple></term>\n<!-- SHORT NUMBER VARIABLE FORMS --><term name=\"chapter-number\" form=\"short\"><single>chap.</single><multiple>chap.</multiple></term><term name=\"citation-number\" form=\"short\"><single>cit.</single><multiple>cit.</multiple></term><term name=\"collection-number\" form=\"short\"><single>nᵒ</single><multiple>nᵒˢ</multiple></term><term name=\"edition\" form=\"short\"><single>éd.</single><multiple>éd.</multiple></term><term name=\"first-reference-note-number\" form=\"short\"><single>réf.</single><multiple>réf.</multiple></term><term name=\"number\" form=\"short\"><single>nᵒ</single><multiple>nᵒˢ</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>p.</multiple></term><term name=\"number-of-volumes\" form=\"short\"><single>vol.</single><multiple>vol.</multiple></term><term name=\"page-first\" form=\"short\"><single>p.</single><multiple>p.</multiple></term><term name=\"printing\" form=\"short\"><single>impr.</single><multiple>impr.</multiple></term><term name=\"version\" form=\"short\">v.</term> <!-- no plural -->\n<!-- LONG ROLE FORMS --><term name=\"author\"/> <!-- generally blank --><term name=\"chair\"><single>président</single><multiple>présidents</multiple></term><term name=\"collection-editor\"><single>directeur</single><multiple>directeurs</multiple></term><term name=\"compiler\"><single>compilateur</single><multiple>compilateurs</multiple></term><term name=\"composer\"/> <!-- generally blank --><term name=\"container-author\"/> <!-- generally blank --><term name=\"contributor\"><single>contributeur</single><multiple>contributeurs</multiple></term><term name=\"curator\"><single>commissaire</single><multiple>commissaires</multiple></term><term name=\"director\"><single>réalisateur</single><multiple>réalisateurs</multiple></term><term name=\"editor\"><single>éditeur</single><multiple>éditeurs</multiple></term><term name=\"editor-translator\"><single>éditeur et traducteur</single><multiple>éditeurs et traducteurs</multiple></term><term name=\"editortranslator\"><single>éditeur et traducteur</single><multiple>éditeurs et traducteurs</multiple></term><term name=\"editorial-director\"><single>directeur</single><multiple>directeurs</multiple></term><term name=\"executive-producer\"><single>producteur exécutif</single><multiple>producteurs exécutifs</multiple></term><term name=\"guest\"><single>invité</single><multiple>invités</multiple></term><term name=\"host\"><single>hôte</single><multiple>hôtes</multiple></term><term name=\"illustrator\"><single>illustrateur</single><multiple>illustrateurs</multiple></term><term name=\"interviewer\"/> <!-- generally blank --><term name=\"narrator\"><single>narrateur</single><multiple>narrateurs</multiple></term><term name=\"organizer\"><single>organisateur</single><multiple>organisateurs</multiple></term><term name=\"original-author\"/> <!-- generally blank --><term name=\"performer\"><single>interprète</single><multiple>interprètes</multiple></term><term name=\"producer\"><single>producteur</single><multiple>producteurs</multiple></term><term name=\"recipient\"/> <!-- generally blank --><term name=\"reviewed-author\"/> <!-- generally blank --><term name=\"script-writer\"><single>scénariste</single><multiple>scénaristes</multiple></term><term name=\"series-creator\"><single>créateur de série</single><multiple>créateurs de série</multiple></term><term name=\"translator\"><single>traducteur</single><multiple>traducteurs</multiple></term>\n<!-- SHORT ROLE FORMS --><!-- Omitted roles:author, chair, composer, container-author, guest, host, interviewer, original-author, recipient, reviewed-author--><term name=\"collection-editor\" form=\"short\"><single>dir.</single><multiple>dir.</multiple></term><term name=\"compiler\" form=\"short\"><single>compil.</single><multiple>compil.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contrib.</multiple></term><term name=\"curator\" form=\"short\"><single>commiss.</single><multiple>commiss.</multiple></term><term name=\"director\" form=\"short\"><single>réal.</single><multiple>réal.</multiple></term><term name=\"editor\" form=\"short\"><single>éd.</single><multiple>éd.</multiple></term><term name=\"editor-translator\" form=\"short\"><single>éd. et trad.</single><multiple>éd. et trad.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>éd. et trad.</single><multiple>éd. et trad.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>dir.</single><multiple>dir.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>prod. exé.</single><multiple>prod. exé.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ill.</single><multiple>ill.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narr.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>org.</multiple></term><term name=\"performer\" form=\"short\"><single>interpr.</single><multiple>interpr.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prod.</multiple></term><term name=\"script-writer\" form=\"short\"><single>scénar.</single><multiple>scénar.</multiple></term><term name=\"series-creator\" form=\"short\"><single>créat.</single><multiple>créat.</multiple></term><term name=\"translator\" form=\"short\"><single>trad.</single><multiple>trad.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">présidé par</term><term name=\"collection-editor\" form=\"verb\">sous la direction de</term><term name=\"compiler\" form=\"verb\">compilé par</term><term name=\"composer\" form=\"verb\">composé par</term><term name=\"container-author\" form=\"verb\">par</term><term name=\"contributor\" form=\"verb\">avec</term><term name=\"curator\" form=\"verb\">organisé par</term><term name=\"director\" form=\"verb\">réalisé par</term><term name=\"editor\" form=\"verb\">édité par</term><term name=\"editor-translator\" form=\"verb\">édité et traduit par</term><term name=\"editortranslator\" form=\"verb\">édité et traduit par</term><term name=\"editorial-director\" form=\"verb\">sous la direction de</term><term name=\"executive-producer\" form=\"verb\">production exécutive par</term><term name=\"guest\" form=\"verb\"><single>avec pour invité</single><multiple>avec pour invités</multiple></term><term name=\"host\" form=\"verb\">animé par</term><term name=\"illustrator\" form=\"verb\">illustré par</term><term name=\"interviewer\" form=\"verb\">entretien réalisé par</term><term name=\"narrator\" form=\"verb\">lu par</term><term name=\"organizer\" form=\"verb\">organisé par</term><term name=\"original-author\" form=\"verb\">par</term><term name=\"performer\" form=\"verb\">interprété par</term><term name=\"producer\" form=\"verb\">produit par</term><term name=\"recipient\" form=\"verb\">à</term><term name=\"reviewed-author\" form=\"verb\">par</term><term name=\"script-writer\" form=\"verb\">scénario de</term><term name=\"series-creator\" form=\"verb\">créé par</term><term name=\"translator\" form=\"verb\">traduit par</term>\n<!-- SHORT VERB ROLE FORMS --><!-- Omitted roles:author, chair, container-author, contributor, guest, host, interviewer, original-author, recipient, reviewed-author, series-creator--><term name=\"collection-editor\" form=\"verb-short\">ss la dir. de</term><term name=\"compiler\" form=\"verb-short\">compil. par</term><term name=\"composer\" form=\"verb-short\">comp. par</term><term name=\"contributor\" form=\"verb-short\">ac</term><term name=\"curator\" form=\"verb-short\">org. par</term><term name=\"director\" form=\"verb-short\">réal. par</term><term name=\"editor\" form=\"verb-short\">éd. par</term><term name=\"editor-translator\" form=\"verb-short\">éd. et trad. par</term><term name=\"editortranslator\" form=\"verb-short\">éd. et trad. par</term><term name=\"editorial-director\" form=\"verb-short\">ss la dir. de</term><term name=\"executive-producer\" form=\"verb-short\">prod. exé. par</term><term name=\"guest\" form=\"verb-short\">ac pr inv.</term><term name=\"host\" form=\"verb-short\">animé par</term><term name=\"illustrator\" form=\"verb-short\">ill. par</term><term name=\"narrator\" form=\"verb-short\">lu par</term><term name=\"organizer\" form=\"verb-short\">org. par</term><term name=\"performer\" form=\"verb-short\">interpr. par</term><term name=\"producer\" form=\"verb-short\">prod. par</term><term name=\"script-writer\" form=\"verb-short\">scénar. de</term><term name=\"series-creator\" form=\"verb-short\">créé par</term><term name=\"translator\" form=\"verb-short\">trad. par</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\" gender=\"masculine\">janvier</term><term name=\"month-02\" gender=\"masculine\">février</term><term name=\"month-03\" gender=\"masculine\">mars</term><term name=\"month-04\" gender=\"masculine\">avril</term><term name=\"month-05\" gender=\"masculine\">mai</term><term name=\"month-06\" gender=\"masculine\">juin</term><term name=\"month-07\" gender=\"masculine\">juillet</term><term name=\"month-08\" gender=\"masculine\">août</term><term name=\"month-09\" gender=\"masculine\">septembre</term><term name=\"month-10\" gender=\"masculine\">octobre</term><term name=\"month-11\" gender=\"masculine\">novembre</term><term name=\"month-12\" gender=\"masculine\">décembre</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">janv.</term><term name=\"month-02\" form=\"short\">févr.</term><term name=\"month-03\" form=\"short\">mars</term><term name=\"month-04\" form=\"short\">avr.</term><term name=\"month-05\" form=\"short\">mai</term><term name=\"month-06\" form=\"short\">juin</term><term name=\"month-07\" form=\"short\">juill.</term><term name=\"month-08\" form=\"short\">août</term><term name=\"month-09\" form=\"short\">sept.</term><term name=\"month-10\" form=\"short\">oct.</term><term name=\"month-11\" form=\"short\">nov.</term><term name=\"month-12\" form=\"short\">déc.</term>\n<!-- SEASONS --><term name=\"season-01\">printemps</term><term name=\"season-02\">été</term><term name=\"season-03\">automne</term><term name=\"season-04\">hiver</term></terms>\n</locale>\n",
+	"de-DE": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"de-DE\"><info><translator><name>Till A. Heilmann</name></translator><translator><name>Ulrich</name></translator><translator><name>Rintze M. Zelle</name></translator><translator><name>Sebastian Karcher</name></translator><translator><name>jakov</name></translator><translator><name>Patrick O'Brien</name></translator><translator><name>Nicolas Chachereau</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2025-10-16T03:24:00+00:00</updated></info><style-options punctuation-in-quote=\"false\"/><date form=\"text\"><date-part name=\"day\" form=\"ordinal\" suffix=\" \"/><date-part name=\"month\" suffix=\" \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\".\"/><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\".\"/><date-part name=\"year\"/></date><terms><!-- LONG GENERAL TERMS --><term name=\"accessed\">zugegriffen</term><term name=\"advance-online-publication\">Online-Vorab-Publikation</term><term name=\"album\">Album</term><term name=\"and\">und</term><term name=\"and others\">und andere</term><term name=\"anonymous\">ohne Autor</term><term name=\"at\">auf</term><term name=\"audio-recording\">Tonaufnahme</term><term name=\"available at\">verfügbar unter</term><term name=\"by\">von</term><term name=\"circa\">circa</term><term name=\"cited\">zitiert</term><term name=\"et-al\">u.&#160;a.</term><term name=\"film\">Film</term><term name=\"forthcoming\">i.&#160;E.</term><term name=\"from\">von</term><term name=\"henceforth\">zukünftig</term><term name=\"ibid\">ebd.</term><term name=\"in\">in</term><term name=\"in press\">im Druck</term><term name=\"internet\">Internet</term><term name=\"letter\">Brief</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no date\">ohne Datum</term><term name=\"no-place\">ohne Ort</term><term name=\"no-publisher\">ohne Verlag</term> <!-- sine nomine --><term name=\"on\">auf</term><term name=\"online\">online</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">Ursprünglich erschienen</term><term name=\"personal-communication\">persönliche Kommunikation</term><term name=\"podcast\">Podcast</term><term name=\"podcast-episode\">Podcast-Episode</term><term name=\"preprint\">Preprint</term><term name=\"presented at\">gehalten auf der</term><term name=\"radio-broadcast\">Radioaufzeichnung</term><term name=\"radio-series\">Sendereihe</term><term name=\"radio-series-episode\">Sendereihenfolge</term><term name=\"reference\"><single>Referenz</single><multiple>Referenzen</multiple></term><term name=\"retrieved\">abgerufen</term><term name=\"review-of\">review of</term><term name=\"scale\">Maßstab</term><term name=\"special-issue\">Spezialausgabe</term><term name=\"special-section\">Sonderbereich</term><term name=\"television-broadcast\">Fernsehsendung</term><term name=\"television-series\">Fernsehserie</term><term name=\"television-series-episode\">Serienfolge</term><term name=\"video\">Video</term><term name=\"working-paper\">Arbeitspapier</term>\n<!-- SHORT GENERAL TERMS --><term name=\"anonymous\" form=\"short\">o.&#160;A.</term><term name=\"circa\" form=\"short\">ca.</term><term name=\"no date\" form=\"short\">o.&#160;J.</term><term name=\"no-place\" form=\"short\">o.&#160;O.</term><term name=\"no-publisher\" form=\"short\">o.&#160;V.</term><term name=\"reference\" form=\"short\"><single>Ref.</single><multiple>Ref.</multiple></term><term name=\"review-of\" form=\"short\">rev. of</term>\n<!-- SYMBOLIC GENERAL FORMS -->\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">Zeitschriftenartikel</term><term name=\"article-magazine\">Magazinartikel</term><term name=\"article-newspaper\">Zeitungsartikel</term><term name=\"bill\">Gesetzentwurf</term><!-- book is in the list of locator terms --><term name=\"broadcast\">Sendung</term><!-- chapter is in the list of locator terms --><term name=\"classic\">Klassiker</term><term name=\"collection\">Sammlung</term><term name=\"dataset\">Datensatz</term><term name=\"document\">Dokument</term><term name=\"entry\">Eintrag</term><term name=\"entry-dictionary\">Wörterbucheintrag</term><term name=\"entry-encyclopedia\">Lexikoneintrag</term><term name=\"event\">Event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">Bild</term><term name=\"hearing\">Anhörung</term><term name=\"interview\">Interview</term><term name=\"legal_case\">Rechtsfall</term><term name=\"legislation\">Gesetz</term><term name=\"manuscript\">Manuskript</term><term name=\"map\">Karte</term><term name=\"motion_picture\">Videoaufnahme</term><term name=\"musical_score\">Partitur</term><term name=\"pamphlet\">Broschüre</term><term name=\"paper-conference\">Konferenzbeitrag</term><term name=\"patent\">Patent</term><term name=\"performance\">Aufführung</term><term name=\"periodical\">Zeitschrift</term><term name=\"personal_communication\">persönliche Kommunikation</term><term name=\"post\">Post</term><term name=\"post-weblog\">Blogeintrag</term><term name=\"regulation\">Verordnung</term><term name=\"report\">Bericht</term><term name=\"review\">Rezension</term><term name=\"review-book\">Buchbesprechung</term><term name=\"software\">Software</term><term name=\"song\">Audioaufnahme</term><term name=\"speech\">Vortrag</term><term name=\"standard\">Norm</term><term name=\"thesis\">Abschlussarbeit</term><term name=\"treaty\">Abkommen</term><term name=\"webpage\">Webseite</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">Zeitschriftenart.</term><term name=\"article-magazine\" form=\"short\">Mag. Art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><!-- book is in the list of locator terms --><!-- chapter is in the list of locator terms --><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">Bild</term><term name=\"interview\" form=\"short\">Interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- LONG VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb\">testimony of</term><term name=\"review\" form=\"verb\">review of</term><term name=\"review-book\" form=\"verb\">review of the book</term>\n<!-- SHORT VERB ITEM TYPE FORMS -->\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">&#160;n.&#160;Chr.</term><term name=\"bc\">&#160;v.&#160;Chr.</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">„</term><term name=\"close-quote\">“</term><term name=\"open-inner-quote\">‚</term><term name=\"close-inner-quote\">‘</term><term name=\"page-range-delimiter\">–</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">.</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">erster</term><term name=\"long-ordinal-02\">zweiter</term><term name=\"long-ordinal-03\">dritter</term><term name=\"long-ordinal-04\">vierter</term><term name=\"long-ordinal-05\">fünfter</term><term name=\"long-ordinal-06\">sechster</term><term name=\"long-ordinal-07\">siebter</term><term name=\"long-ordinal-08\">achter</term><term name=\"long-ordinal-09\">neunter</term><term name=\"long-ordinal-10\">zehnter</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\"><single>Akt</single><multiple>Akten</multiple></term><term name=\"appendix\"><single>Appendix</single><multiple>Appendices</multiple></term><term name=\"article-locator\"><single>Artikel</single><multiple>Artikel</multiple></term><term name=\"book\"><single>Buch</single><multiple>Bücher</multiple></term><term name=\"canon\"><single>canon</single><multiple>canons</multiple></term><term name=\"chapter\"><single>Kapitel</single><multiple>Kapitel</multiple></term><term name=\"column\"><single>Spalte</single><multiple>Spalten</multiple></term><term name=\"elocation\"><single>location</single><multiple>locations</multiple></term><term name=\"equation\"><single>equation</single><multiple>equations</multiple></term><term name=\"figure\"><single>Abbildung</single><multiple>Abbildungen</multiple></term><term name=\"folio\"><single>Blatt</single><multiple>Blätter</multiple></term><term name=\"issue\"><single>Nummer</single><multiple>Nummern</multiple></term><term name=\"line\"><single>Zeile</single><multiple>Zeilen</multiple></term><term name=\"note\"><single>Anmerkung</single><multiple>Anmerkungen</multiple></term><term name=\"opus\"><single>Opus</single><multiple>Opera</multiple></term><term name=\"page\"><single>Seite</single><multiple>Seiten</multiple></term><term name=\"paragraph\"><single>Absatz</single><multiple>Absätze</multiple></term><term name=\"part\"><single>Teil</single><multiple>Teile</multiple></term><term name=\"rule\"><single>rule</single><multiple>rules</multiple></term><term name=\"scene\"><single>scene</single><multiple>scenes</multiple></term><term name=\"section\"><single>Abschnitt</single><multiple>Abschnitte</multiple></term><term name=\"sub-verbo\"><single>sub verbo</single><multiple>sub verbis</multiple></term><term name=\"supplement\"><single>supplement</single><multiple>supplements</multiple></term><term name=\"table\"><single>table</single><multiple>tables</multiple></term><term name=\"timestamp\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\"><single>title</single><multiple>titles</multiple></term><term name=\"verse\"><single>Vers</single><multiple>Verse</multiple></term><term name=\"volume\"><single>Band</single><multiple>Bände</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\" form=\"short\"><single>app.</single><multiple>apps.</multiple></term><term name=\"article-locator\" form=\"short\"><single>art.</single><multiple>arts.</multiple></term><term name=\"book\" form=\"short\">B.</term><term name=\"chapter\" form=\"short\">Kap.</term><term name=\"column\" form=\"short\">Sp.</term><term name=\"elocation\" form=\"short\"><single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\" form=\"short\"><single>eq.</single><multiple>eqs.</multiple></term><term name=\"figure\" form=\"short\">Abb.</term><term name=\"folio\" form=\"short\">Fol.</term><term name=\"issue\" form=\"short\">Nr.</term><term name=\"line\" form=\"short\">Z.</term><term name=\"note\" form=\"short\">Anm.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>S.</single><multiple>S.</multiple></term><term name=\"paragraph\" form=\"short\">Abs.</term><term name=\"part\" form=\"short\">Teil</term><term name=\"rule\" form=\"short\"><single>r.</single><multiple>rr.</multiple></term><term name=\"scene\" form=\"short\"><single>sc.</single><multiple>scs.</multiple></term><term name=\"section\" form=\"short\">Abschn.</term><term name=\"sub-verbo\" form=\"short\"><single>s.&#160;v.</single><multiple>s.&#160;vv.</multiple></term><term name=\"supplement\" form=\"short\"><single>supp.</single><multiple>supps.</multiple></term><term name=\"table\" form=\"short\"><single>tbl.</single><multiple>tbls.</multiple></term><term name=\"timestamp\" form=\"short\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\" form=\"short\"><single>tit.</single><multiple>tits.</multiple></term><term name=\"verse\" form=\"short\"><single>V.</single><multiple>V.</multiple></term><term name=\"volume\" form=\"short\"><single>Bd.</single><multiple>Bde.</multiple></term>\n<!-- SYMBOLIC LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>¶</single><multiple>¶¶</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§§</multiple></term>\n<!-- LONG NUMBER VARIABLE FORMS --><term name=\"chapter-number\"><single>chapter</single><multiple>chapters</multiple></term><term name=\"citation-number\"><single>citation</single><multiple>citations</multiple></term><term name=\"collection-number\"><single>Nummer</single><multiple>Nummern</multiple></term><term name=\"edition\"><single>Auflage</single><multiple>Auflagen</multiple></term><term name=\"first-reference-note-number\"><single>Ref.</single><multiple>Ref.</multiple></term><term name=\"number\"><single>Nummer</single><multiple>Nummern</multiple></term><term name=\"number-of-pages\"><single>Seite</single><multiple>Seiten</multiple></term><term name=\"number-of-volumes\"><single>volume</single><multiple>volumes</multiple></term><term name=\"page-first\"><single>page</single><multiple>pages</multiple></term><term name=\"printing\"><single>printing</single><multiple>printings</multiple></term><term name=\"version\">Version</term>\n<!-- SHORT NUMBER VARIABLE FORMS --><term name=\"chapter-number\" form=\"short\"><single>chap.</single><multiple>chaps.</multiple></term><term name=\"citation-number\" form=\"short\"><single>cit.</single><multiple>cits.</multiple></term><term name=\"collection-number\" form=\"short\">Nr.</term><term name=\"edition\" form=\"short\">Aufl.</term><term name=\"first-reference-note-number\" form=\"short\"><single>Ref.</single><multiple>Ref.</multiple></term><term name=\"number\" form=\"short\"><single>Nr.</single><multiple>Nr.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>S.</single><multiple>S.</multiple></term><term name=\"number-of-volumes\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term><term name=\"page-first\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"printing\" form=\"short\"><single>print.</single><multiple>prints.</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"author\"/> <!-- generally blank --><term name=\"chair\"><single>Vorsitz</single><multiple>Vorsitz</multiple></term><term name=\"collection-editor\"><single>Reihenherausgeber</single><multiple>Reihenherausgeber</multiple></term><term name=\"compiler\"><single>Bearbeiter</single><multiple>Bearbeiter</multiple></term><term name=\"composer\"/> <!-- generally blank --><term name=\"container-author\"/> <!-- generally blank --><term name=\"contributor\"><single>Beitragende</single><multiple>Beitragende</multiple></term><term name=\"curator\"><single>Direktor</single><multiple>Direktor</multiple></term><term name=\"director\"><single>Regisseur</single><multiple>Regisseure</multiple></term><term name=\"editor\"><single>Herausgeber</single><multiple>Herausgeber</multiple></term><term name=\"editor-translator\"><single>Herausgeber&#160;&amp; Übersetzer</single><multiple>Herausgeber&#160;&amp; Übersetzer</multiple></term><term name=\"editortranslator\"><single>Herausgeber&#160;&amp; Übersetzer</single><multiple>Herausgeber&#160;&amp; Übersetzer</multiple></term><term name=\"editorial-director\"><single>Herausgeber</single><multiple>Herausgeber</multiple></term><term name=\"executive-producer\"><single>Produktionsleiter</single><multiple>Produktionsleiter</multiple></term><term name=\"guest\"><single>Gast</single><multiple>Gäste</multiple></term><term name=\"host\"><single>Gastgeber</single><multiple>Gastgeber</multiple></term><term name=\"illustrator\"><single>Illustrator</single><multiple>Illustratoren</multiple></term><term name=\"interviewer\"/> <!-- generally blank --><term name=\"narrator\"><single>Erzähler</single><multiple>Erzähler</multiple></term><term name=\"organizer\"><single>Veranstalter</single><multiple>Veranstalter</multiple></term><term name=\"original-author\"/> <!-- generally blank --><term name=\"performer\"><single>Künstler</single><multiple>Künstler</multiple></term><term name=\"producer\"><single>Produzent</single><multiple>Produzenten</multiple></term><term name=\"recipient\"/> <!-- generally blank --><term name=\"reviewed-author\"/> <!-- generally blank --><term name=\"script-writer\"><single>Drehbuchautor</single><multiple>Drehbuchautoren</multiple></term><term name=\"series-creator\"><single>Idee</single><multiple>Idee</multiple></term><term name=\"translator\"><single>Übersetzer</single><multiple>Übersetzer</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"collection-editor\" form=\"short\"><single>Hrsg.</single><multiple>Hrsg.</multiple></term><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"director\" form=\"short\"><single>Reg.</single><multiple>Reg.</multiple></term><term name=\"editor\" form=\"short\"><single>Hrsg.</single><multiple>Hrsg.</multiple></term><term name=\"editor-translator\" form=\"short\"><single>Hrsg.&#160;&amp; Übers.</single><multiple>Hrsg.&#160;&amp; Übers.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>Hrsg.&#160;&amp; Übers.</single><multiple>Hrsg.&#160;&amp; Übers.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>Hrsg.</single><multiple>Hrsg.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"illustrator\" form=\"short\"><single>Ill.</single><multiple>Ill.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>Idee</single><multiple>Idee</multiple></term><term name=\"translator\" form=\"short\"><single>Übers.</single><multiple>Übers.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">Vorsitz durch</term><term name=\"collection-editor\" form=\"verb\">herausgegeben von</term><term name=\"compiler\" form=\"verb\">kompiliert von</term><term name=\"container-author\" form=\"verb\">von</term><term name=\"contributor\" form=\"verb\">mit</term><term name=\"curator\" form=\"verb\">kuriert von</term><term name=\"director\" form=\"verb\">Regie von</term><term name=\"editor\" form=\"verb\">herausgegeben von</term><term name=\"editor-translator\" form=\"verb\">herausgegeben und übersetzt von</term><term name=\"editortranslator\" form=\"verb\">herausgegeben und übersetzt von</term><term name=\"editorial-director\" form=\"verb\">herausgegeben von</term><term name=\"executive-producer\" form=\"verb\">Produktionsleitung von</term><term name=\"guest\" form=\"verb\">mit Gast</term><term name=\"host\" form=\"verb\">veranstaltet von</term><term name=\"illustrator\" form=\"verb\">illustriert von</term><term name=\"interviewer\" form=\"verb\">interviewt von</term><term name=\"narrator\" form=\"verb\">Narration von</term><term name=\"organizer\" form=\"verb\">organisiert von</term><term name=\"performer\" form=\"verb\">Aufführung von</term><term name=\"producer\" form=\"verb\">produziert von</term><term name=\"recipient\" form=\"verb\">an</term><term name=\"reviewed-author\" form=\"verb\">von</term><term name=\"script-writer\" form=\"verb\">geschrieben von</term><term name=\"series-creator\" form=\"verb\">Idee von</term><term name=\"translator\" form=\"verb\">übersetzt von</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"collection-editor\" form=\"verb-short\">hrsg. von</term><term name=\"compiler\" form=\"verb-short\">komp. von</term><term name=\"contributor\" form=\"verb-short\">m.</term><term name=\"curator\" form=\"verb-short\">kur. von</term><term name=\"director\" form=\"verb-short\">Reg.</term><term name=\"editor\" form=\"verb-short\">hrsg. von</term><term name=\"editor-translator\" form=\"verb-short\">hg.&#160;&amp; übers. von</term><term name=\"editortranslator\" form=\"verb-short\">hg.&#160;&amp; übers. von</term><term name=\"editorial-director\" form=\"verb-short\">hrsg. von</term><term name=\"executive-producer\" form=\"verb-short\">Prod. gel. v.</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">veranst. von</term><term name=\"illustrator\" form=\"verb-short\">illus. von</term><term name=\"narrator\" form=\"verb-short\">Narr. von</term><term name=\"organizer\" form=\"verb-short\">org. von</term><term name=\"performer\" form=\"verb-short\">aufg. von</term><term name=\"producer\" form=\"verb-short\">prod. von</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">Idee von</term><term name=\"translator\" form=\"verb-short\">übers. von</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">Januar</term><term name=\"month-02\">Februar</term><term name=\"month-03\">März</term><term name=\"month-04\">April</term><term name=\"month-05\">Mai</term><term name=\"month-06\">Juni</term><term name=\"month-07\">Juli</term><term name=\"month-08\">August</term><term name=\"month-09\">September</term><term name=\"month-10\">Oktober</term><term name=\"month-11\">November</term><term name=\"month-12\">Dezember</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">Jan.</term><term name=\"month-02\" form=\"short\">Feb.</term><term name=\"month-03\" form=\"short\">März</term><term name=\"month-04\" form=\"short\">Apr.</term><term name=\"month-05\" form=\"short\">Mai</term><term name=\"month-06\" form=\"short\">Juni</term><term name=\"month-07\" form=\"short\">Juli</term><term name=\"month-08\" form=\"short\">Aug.</term><term name=\"month-09\" form=\"short\">Sep.</term><term name=\"month-10\" form=\"short\">Okt.</term><term name=\"month-11\" form=\"short\">Nov.</term><term name=\"month-12\" form=\"short\">Dez.</term>\n<!-- SEASONS --><term name=\"season-01\">Frühjahr</term><term name=\"season-02\">Sommer</term><term name=\"season-03\">Herbst</term><term name=\"season-04\">Winter</term></terms>\n</locale>\n",
+	"es-ES": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<locale xmlns=\"http://purl.org/net/xbiblio/csl\" version=\"1.0\" xml:lang=\"es-ES\"><info><translator><name>javimat</name></translator><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights><updated>2026-01-10T00:00:00+00:00</updated></info><style-options punctuation-in-quote=\"false\"/><date form=\"text\"><date-part name=\"day\" suffix=\" de \"/><date-part name=\"month\" suffix=\" de \"/><date-part name=\"year\"/></date><date form=\"numeric\"><date-part name=\"day\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"month\" form=\"numeric-leading-zeros\" suffix=\"/\"/><date-part name=\"year\"/></date><terms><!-- LONG GENERAL TERMS --><term name=\"accessed\">accedido</term><term name=\"advance-online-publication\">advance online publication</term><term name=\"album\">album</term><term name=\"and\">y</term><term name=\"and others\">y otros</term><term name=\"anonymous\">anónimo</term><term name=\"at\">en</term><term name=\"audio-recording\">audio recording</term><term name=\"available at\">disponible en</term><term name=\"by\">de</term><term name=\"circa\">circa</term><term name=\"cited\">citado</term><term name=\"et-al\">et&#160;al.</term><term name=\"film\">film</term><term name=\"forthcoming\">previsto</term><term name=\"from\">a partir de</term><term name=\"henceforth\">henceforth</term><term name=\"ibid\">ibid.</term><term name=\"in\">en</term><term name=\"in press\">en imprenta</term><term name=\"internet\">internet</term><term name=\"letter\">carta</term><term name=\"loc-cit\">loc. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"no date\">sin fecha</term><term name=\"no-place\">no place</term><term name=\"no-publisher\">no publisher</term> <!-- sine nomine --><term name=\"on\">on</term><term name=\"online\">en línea</term><term name=\"op-cit\">op. cit.</term> <!-- like ibid., the abbreviated form is the regular form  --><term name=\"original-work-published\">obra original publicada en</term><term name=\"personal-communication\">comunicación personal</term><term name=\"podcast\">podcast</term><term name=\"podcast-episode\">podcast episode</term><term name=\"preprint\">preprint</term><term name=\"presented at\">presentado en</term><term name=\"radio-broadcast\">radio broadcast</term><term name=\"radio-series\">radio series</term><term name=\"radio-series-episode\">radio series episode</term><term name=\"reference\"><single>referencia</single><multiple>referencias</multiple></term><term name=\"retrieved\">recuperado</term><term name=\"review-of\">review of</term><term name=\"scale\">escala</term><term name=\"special-issue\">special issue</term><term name=\"special-section\">special section</term><term name=\"television-broadcast\">television broadcast</term><term name=\"television-series\">television series</term><term name=\"television-series-episode\">television series episode</term><term name=\"video\">video</term><term name=\"working-paper\">working paper</term>\n<!-- SHORT GENERAL TERMS --><term name=\"anonymous\" form=\"short\">anón.</term><term name=\"circa\" form=\"short\">c.</term><term name=\"no date\" form=\"short\">s.&#160;f.</term><term name=\"no-place\" form=\"short\">n.p.</term><term name=\"no-publisher\" form=\"short\">n.p.</term><term name=\"reference\" form=\"short\"><single>ref.</single><multiple>refs.</multiple></term><term name=\"review-of\" form=\"short\">rev. of</term>\n<!-- SYMBOLIC GENERAL FORMS -->\n<!-- LONG ITEM TYPE FORMS --><term name=\"article\">preprint</term><term name=\"article-journal\">journal article</term><term name=\"article-magazine\">magazine article</term><term name=\"article-newspaper\">newspaper article</term><term name=\"bill\">bill</term><!-- book is in the list of locator terms --><term name=\"broadcast\">broadcast</term><!-- chapter is in the list of locator terms --><term name=\"classic\">classic</term><term name=\"collection\">collection</term><term name=\"dataset\">dataset</term><term name=\"document\">document</term><term name=\"entry\">entry</term><term name=\"entry-dictionary\">dictionary entry</term><term name=\"entry-encyclopedia\">encyclopedia entry</term><term name=\"event\">event</term><!-- figure is in the list of locator terms --><term name=\"graphic\">graphic</term><term name=\"hearing\">hearing</term><term name=\"interview\">entrevista</term><term name=\"legal_case\">legal case</term><term name=\"legislation\">legislation</term><term name=\"manuscript\">manuscript</term><term name=\"map\">map</term><term name=\"motion_picture\">video recording</term><term name=\"musical_score\">musical score</term><term name=\"pamphlet\">pamphlet</term><term name=\"paper-conference\">conference paper</term><term name=\"patent\">patent</term><term name=\"performance\">performance</term><term name=\"periodical\">periodical</term><term name=\"personal_communication\">comunicación personal</term><term name=\"post\">post</term><term name=\"post-weblog\">blog post</term><term name=\"regulation\">regulation</term><term name=\"report\">report</term><term name=\"review\">review</term><term name=\"review-book\">book review</term><term name=\"software\">software</term><term name=\"song\">audio recording</term><term name=\"speech\">presentation</term><term name=\"standard\">standard</term><term name=\"thesis\">thesis</term><term name=\"treaty\">treaty</term><term name=\"webpage\">webpage</term>\n<!-- SHORT ITEM TYPE FORMS --><term name=\"article-journal\" form=\"short\">journal art.</term><term name=\"article-magazine\" form=\"short\">mag. art.</term><term name=\"article-newspaper\" form=\"short\">newspaper art.</term><!-- book is in the list of locator terms --><!-- chapter is in the list of locator terms --><term name=\"document\" form=\"short\">doc.</term><!-- figure is in the list of locator terms --><term name=\"graphic\" form=\"short\">graph.</term><term name=\"interview\" form=\"short\">interv.</term><term name=\"manuscript\" form=\"short\">MS</term><term name=\"motion_picture\" form=\"short\">video rec.</term><term name=\"report\" form=\"short\">rep.</term><term name=\"review\" form=\"short\">rev.</term><term name=\"review-book\" form=\"short\">bk. rev.</term><term name=\"song\" form=\"short\">audio rec.</term>\n<!-- LONG VERB ITEM TYPE FORMS --><!-- Only where applicable --><term name=\"hearing\" form=\"verb\">testimony of</term><term name=\"review\" form=\"verb\">review of</term><term name=\"review-book\" form=\"verb\">review of the book</term>\n<!-- SHORT VERB ITEM TYPE FORMS -->\n<!-- HISTORICAL ERA TERMS --><term name=\"ad\">d.&#160;C.</term><term name=\"bc\">a.&#160;C.</term><term name=\"bce\">BCE</term><term name=\"ce\">CE</term>\n<!-- PUNCTUATION --><term name=\"open-quote\">«</term><term name=\"close-quote\">»</term><term name=\"open-inner-quote\">“</term><term name=\"close-inner-quote\">”</term><term name=\"page-range-delimiter\">-</term><term name=\"colon\">:</term><term name=\"comma\">,</term><term name=\"semicolon\">;</term>\n<!-- ORDINALS --><term name=\"ordinal\">.ª</term>\n<!-- LONG ORDINALS --><term name=\"long-ordinal-01\">primera</term><term name=\"long-ordinal-02\">segunda</term><term name=\"long-ordinal-03\">tercera</term><term name=\"long-ordinal-04\">cuarta</term><term name=\"long-ordinal-05\">quinta</term><term name=\"long-ordinal-06\">sexta</term><term name=\"long-ordinal-07\">séptima</term><term name=\"long-ordinal-08\">octava</term><term name=\"long-ordinal-09\">novena</term><term name=\"long-ordinal-10\">décima</term>\n<!-- LONG LOCATOR FORMS --><term name=\"act\"><single>act</single><multiple>acts</multiple></term><term name=\"appendix\"><single>appendix</single><multiple>appendices</multiple></term><term name=\"article-locator\"><single>article</single><multiple>articles</multiple></term><term name=\"book\"><single>libro</single><multiple>libros</multiple></term><term name=\"canon\"><single>canon</single><multiple>canons</multiple></term><term name=\"chapter\"><single>capítulo</single><multiple>capítulos</multiple></term><term name=\"column\"><single>columna</single><multiple>columnas</multiple></term><term name=\"elocation\"><single>location</single><multiple>locations</multiple></term><term name=\"equation\"><single>equation</single><multiple>equations</multiple></term><term name=\"figure\"><single>figura</single><multiple>figuras</multiple></term><term name=\"folio\"><single>folio</single><multiple>folios</multiple></term><term name=\"issue\"><single>número</single><multiple>números</multiple></term><term name=\"line\"><single>línea</single><multiple>líneas</multiple></term><term name=\"note\"><single>nota</single><multiple>notas</multiple></term><term name=\"opus\"><single>opus</single><multiple>opera</multiple></term><term name=\"page\"><single>página</single><multiple>páginas</multiple></term><term name=\"paragraph\"><single>párrafo</single><multiple>párrafos</multiple></term><term name=\"part\"><single>parte</single><multiple>partes</multiple></term><term name=\"rule\"><single>rule</single><multiple>rules</multiple></term><term name=\"scene\"><single>scene</single><multiple>scenes</multiple></term><term name=\"section\"><single>sección</single><multiple>secciones</multiple></term><term name=\"sub-verbo\"><single>sub voce</single><multiple>sub vocibus</multiple></term><term name=\"supplement\"><single>supplement</single><multiple>supplements</multiple></term><term name=\"table\"><single>table</single><multiple>tables</multiple></term><term name=\"timestamp\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\"><single>title</single><multiple>titles</multiple></term><term name=\"verse\"><single>verso</single><multiple>versos</multiple></term><term name=\"volume\"><single>volumen</single><multiple>volúmenes</multiple></term>\n<!-- SHORT LOCATOR FORMS --><term name=\"appendix\" form=\"short\"><single>app.</single><multiple>apps.</multiple></term><term name=\"article-locator\" form=\"short\"><single>art.</single><multiple>arts.</multiple></term><term name=\"book\" form=\"short\">lib.</term><term name=\"chapter\" form=\"short\">cap.</term><term name=\"column\" form=\"short\">col.</term><term name=\"elocation\" form=\"short\"><single>loc.</single><multiple>locs.</multiple></term><term name=\"equation\" form=\"short\"><single>eq.</single><multiple>eqs.</multiple></term><term name=\"figure\" form=\"short\">fig.</term><term name=\"folio\" form=\"short\">f.</term><term name=\"issue\" form=\"short\">n.º</term><term name=\"line\" form=\"short\">l.</term><term name=\"note\" form=\"short\">n.</term><term name=\"opus\" form=\"short\">op.</term><term name=\"page\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"paragraph\" form=\"short\">párr.</term><term name=\"part\" form=\"short\">pt.</term><term name=\"rule\" form=\"short\"><single>r.</single><multiple>rr.</multiple></term><term name=\"scene\" form=\"short\"><single>sc.</single><multiple>scs.</multiple></term><term name=\"section\" form=\"short\">sec.</term><term name=\"sub-verbo\" form=\"short\"><single>s.&#160;v.</single><multiple>s.&#160;vv.</multiple></term><term name=\"supplement\" form=\"short\"><single>supp.</single><multiple>supps.</multiple></term><term name=\"table\" form=\"short\"><single>tbl.</single><multiple>tbls.</multiple></term><term name=\"timestamp\" form=\"short\"> <!-- generally blank --><single/><multiple/></term><term name=\"title-locator\" form=\"short\"><single>tit.</single><multiple>tits.</multiple></term><term name=\"verse\" form=\"short\"><single>v.</single><multiple>vv.</multiple></term><term name=\"volume\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term>\n<!-- SYMBOLIC LOCATOR FORMS --><term name=\"paragraph\" form=\"symbol\"><single>§</single><multiple>§</multiple></term><term name=\"section\" form=\"symbol\"><single>§</single><multiple>§</multiple></term>\n<!-- LONG NUMBER VARIABLE FORMS --><term name=\"chapter-number\"><single>chapter</single><multiple>chapters</multiple></term><term name=\"citation-number\"><single>citation</single><multiple>citations</multiple></term><term name=\"collection-number\"><single>número</single><multiple>números</multiple></term><term name=\"edition\"><single>edición</single><multiple>ediciones</multiple></term><term name=\"first-reference-note-number\"><single>nota</single><multiple>notas</multiple></term><term name=\"number\"><single>number</single><multiple>numbers</multiple></term><term name=\"number-of-pages\"><single>página</single><multiple>páginas</multiple></term><term name=\"number-of-volumes\"><single>volume</single><multiple>volumes</multiple></term><term name=\"page-first\"><single>page</single><multiple>pages</multiple></term><term name=\"printing\"><single>printing</single><multiple>printings</multiple></term><term name=\"version\">versión</term>\n<!-- SHORT NUMBER VARIABLE FORMS --><term name=\"chapter-number\" form=\"short\"><single>chap.</single><multiple>chaps.</multiple></term><term name=\"citation-number\" form=\"short\"><single>cit.</single><multiple>cits.</multiple></term><term name=\"collection-number\" form=\"short\">n.º</term><term name=\"edition\" form=\"short\">ed.</term><term name=\"first-reference-note-number\" form=\"short\">n.</term><term name=\"number\" form=\"short\"><single>no.</single><multiple>nos.</multiple></term><term name=\"number-of-pages\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"number-of-volumes\" form=\"short\"><single>vol.</single><multiple>vols.</multiple></term><term name=\"page-first\" form=\"short\"><single>p.</single><multiple>pp.</multiple></term><term name=\"printing\" form=\"short\"><single>print.</single><multiple>prints.</multiple></term>\n<!-- LONG ROLE FORMS --><term name=\"author\"/> <!-- generally blank --><term name=\"chair\"><single>chair</single><multiple>chairs</multiple></term><term name=\"collection-editor\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"compiler\"><single>compiler</single><multiple>compilers</multiple></term><term name=\"composer\"/> <!-- generally blank --><term name=\"container-author\"/> <!-- generally blank --><term name=\"contributor\"><single>contributor</single><multiple>contributors</multiple></term><term name=\"curator\"><single>curator</single><multiple>curators</multiple></term><term name=\"director\"><single>director</single><multiple>directores</multiple></term><term name=\"editor\"><single>editor</single><multiple>editores</multiple></term><term name=\"editor-translator\"><single>editor y traductor</single><multiple>editores y traductores</multiple></term><term name=\"editortranslator\"><single>editor y traductor</single><multiple>editores y traductores</multiple></term><term name=\"editorial-director\"><single>editor</single><multiple>editores</multiple></term><term name=\"executive-producer\"><single>executive producer</single><multiple>executive producers</multiple></term><term name=\"guest\"><single>guest</single><multiple>guests</multiple></term><term name=\"host\"><single>host</single><multiple>hosts</multiple></term><term name=\"illustrator\"><single>ilustrador</single><multiple>ilustradores</multiple></term><term name=\"interviewer\"/> <!-- generally blank --><term name=\"narrator\"><single>narrator</single><multiple>narrators</multiple></term><term name=\"organizer\"><single>organizer</single><multiple>organizers</multiple></term><term name=\"original-author\"/> <!-- generally blank --><term name=\"performer\"><single>performer</single><multiple>performers</multiple></term><term name=\"producer\"><single>producer</single><multiple>producers</multiple></term><term name=\"recipient\"/> <!-- generally blank --><term name=\"reviewed-author\"/> <!-- generally blank --><term name=\"script-writer\"><single>writer</single><multiple>writers</multiple></term><term name=\"series-creator\"><single>series creator</single><multiple>series creators</multiple></term><term name=\"translator\"><single>traductor</single><multiple>traductores</multiple></term>\n<!-- SHORT ROLE FORMS --><term name=\"compiler\" form=\"short\"><single>comp.</single><multiple>comps.</multiple></term><term name=\"contributor\" form=\"short\"><single>contrib.</single><multiple>contribs.</multiple></term><term name=\"curator\" form=\"short\"><single>cur.</single><multiple>curs.</multiple></term><term name=\"director\" form=\"short\"><single>dir.</single><multiple>dirs.</multiple></term><term name=\"editor\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"editor-translator\" form=\"short\"><single>ed. y trad.</single><multiple>eds. y trads.</multiple></term><term name=\"editortranslator\" form=\"short\"><single>ed. y trad.</single><multiple>eds. y trads.</multiple></term><term name=\"editorial-director\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"executive-producer\" form=\"short\"><single>exec. prod.</single><multiple>exec. prods.</multiple></term><term name=\"illustrator\" form=\"short\"><single>ilust.</single><multiple>ilusts.</multiple></term><term name=\"narrator\" form=\"short\"><single>narr.</single><multiple>narrs.</multiple></term><term name=\"organizer\" form=\"short\"><single>org.</single><multiple>orgs.</multiple></term><term name=\"performer\" form=\"short\"><single>perf.</single><multiple>perfs.</multiple></term><term name=\"producer\" form=\"short\"><single>prod.</single><multiple>prods.</multiple></term><term name=\"script-writer\" form=\"short\"><single>writ.</single><multiple>writs.</multiple></term><term name=\"series-creator\" form=\"short\"><single>cre.</single><multiple>cres.</multiple></term><term name=\"translator\" form=\"short\"><single>trad.</single><multiple>trads.</multiple></term>\n<!-- VERB ROLE FORMS --><term name=\"chair\" form=\"verb\">chaired by</term><term name=\"collection-editor\" form=\"verb\">edited by</term><term name=\"compiler\" form=\"verb\">compiled by</term><term name=\"container-author\" form=\"verb\">de</term><term name=\"contributor\" form=\"verb\">with</term><term name=\"curator\" form=\"verb\">curated by</term><term name=\"director\" form=\"verb\">dirigido por</term><term name=\"editor\" form=\"verb\">editado por</term><term name=\"editor-translator\" form=\"verb\">editado y traducido por</term><term name=\"editortranslator\" form=\"verb\">editado y traducido por</term><term name=\"editorial-director\" form=\"verb\">editado por</term><term name=\"executive-producer\" form=\"verb\">executive produced by</term><term name=\"guest\" form=\"verb\">with guest</term><term name=\"host\" form=\"verb\">hosted by</term><term name=\"illustrator\" form=\"verb\">ilustrado por</term><term name=\"interviewer\" form=\"verb\">entrevistado por</term><term name=\"narrator\" form=\"verb\">narrated by</term><term name=\"organizer\" form=\"verb\">organized by</term><term name=\"performer\" form=\"verb\">performed by</term><term name=\"producer\" form=\"verb\">produced by</term><term name=\"recipient\" form=\"verb\">a</term><term name=\"reviewed-author\" form=\"verb\">por</term><term name=\"script-writer\" form=\"verb\">written by</term><term name=\"series-creator\" form=\"verb\">created by</term><term name=\"translator\" form=\"verb\">traducido por</term>\n<!-- SHORT VERB ROLE FORMS --><term name=\"collection-editor\" form=\"verb-short\">ed. by</term><term name=\"compiler\" form=\"verb-short\">comp. by</term><term name=\"contributor\" form=\"verb-short\">w.</term><term name=\"curator\" form=\"verb-short\">cur. by</term><term name=\"director\" form=\"verb-short\">dir.</term><term name=\"editor\" form=\"verb-short\">ed.</term><term name=\"editor-translator\" form=\"verb-short\">ed. y trad.</term><term name=\"editortranslator\" form=\"verb-short\">ed. y trad.</term><term name=\"editorial-director\" form=\"verb-short\">ed.</term><term name=\"executive-producer\" form=\"verb-short\">exec. prod. by</term><term name=\"guest\" form=\"verb-short\">w. guest</term><term name=\"host\" form=\"verb-short\">hosted by</term><term name=\"illustrator\" form=\"verb-short\">ilust.</term><term name=\"narrator\" form=\"verb-short\">narr. by</term><term name=\"organizer\" form=\"verb-short\">org. by</term><term name=\"performer\" form=\"verb-short\">perf. by</term><term name=\"producer\" form=\"verb-short\">prod. by</term><term name=\"script-writer\" form=\"verb-short\">writ. by</term><term name=\"series-creator\" form=\"verb-short\">cre. by</term><term name=\"translator\" form=\"verb-short\">trad.</term>\n<!-- LONG MONTH FORMS --><term name=\"month-01\">enero</term><term name=\"month-02\">febrero</term><term name=\"month-03\">marzo</term><term name=\"month-04\">abril</term><term name=\"month-05\">mayo</term><term name=\"month-06\">junio</term><term name=\"month-07\">julio</term><term name=\"month-08\">agosto</term><term name=\"month-09\">septiembre</term><term name=\"month-10\">octubre</term><term name=\"month-11\">noviembre</term><term name=\"month-12\">diciembre</term>\n<!-- SHORT MONTH FORMS --><term name=\"month-01\" form=\"short\">ene.</term><term name=\"month-02\" form=\"short\">feb.</term><term name=\"month-03\" form=\"short\">mar.</term><term name=\"month-04\" form=\"short\">abr.</term><term name=\"month-05\" form=\"short\">may</term><term name=\"month-06\" form=\"short\">jun.</term><term name=\"month-07\" form=\"short\">jul.</term><term name=\"month-08\" form=\"short\">ago.</term><term name=\"month-09\" form=\"short\">sep.</term><term name=\"month-10\" form=\"short\">oct.</term><term name=\"month-11\" form=\"short\">nov.</term><term name=\"month-12\" form=\"short\">dic.</term>\n<!-- SEASONS --><term name=\"season-01\">primavera</term><term name=\"season-02\">verano</term><term name=\"season-03\">otoño</term><term name=\"season-04\">invierno</term></terms>\n</locale>\n"
 };
 
 const locales = new Register(defaultLocales);
 
-var apa = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" version=\"1.0\" demote-non-dropping-particle=\"never\" page-range-format=\"expanded\"><info><title>American Psychological Association 7th edition</title><title-short>APA</title-short><id>http://www.zotero.org/styles/apa</id><link href=\"http://www.zotero.org/styles/apa\" rel=\"self\"/><link href=\"http://www.zotero.org/styles/apa-6th-edition\" rel=\"template\"/><link href=\"https://apastyle.apa.org/style-grammar-guidelines/references/examples\" rel=\"documentation\"/><author><name>Brenton M. Wiernik</name><email>zotero@wiernik.org</email></author><category citation-format=\"author-date\"/><category field=\"psychology\"/><category field=\"generic-base\"/><updated>2022-01-31T14:43:56+00:00</updated><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights></info><locale xml:lang=\"en\"><terms><term name=\"editortranslator\" form=\"short\"><single>ed. &amp; trans.</single><multiple>eds. &amp; trans.</multiple></term><term name=\"translator\" form=\"short\">trans.</term><term name=\"interviewer\" form=\"short\"><single>interviewer</single><multiple>interviewers</multiple></term><term name=\"collection-editor\" form=\"short\"><single>ed.</single><multiple>eds.</multiple></term><term name=\"circa\" form=\"short\">ca.</term><term name=\"bc\"> B.C.E.</term><term name=\"ad\"> C.E.</term><term name=\"letter\">personal communication</term><term name=\"letter\" form=\"short\">letter</term><term name=\"issue\" form=\"long\"><single>issue</single><multiple>issues</multiple></term></terms></locale><locale xml:lang=\"af\"><terms><term name=\"letter\">persoonlike kommunikasie</term><term name=\"letter\" form=\"short\">brief</term></terms></locale><locale xml:lang=\"ar\"><terms><term name=\"letter\">اتصال شخصي</term><term name=\"letter\" form=\"short\">خطاب</term></terms></locale><locale xml:lang=\"bg\"><terms><term name=\"letter\">лична комуникация</term><term name=\"letter\" form=\"short\">писмо</term></terms></locale><locale xml:lang=\"ca\"><terms><term name=\"letter\">comunicació personal</term><term name=\"letter\" form=\"short\">carta</term></terms></locale><locale xml:lang=\"cs\"><terms><term name=\"letter\">osobní komunikace</term><term name=\"letter\" form=\"short\">dopis</term></terms></locale><locale xml:lang=\"cy\"><terms><term name=\"letter\">cyfathrebu personol</term><term name=\"letter\" form=\"short\">llythyr</term></terms></locale><locale xml:lang=\"da\"><terms><term name=\"et-al\">et al.</term><term name=\"letter\">personlig kommunikation</term><term name=\"letter\" form=\"short\">brev</term></terms></locale><locale xml:lang=\"de\"><terms><term name=\"et-al\">et al.</term><term name=\"letter\">persönliche Kommunikation</term><term name=\"letter\" form=\"short\">Brief</term></terms></locale><locale xml:lang=\"el\"><terms><term name=\"letter\">προσωπική επικοινωνία</term><term name=\"letter\" form=\"short\">επιστολή</term></terms></locale><locale xml:lang=\"es\"><terms><term name=\"from\">de</term><term name=\"letter\">comunicación personal</term><term name=\"letter\" form=\"short\">carta</term></terms></locale><locale xml:lang=\"et\"><terms><term name=\"letter\">isiklik suhtlus</term><term name=\"letter\" form=\"short\">kiri</term></terms></locale><locale xml:lang=\"eu\"><terms><term name=\"letter\">komunikazio pertsonala</term><term name=\"letter\" form=\"short\">gutuna</term></terms></locale><locale xml:lang=\"fa\"><terms><term name=\"letter\">ارتباط شخصی</term><term name=\"letter\" form=\"short\">نامه</term></terms></locale><locale xml:lang=\"fi\"><terms><term name=\"letter\">henkilökohtainen viestintä</term><term name=\"letter\" form=\"short\">kirje</term></terms></locale><locale xml:lang=\"fr\"><terms><term name=\"letter\">communication personnelle</term><term name=\"letter\" form=\"short\">lettre</term><term name=\"editor\" form=\"short\"><single>éd.</single><multiple>éds.</multiple></term></terms></locale><locale xml:lang=\"he\"><terms><term name=\"letter\">תקשורת אישית</term><term name=\"letter\" form=\"short\">מכתב</term></terms></locale><locale xml:lang=\"hr\"><terms><term name=\"letter\">osobna komunikacija</term><term name=\"letter\" form=\"short\">pismo</term></terms></locale><locale xml:lang=\"hu\"><terms><term name=\"letter\">személyes kommunikáció</term><term name=\"letter\" form=\"short\">levél</term></terms></locale><locale xml:lang=\"id\"><terms><term name=\"letter\">komunikasi pribadi</term><term name=\"letter\" form=\"short\">surat</term></terms></locale><locale xml:lang=\"is\"><terms><term name=\"letter\">persónuleg samskipti</term><term name=\"letter\" form=\"short\">bréf</term></terms></locale><locale xml:lang=\"it\"><terms><term name=\"letter\">comunicazione personale</term><term name=\"letter\" form=\"short\">lettera</term></terms></locale><locale xml:lang=\"ja\"><terms><term name=\"letter\">個人的なやり取り</term><term name=\"letter\" form=\"short\">手紙</term></terms></locale><locale xml:lang=\"ko\"><terms><term name=\"letter\">개인 서신</term><term name=\"letter\" form=\"short\">편지</term></terms></locale><locale xml:lang=\"la\"><terms><term name=\"letter\"/><term name=\"letter\" form=\"short\">epistula</term></terms></locale><locale xml:lang=\"lt\"><terms><term name=\"letter\">communicationis personalis</term><term name=\"letter\" form=\"short\"/></terms></locale><locale xml:lang=\"lv\"><terms><term name=\"letter\">personīga komunikācija</term><term name=\"letter\" form=\"short\">vēstule</term></terms></locale><locale xml:lang=\"mn\"><terms><term name=\"letter\">хувийн харилцаа холбоо</term><term name=\"letter\" form=\"short\">захиа</term></terms></locale><locale xml:lang=\"nb\"><terms><term name=\"et-al\">et al.</term><term name=\"letter\">personlig kommunikasjon</term><term name=\"letter\" form=\"short\">brev</term></terms></locale><locale xml:lang=\"nl\"><terms><term name=\"et-al\">et al.</term><term name=\"letter\">persoonlijke communicatie</term><term name=\"letter\" form=\"short\">brief</term></terms></locale><locale xml:lang=\"nn\"><terms><term name=\"et-al\">et al.</term><term name=\"letter\">personlig kommunikasjon</term><term name=\"letter\" form=\"short\">brev</term></terms></locale><locale xml:lang=\"pl\"><terms><term name=\"letter\">osobista komunikacja</term><term name=\"letter\" form=\"short\">list</term></terms></locale><locale xml:lang=\"pt\"><terms><term name=\"letter\">comunicação pessoal</term><term name=\"letter\" form=\"short\">carta</term></terms></locale><locale xml:lang=\"ro\"><terms><term name=\"letter\">comunicare personală</term><term name=\"letter\" form=\"short\">scrisoare</term></terms></locale><locale xml:lang=\"ru\"><terms><term name=\"letter\">личная переписка</term><term name=\"letter\" form=\"short\">письмо</term></terms></locale><locale xml:lang=\"sk\"><terms><term name=\"letter\">osobná komunikácia</term><term name=\"letter\" form=\"short\">list</term></terms></locale><locale xml:lang=\"sl\"><terms><term name=\"letter\">osebna komunikacija</term><term name=\"letter\" form=\"short\">pismo</term></terms></locale><locale xml:lang=\"sr\"><terms><term name=\"letter\">лична комуникација</term><term name=\"letter\" form=\"short\">писмо</term></terms></locale><locale xml:lang=\"sv\"><terms><term name=\"letter\">personlig kommunikation</term><term name=\"letter\" form=\"short\">brev</term></terms></locale><locale xml:lang=\"th\"><terms><term name=\"letter\">การสื่อสารส่วนบุคคล</term><term name=\"letter\" form=\"short\">จดหมาย</term></terms></locale><locale xml:lang=\"tr\"><terms><term name=\"letter\">kişisel iletişim</term><term name=\"letter\" form=\"short\">mektup</term></terms></locale><locale xml:lang=\"uk\"><terms><term name=\"letter\">особисте спілкування</term><term name=\"letter\" form=\"short\">лист</term></terms></locale><locale xml:lang=\"vi\"><terms><term name=\"letter\">giao tiếp cá nhân</term><term name=\"letter\" form=\"short\">thư</term></terms></locale><locale xml:lang=\"zh-CN\"><terms><term name=\"letter\">的私人交流</term><term name=\"letter\" form=\"short\">信函</term></terms></locale><locale xml:lang=\"zh-TW\"><terms><term name=\"letter\">私人通訊</term><term name=\"letter\" form=\"short\">信函</term></terms></locale><!-- General categories of item types:Periodical: article-journal article-magazine article-newspaper post-weblog review review-bookPeriodical or Booklike: paper-conferenceBooklike: article book broadcast chapter dataset entry entry-dictionary entry-encyclopedia figure graphic interview manuscript map motion_picture musical_score pamphlet patent personal_communication report song speech thesis post webpageLegal: bill legal_case legislation treaty--><!-- APA references contain four parts: author, date, title, source --><macro name=\"author-bib\"><names variable=\"composer\" delimiter=\", \"><name name-as-sort-order=\"all\" and=\"symbol\" sort-separator=\", \" initialize-with=\". \" delimiter=\", \" delimiter-precedes-last=\"always\"/><substitute><names variable=\"author\"/><names variable=\"illustrator\"/><names variable=\"director\"><name name-as-sort-order=\"all\" and=\"symbol\" sort-separator=\", \" initialize-with=\". \" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"long\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><choose><if variable=\"container-title\"><choose><if type=\"book entry entry-dictionary entry-encyclopedia\" match=\"any\"><choose><if variable=\"title\"><group delimiter=\" \"><text macro=\"title\"/><text macro=\"parenthetical\"/></group></if><else><text macro=\"title-and-descriptions\"/></else></choose></if></choose></if></choose><!-- Test for editortranslator and put that first as that becomes available --><names variable=\"editor\" delimiter=\", \"><name name-as-sort-order=\"all\" and=\"symbol\" sort-separator=\", \" initialize-with=\". \" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"editorial-director\"><name name-as-sort-order=\"all\" and=\"symbol\" sort-separator=\", \" initialize-with=\". \" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"collection-editor\"><name name-as-sort-order=\"all\" and=\"symbol\" sort-separator=\", \" initialize-with=\". \" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><choose><if variable=\"title\"><group delimiter=\" \"><text macro=\"title\"/><text macro=\"parenthetical\"/></group></if><else><text macro=\"title-and-descriptions\"/></else></choose></substitute></names></macro><macro name=\"author-intext\"><choose><if type=\"bill legal_case legislation treaty\" match=\"any\"><text macro=\"title-intext\"/></if><else-if type=\"interview personal_communication\" match=\"any\"><choose><!-- These variables indicate that the letter is retrievable by the reader. If not, then use the APA in-text-only personal communication format --><if variable=\"archive container-title DOI publisher URL\" match=\"none\"><group delimiter=\", \"><names variable=\"author\"><name and=\"symbol\" delimiter=\", \" initialize-with=\". \"/><substitute><text macro=\"title-intext\"/></substitute></names><!-- Replace with term=\"personal-communication\" if that becomes available --><text term=\"letter\"/></group></if><else><names variable=\"author\" delimiter=\", \"><name form=\"short\" and=\"symbol\" delimiter=\", \" initialize-with=\". \"/><substitute><text macro=\"title-intext\"/></substitute></names></else></choose></else-if><else><names variable=\"composer\" delimiter=\", \"><name form=\"short\" and=\"symbol\" delimiter=\", \" initialize-with=\". \"/><substitute><names variable=\"author\"/><names variable=\"illustrator\"/><names variable=\"director\"/><choose><if variable=\"container-title\"><choose><if type=\"book entry entry-dictionary entry-encyclopedia\" match=\"any\"><text macro=\"title-intext\"/></if></choose></if></choose><names variable=\"editor\"/><names variable=\"editorial-director\"/><text macro=\"title-intext\"/></substitute></names></else></choose></macro><macro name=\"date-bib\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><choose><if is-uncertain-date=\"issued\"><text term=\"circa\" form=\"short\"/></if></choose><group><choose><if variable=\"issued\"><date variable=\"issued\"><date-part name=\"year\"/></date><text variable=\"year-suffix\"/><choose><if type=\"article-magazine article-newspaper broadcast interview motion_picture pamphlet personal_communication post post-weblog song speech webpage\" match=\"any\"><!-- Many video and audio examples in manual give full dates. Err on the side of too much information. --><date variable=\"issued\"><date-part prefix=\", \" name=\"month\"/><date-part prefix=\" \" name=\"day\"/></date></if><else-if type=\"paper-conference\"><!-- Capture 'speech' stored as 'paper-conference' --><choose><if variable=\"collection-editor editor editorial-director issue page volume\" match=\"none\"><date variable=\"issued\"><date-part prefix=\", \" name=\"month\"/><date-part prefix=\" \" name=\"day\"/></date></if></choose></else-if><!-- Only year: article article-journal book chapter entry entry-dictionary entry-encyclopedia dataset figure graphic manuscript map musical_score paper-conference[published] patent report review review-book thesis --></choose></if><else-if variable=\"status\"><group><text variable=\"status\" text-case=\"lowercase\"/><text variable=\"year-suffix\" prefix=\"-\"/></group></else-if><else><text term=\"no date\" form=\"short\"/><text variable=\"year-suffix\" prefix=\"-\"/></else></choose></group></group></macro><macro name=\"date-sort-group\"><!-- APA sorts 1. no-date items, 2. items with dates, 3. in-press (status) items --><choose><if variable=\"issued\"><text value=\"1\"/></if><else-if variable=\"status\"><text value=\"2\"/></else-if><else><text value=\"0\"/></else></choose></macro><macro name=\"date-sort-date\"><date variable=\"issued\" form=\"numeric\"/></macro><macro name=\"date-intext\"><choose><if variable=\"issued\"><group delimiter=\"/\"><group delimiter=\" \"><choose><if is-uncertain-date=\"original-date\"><text term=\"circa\" form=\"short\"/></if></choose><date variable=\"original-date\"><date-part name=\"year\"/></date></group><group delimiter=\" \"><choose><if is-uncertain-date=\"issued\"><text term=\"circa\" form=\"short\"/></if></choose><group><choose><if type=\"interview personal_communication\" match=\"any\"><choose><if variable=\"archive container-title DOI publisher URL\" match=\"none\"><!-- These variables indicate that the communication is retrievable by the reader. If not, then use the in-text-only personal communication format --><date variable=\"issued\" form=\"text\"/></if><else><date variable=\"issued\"><date-part name=\"year\"/></date></else></choose></if><else><date variable=\"issued\"><date-part name=\"year\"/></date></else></choose><text variable=\"year-suffix\"/></group></group></group></if><else-if variable=\"status\"><text variable=\"status\" text-case=\"lowercase\"/><text variable=\"year-suffix\" prefix=\"-\"/></else-if><else><text term=\"no date\" form=\"short\"/><text variable=\"year-suffix\" prefix=\"-\"/></else></choose></macro><!-- APA has two description elements following the title:title (parenthetical) [bracketed]  --><macro name=\"title-and-descriptions\"><choose><if variable=\"title\"><group delimiter=\" \"><text macro=\"title\"/><text macro=\"parenthetical\"/><text macro=\"bracketed\"/></group></if><else><group delimiter=\" \"><text macro=\"bracketed\"/><text macro=\"parenthetical\"/></group></else></choose></macro><macro name=\"title\"><choose><if type=\"post webpage\" match=\"any\"><!-- Webpages are always italicized --><text variable=\"title\" font-style=\"italic\"/></if><else-if variable=\"container-title\" match=\"any\"><!-- Other types are italicized based on presence of container-title.Assume that review and review-book are published in periodicals/blogs,not just on a web page (ex. 69) --><text variable=\"title\"/></else-if><else><choose><if type=\"article-journal article-magazine article-newspaper post-weblog review review-book\" match=\"any\"><text variable=\"title\" font-style=\"italic\"/></if><else-if type=\"paper-conference\"><choose><if variable=\"collection-editor editor editorial-director\" match=\"any\"><group delimiter=\": \" font-style=\"italic\"><text variable=\"title\"/><!-- Replace with volume-title as that becomes available --><choose><if is-numeric=\"volume\" match=\"none\"><group delimiter=\" \"><label variable=\"volume\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"volume\"/></group></if></choose></group></if><else><text variable=\"title\" font-style=\"italic\"/></else></choose></else-if><else><group delimiter=\": \" font-style=\"italic\"><text variable=\"title\"/><!-- Replace with volume-title as that becomes available --><choose><if is-numeric=\"volume\" match=\"none\"><group delimiter=\" \"><label variable=\"volume\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"volume\"/></group></if></choose></group></else></choose></else></choose></macro><macro name=\"title-intext\"><choose><if variable=\"title\" match=\"none\"><text macro=\"bracketed-intext\" prefix=\"[\" suffix=\"]\"/></if><else-if type=\"bill\"><!-- If a bill has no number or container-title, assume it is a hearing; italic --><choose><if variable=\"number container-title\" match=\"none\"><text variable=\"title\" form=\"short\" font-style=\"italic\" text-case=\"title\"/></if><else-if variable=\"title\"><text variable=\"title\" form=\"short\" text-case=\"title\"/></else-if><else><group delimiter=\" \"><text variable=\"genre\"/><group delimiter=\" \"><choose><if variable=\"chapter-number container-title\" match=\"none\"><!-- Replace with label variable=\"number\" as that becomes available --><text term=\"issue\" form=\"short\"/></if></choose><text variable=\"number\"/></group></group></else></choose></else-if><else-if type=\"legal_case\" match=\"any\"><!-- Cases are italicized --><text variable=\"title\" font-style=\"italic\"/></else-if><else-if type=\"legislation treaty\" match=\"any\"><!-- Legislation and treaties not italicized or quoted --><text variable=\"title\" form=\"short\" text-case=\"title\"/></else-if><else-if type=\"post webpage\" match=\"any\"><!-- Webpages are always italicized --><text variable=\"title\" form=\"short\" font-style=\"italic\" text-case=\"title\"/></else-if><else-if variable=\"container-title\" match=\"any\"><!-- Other types are italicized or quoted based on presence of container-title. As in title macro. --><text variable=\"title\" form=\"short\" quotes=\"true\" text-case=\"title\"/></else-if><else><text variable=\"title\" form=\"short\" font-style=\"italic\" text-case=\"title\"/></else></choose></macro><macro name=\"parenthetical\"><!-- (Secondary contributors; Database location; Genre no. 123; Report Series 123, Version, Edition, Volume, Page) --><group prefix=\"(\" suffix=\")\"><choose><if type=\"patent\"><!-- authority: U.S. ; genre: patent ; number: 123,445 --><group delimiter=\" \"><text variable=\"authority\" form=\"short\"/><choose><if variable=\"genre\"><text variable=\"genre\" text-case=\"capitalize-first\"/></if><else><!-- This should be localized --><text value=\"patent\" text-case=\"capitalize-first\"/></else></choose><group delimiter=\" \"><!-- Replace with label variable=\"number\" if that becomes available --><text term=\"issue\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"number\"/></group></group></if><else-if type=\"post webpage\" match=\"any\"><!-- For post webpage, container-title is treated as publisher --><group delimiter=\"; \"><text macro=\"secondary-contributors\"/><text macro=\"database-location\"/><text macro=\"number\"/><text macro=\"locators-booklike\"/></group></else-if><else-if variable=\"container-title\"><group delimiter=\"; \"><text macro=\"secondary-contributors\"/><choose><if type=\"broadcast graphic map motion_picture song\" match=\"any\"><!-- For audiovisual media, number information comes after title, not container-title --><text macro=\"number\"/></if></choose></group></else-if><else><group delimiter=\"; \"><text macro=\"secondary-contributors\"/><text macro=\"database-location\"/><text macro=\"number\"/><text macro=\"locators-booklike\"/></group></else></choose></group></macro><macro name=\"parenthetical-container\"><choose><if variable=\"container-title\" match=\"any\"><group prefix=\"(\" suffix=\")\"><group delimiter=\"; \"><text macro=\"database-location\"/><choose><if type=\"broadcast graphic map motion_picture song\" match=\"none\"><!-- For audiovisual media, number information comes after title, not container-title --><text macro=\"number\"/></if></choose><text macro=\"locators-booklike\"/></group></group></if></choose></macro><macro name=\"bracketed\"><!-- [Descriptive information] --><!-- If there is a number, genre is already printed in macro=\"number\" --><group prefix=\"[\" suffix=\"]\"><choose><if variable=\"reviewed-author reviewed-title\" type=\"review review-book\" match=\"any\"><!-- Reviewed item --><group delimiter=\"; \"><group delimiter=\", \"><group delimiter=\" \"><!-- Assume that genre is entered as 'Review of the book' or similar --><choose><if variable=\"number\" match=\"none\"><choose><if variable=\"genre\"><text variable=\"genre\" text-case=\"capitalize-first\"/></if><else-if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/></else-if><else><!-- Replace with term=\"review\" as that becomes available --><text value=\"Review of\"/></else></choose></if><else><choose><if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/></if><else><!-- Replace with term=\"review\" as that becomes available --><text value=\"Review of\"/></else></choose></else></choose><text macro=\"reviewed-title\"/></group><names variable=\"reviewed-author\"><label form=\"verb-short\" suffix=\" \"/><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></group><choose><if variable=\"genre\" match=\"any\"><choose><if variable=\"number\" match=\"none\"><text variable=\"medium\" text-case=\"capitalize-first\"/></if></choose></if></choose></group></if><else-if type=\"thesis\"><!-- Thesis type and institution --><group delimiter=\"; \"><choose><if variable=\"number\" match=\"none\"><group delimiter=\", \"><text variable=\"genre\" text-case=\"capitalize-first\"/><choose><if variable=\"archive DOI URL\" match=\"any\"><!-- Include the university in brackets if thesis is published --><text variable=\"publisher\"/></if></choose></group></if></choose><text variable=\"medium\" text-case=\"capitalize-first\"/></group></else-if><else-if variable=\"interviewer\" type=\"interview\" match=\"any\"><!-- Interview information --><choose><if variable=\"title\"><text macro=\"format\"/></if><else-if variable=\"genre\"><group delimiter=\"; \"><group delimiter=\" \"><text variable=\"genre\" text-case=\"capitalize-first\"/><group delimiter=\" \"><text term=\"author\" form=\"verb\"/><names variable=\"interviewer\"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></group></group></group></else-if><else-if variable=\"interviewer\"><group delimiter=\"; \"><names variable=\"interviewer\"><label form=\"verb\" suffix=\" \" text-case=\"capitalize-first\"/><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names><text variable=\"medium\" text-case=\"capitalize-first\"/></group></else-if><else><text macro=\"format\"/></else></choose></else-if><else-if type=\"personal_communication\"><!-- Letter information --><choose><if variable=\"recipient\"><group delimiter=\"; \"><group delimiter=\" \"><choose><if variable=\"number\" match=\"none\"><choose><if variable=\"genre\"><text variable=\"genre\" text-case=\"capitalize-first\"/></if><else-if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/></else-if><else><text term=\"letter\" form=\"short\" text-case=\"capitalize-first\"/></else></choose></if><else><choose><if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/></if><else><text term=\"letter\" form=\"short\" text-case=\"capitalize-first\"/></else></choose></else></choose><names variable=\"recipient\" delimiter=\", \"><label form=\"verb\" suffix=\" \"/><name and=\"symbol\" delimiter=\", \"/></names></group><choose><if variable=\"genre\" match=\"any\"><choose><if variable=\"number\" match=\"none\"><text variable=\"medium\" text-case=\"capitalize-first\"/></if></choose></if></choose></group></if><else><text macro=\"format\"/></else></choose></else-if><else-if variable=\"composer\" type=\"song\" match=\"all\"><!-- Performer of classical music works --><group delimiter=\"; \"><choose><if variable=\"number\" match=\"none\"><group delimiter=\" \"><choose><if variable=\"genre\"><text variable=\"genre\" text-case=\"capitalize-first\"/><!-- Replace prefix with performer label as that becomes available --><names variable=\"author\" prefix=\"recorded by \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></if><else-if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/><!-- Replace prefix with performer label as that becomes available --><names variable=\"author\" prefix=\"recorded by \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></else-if><else><!-- Replace prefix with performer label as that becomes available --><names variable=\"author\" prefix=\"Recorded by \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></else></choose></group></if><else><group delimiter=\" \"><choose><if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/><!-- Replace prefix with performer label as that becomes available --><names variable=\"author\" prefix=\"recorded by \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></if><else><!-- Replace prefix with performer label as that becomes available --><names variable=\"author\" prefix=\"Recorded by \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names></else></choose></group></else></choose><choose><if variable=\"genre\" match=\"any\"><choose><if variable=\"number\" match=\"none\"><text variable=\"medium\" text-case=\"capitalize-first\"/></if></choose></if></choose></group></else-if><else-if variable=\"container-title\" match=\"none\"><!-- Other description --><text macro=\"format\"/></else-if><else><!-- For conference presentations, chapters in reports, software, place bracketed after the container title --><choose><if type=\"paper-conference speech\" match=\"any\"><choose><if variable=\"collection-editor editor editorial-director issue page volume\" match=\"any\"><text macro=\"format\"/></if></choose></if><else-if type=\"book\"><choose><if variable=\"version\" match=\"none\"><text macro=\"format\"/></if></choose></else-if><else-if type=\"report\" match=\"none\"><text macro=\"format\"/></else-if></choose></else></choose></group></macro><macro name=\"bracketed-intext\"><group prefix=\"[\" suffix=\"]\"><choose><if variable=\"reviewed-author reviewed-title\" type=\"review review-book\" match=\"any\"><!-- This should be localized --><text macro=\"reviewed-title-intext\" prefix=\"Review of \"/></if><else-if variable=\"interviewer\" type=\"interview\" match=\"any\"><names variable=\"interviewer\"><label form=\"verb\" suffix=\" \" text-case=\"capitalize-first\"/><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><substitute><text macro=\"format-intext\"/></substitute></names></else-if><else-if type=\"personal_communication\"><!-- Letter information --><choose><if variable=\"recipient\"><group delimiter=\" \"><choose><if variable=\"number\" match=\"none\"><text variable=\"genre\" text-case=\"capitalize-first\"/></if><else><text term=\"letter\" form=\"short\" text-case=\"capitalize-first\"/></else></choose><names variable=\"recipient\" delimiter=\", \"><label form=\"verb\" suffix=\" \"/><name and=\"symbol\" delimiter=\", \"/></names></group></if><else><text macro=\"format-intext\"/></else></choose></else-if><else><text macro=\"format-intext\"/></else></choose></group></macro><macro name=\"bracketed-container\"><group prefix=\"[\" suffix=\"]\"><choose><if type=\"paper-conference speech\" match=\"any\"><!-- Conference presentations should describe the session [container] in bracketed unless published in a proceedings --><choose><if variable=\"collection-editor editor editorial-director issue page volume\" match=\"none\"><text macro=\"format\"/></if></choose></if><else-if type=\"book\" variable=\"version\" match=\"all\"><!-- For entries in mobile app reference works, place bracketed after the container-title --><text macro=\"format\"/></else-if><else-if type=\"report\"><!-- For chapters in reports, place bracketed after the container title --><text macro=\"format\"/></else-if></choose></group></macro><macro name=\"secondary-contributors\"><choose><if type=\"article-journal article-magazine article-newspaper post-weblog review review-book\" match=\"any\"><text macro=\"secondary-contributors-periodical\"/></if><else-if type=\"paper-conference\"><choose><if variable=\"collection-editor editor editorial-director\" match=\"any\"><text macro=\"secondary-contributors-booklike\"/></if><else><text macro=\"secondary-contributors-periodical\"/></else></choose></else-if><else><text macro=\"secondary-contributors-booklike\"/></else></choose></macro><macro name=\"secondary-contributors-periodical\"><group delimiter=\"; \"><choose><if variable=\"title\"><names variable=\"interviewer\" delimiter=\"; \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></if></choose><names variable=\"translator\" delimiter=\"; \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></group></macro><macro name=\"secondary-contributors-booklike\"><group delimiter=\"; \"><choose><if variable=\"title\"><names variable=\"interviewer\"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></if></choose><!-- When editortranslator becomes available, add a test: variable=\"editortranslator\" match=\"none\"; then print translator --><choose><if type=\"post webpage\" match=\"none\"><!-- Webpages treat container-title like publisher --><choose><if variable=\"container-title\" match=\"none\"><group delimiter=\"; \"><names variable=\"container-author\"><label form=\"verb-short\" suffix=\" \" text-case=\"title\"/><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names><names variable=\"editor translator\" delimiter=\"; \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></group></if></choose></if><else><group delimiter=\"; \"><names variable=\"container-author\"><label form=\"verb-short\" suffix=\" \" text-case=\"title\"/><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/></names><names variable=\"editor translator\" delimiter=\"; \"><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></group></else></choose></group></macro><macro name=\"database-location\"><choose><if variable=\"archive-place\" match=\"none\"><!-- With `archive-place`: physical archives. Without: online archives. --><!-- Add archive_collection as that becomes available --><text variable=\"archive_location\"/></if></choose></macro><macro name=\"number\"><choose><if variable=\"number\"><group delimiter=\", \"><group delimiter=\" \"><text variable=\"genre\" text-case=\"title\"/><choose><if is-numeric=\"number\"><!-- Replace with label variable=\"number\" if that becomes available --><text term=\"issue\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"number\"/></if><else><text variable=\"number\"/></else></choose></group><choose><if type=\"thesis\"><choose><!-- Include the university in brackets if thesis is published --><if variable=\"archive DOI URL\" match=\"any\"><text variable=\"publisher\"/></if></choose></if></choose></group></if></choose></macro><macro name=\"locators-booklike\"><choose><if type=\"article-journal article-magazine article-newspaper broadcast interview patent post post-weblog review review-book speech webpage\" match=\"any\"/><else-if type=\"paper-conference\"><choose><if variable=\"collection-editor editor editorial-director\" match=\"any\"><group delimiter=\", \"><text macro=\"version\"/><text macro=\"edition\"/><text macro=\"volume-booklike\"/></group></if></choose></else-if><else><group delimiter=\", \"><text macro=\"version\"/><text macro=\"edition\"/><text macro=\"volume-booklike\"/></group></else></choose></macro><macro name=\"version\"><choose><if is-numeric=\"version\"><group delimiter=\" \"><!-- replace with label variable=\"version\" if that becomes available --><text term=\"version\" text-case=\"capitalize-first\"/><text variable=\"version\"/></group></if><else><text variable=\"version\"/></else></choose></macro><macro name=\"edition\"><choose><if is-numeric=\"edition\"><group delimiter=\" \"><number variable=\"edition\" form=\"ordinal\"/><label variable=\"edition\" form=\"short\"/></group></if><else><text variable=\"edition\"/></else></choose></macro><macro name=\"volume-booklike\"><group delimiter=\", \"><!-- Report series [ex. 52] --><choose><if type=\"report\"><group delimiter=\" \"><text variable=\"collection-title\" text-case=\"title\"/><text variable=\"collection-number\"/></group></if></choose><choose><if variable=\"volume\" match=\"any\"><choose><!-- Non-numeric volumes are already printed as part of the book title --><if is-numeric=\"volume\" match=\"none\"/><else><group delimiter=\" \"><label variable=\"volume\" form=\"short\" text-case=\"capitalize-first\"/><number variable=\"volume\" form=\"numeric\"/></group></else></choose></if><else><group><!-- Replace with label variable=\"number-of-volumes\" if that becomes available --><text term=\"volume\" form=\"short\" text-case=\"capitalize-first\" suffix=\" \"/><text term=\"page-range-delimiter\" prefix=\"1\"/><number variable=\"number-of-volumes\" form=\"numeric\"/></group></else></choose><group delimiter=\" \"><label variable=\"issue\" text-case=\"capitalize-first\"/><text variable=\"issue\"/></group><group delimiter=\" \"><label variable=\"page\" form=\"short\" suffix=\" \"/><text variable=\"page\"/></group></group></macro><macro name=\"reviewed-title\"><choose><if variable=\"reviewed-title\"><!-- Not possible to distinguish TV series episode from other reviewed works [Ex. 69] --><text variable=\"reviewed-title\" font-style=\"italic\"/></if><else><!-- Assume title is title of reviewed work --><text variable=\"title\" font-style=\"italic\"/></else></choose></macro><macro name=\"reviewed-title-intext\"><choose><if variable=\"reviewed-title\"><!-- Not possible to distinguish TV series episode from other reviewed works [Ex. 69] --><text variable=\"reviewed-title\" form=\"short\" font-style=\"italic\" text-case=\"title\"/></if><else><!-- Assume title is title of reviewed work --><text variable=\"title\" form=\"short\" font-style=\"italic\" text-case=\"title\"/></else></choose></macro><macro name=\"format\"><choose><if variable=\"genre medium\" match=\"any\"><group delimiter=\"; \"><choose><if variable=\"number\" match=\"none\"><text variable=\"genre\" text-case=\"capitalize-first\"/></if></choose><text variable=\"medium\" text-case=\"capitalize-first\"/></group></if><!-- Generic labels for specific types --><!-- These should be localized when possible --><else-if type=\"dataset\"><text value=\"Data set\"/></else-if><else-if type=\"book\" variable=\"version\" match=\"all\"><!-- Replace with type=\"software\" and term=\"software\" as that becomes available --><text value=\"Computer software\"/></else-if><else-if type=\"interview personal_communication\" match=\"any\"><choose><if variable=\"archive container-title DOI publisher URL\" match=\"none\"><text term=\"letter\" text-case=\"capitalize-first\"/></if><else-if type=\"interview\"><text term=\"interview\" text-case=\"capitalize-first\"/></else-if></choose></else-if><else-if type=\"map\"><text value=\"Map\"/></else-if></choose></macro><macro name=\"format-intext\"><choose><if variable=\"genre\" match=\"any\"><text variable=\"genre\" text-case=\"capitalize-first\"/></if><else-if variable=\"medium\"><text variable=\"medium\" text-case=\"capitalize-first\"/></else-if><!-- Generic labels for specific types --><!-- These should be localized when possible --><else-if type=\"dataset\"><text value=\"Data set\"/></else-if><else-if type=\"book\" variable=\"version\" match=\"all\"><!-- Replace with type=\"software\" and term=\"software\" as that becomes available --><text value=\"Computer software\"/></else-if><else-if type=\"interview personal_communication\" match=\"any\"><choose><if variable=\"archive container-title DOI publisher URL\" match=\"none\"><text term=\"letter\" text-case=\"capitalize-first\"/></if><else-if type=\"interview\"><text term=\"interview\" text-case=\"capitalize-first\"/></else-if></choose></else-if><else-if type=\"map\"><text value=\"Map\"/></else-if></choose></macro><!-- APA 'source' element contains four parts:container, event, publisher, access --><macro name=\"container\"><choose><if type=\"article-journal article-magazine article-newspaper post-weblog review review-book\" match=\"any\"><!-- Periodical items --><text macro=\"container-periodical\"/></if><else-if type=\"paper-conference\"><!-- Determine if paper-conference is a periodical or booklike --><choose><if variable=\"editor editorial-director collection-editor container-author\" match=\"any\"><text macro=\"container-booklike\"/></if><else><text macro=\"container-periodical\"/></else></choose></else-if><else-if type=\"post webpage\" match=\"none\"><!-- post and webpage treat container-title like publisher --><text macro=\"container-booklike\"/></else-if></choose></macro><macro name=\"container-periodical\"><group delimiter=\". \"><group delimiter=\", \"><text variable=\"container-title\" font-style=\"italic\" text-case=\"title\"/><choose><if variable=\"volume\"><group><text variable=\"volume\" font-style=\"italic\"/><text variable=\"issue\" prefix=\"(\" suffix=\")\"/></group></if><else><text variable=\"issue\" font-style=\"italic\"/></else></choose><choose><if variable=\"page\"><text variable=\"page\"/></if><else><!-- Ex. 6: Journal article with article number or eLocator --><!-- This should be localized --><text variable=\"number\" prefix=\"Article \"/></else></choose></group><choose><if variable=\"issued\"><choose><if variable=\"issue page volume\" match=\"none\"><text variable=\"status\" text-case=\"capitalize-first\"/></if></choose></if></choose></group></macro><macro name=\"container-booklike\"><choose><if variable=\"container-title\" match=\"any\"><group delimiter=\" \"><text term=\"in\" text-case=\"capitalize-first\"/><group delimiter=\", \"><names variable=\"editor translator\" delimiter=\", &amp; \"><!-- Change to editortranslator and move editor to substitute as that becomes available --><name and=\"symbol\" initialize-with=\". \" delimiter=\", \"/><label form=\"short\" text-case=\"title\" prefix=\" (\" suffix=\")\"/><substitute><names variable=\"editorial-director\"/><names variable=\"collection-editor\"/><names variable=\"container-author\"/></substitute></names><group delimiter=\": \" font-style=\"italic\"><text variable=\"container-title\"/><!-- Replace with volume-title as that becomes available --><choose><if is-numeric=\"volume\" match=\"none\"><group delimiter=\" \"><label variable=\"volume\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"volume\"/></group></if></choose></group></group><text macro=\"parenthetical-container\"/><text macro=\"bracketed-container\"/></group></if></choose></macro><macro name=\"publisher\"><group delimiter=\"; \"><choose><if type=\"thesis\"><choose><if variable=\"archive DOI URL\" match=\"none\"><text variable=\"publisher\"/></if></choose></if><else-if type=\"post webpage\" match=\"any\"><!-- For websites, treat container title like publisher --><group delimiter=\"; \"><text variable=\"container-title\" text-case=\"title\"/><text variable=\"publisher\"/></group></else-if><else-if type=\"paper-conference\"><!-- For paper-conference, don't print publisher if in a journal-like proceedings --><choose><if variable=\"collection-editor editor editorial-director\" match=\"any\"><text variable=\"publisher\"/></if></choose></else-if><else-if type=\"article-journal article-magazine article-newspaper post-weblog\" match=\"none\"><text variable=\"publisher\"/></else-if></choose><group delimiter=\", \"><choose><if variable=\"archive-place\"><!-- With `archive-place`: physical archives. Without: online archives. --><!-- For physical archives, print the location before the archive name.For electronic archives, these are printed in macro=\"description\". --><!-- Split \"archive_location\" into \"archive_collection\" and \"archive_location\" as that becomes available --><!-- Must test for archive_collection:With collection: archive_collection (archive_location), archive, archive-placeNo collection: archive (archive_location), archive-place--><text variable=\"archive_location\"/></if></choose><text variable=\"archive\"/><text variable=\"archive-place\"/></group></group></macro><macro name=\"access\"><choose><if variable=\"DOI\" match=\"any\"><text variable=\"DOI\" prefix=\"https://doi.org/\"/></if><else-if variable=\"URL\"><group delimiter=\" \"><choose><if variable=\"issued status\" match=\"none\"><group delimiter=\" \"><text term=\"retrieved\" text-case=\"capitalize-first\"/><date variable=\"accessed\" form=\"text\" suffix=\",\"/><text term=\"from\"/></group></if></choose><text variable=\"URL\"/></group></else-if></choose></macro><macro name=\"event\"><choose><if variable=\"event\"><!-- To prevent Zotero from printing event-place due to its double-mapping of all 'place' toboth publisher-place and event-place. Remove this 'choose' when that is changed. --><choose><if variable=\"collection-editor editor editorial-director issue page volume\" match=\"none\"><!-- Don't print event info if published in a proceedings --><group delimiter=\", \"><text variable=\"event\"/><text variable=\"event-place\"/></group></if></choose></if></choose></macro><!-- After 'source', APA also prints publication history (original publication, reprint info, retraction info) --><macro name=\"publication-history\"><choose><if type=\"patent\" match=\"none\"><group prefix=\"(\" suffix=\")\"><choose><if variable=\"references\"><!-- This provides the option for more elaborate description of publication history, such as full \"reprinted\" references(examples 11, 43, 44) or retracted references --><text variable=\"references\"/></if><else><group delimiter=\" \"><text value=\"Original work published\"/><choose><if is-uncertain-date=\"original-date\"><text term=\"circa\" form=\"short\"/></if></choose><date variable=\"original-date\"><date-part name=\"year\"/></date></group></else></choose></group></if><else><text variable=\"references\" prefix=\"(\" suffix=\")\"/></else></choose></macro><!-- Legal citations have their own rules --><macro name=\"legal-cites\"><choose><if type=\"legal_case\"><group delimiter=\". \"><group delimiter=\", \"><text variable=\"title\"/><group delimiter=\" \"><text macro=\"container-legal\"/><text macro=\"date-legal\"/></group><text variable=\"references\"/></group><text macro=\"access\"/></group></if><else-if type=\"bill\"><!-- Currently designed to handle bills, resolutions, hearings, rederal reports. --><group delimiter=\". \"><group delimiter=\", \"><choose><if variable=\"number container-title\" match=\"none\"><!-- If no number or container-title, then assume it is a hearing --><text variable=\"title\" font-style=\"italic\"/></if><else><text variable=\"title\"/></else></choose><group delimiter=\" \"><text macro=\"container-legal\"/><text macro=\"date-legal\"/><choose><if variable=\"number container-title\" match=\"none\"><!-- If no number or container-title, then assume it is a hearing --><names variable=\"author\" prefix=\"(testimony of \" suffix=\")\"><name and=\"symbol\" delimiter=\", \"/></names></if><else><text variable=\"status\" prefix=\"(\" suffix=\")\"/></else></choose></group><text variable=\"references\"/></group><text macro=\"access\"/></group></else-if><else-if type=\"legislation\"><!-- Currently designed to handle statutes, codified regulations, executive orders.For uncodified regulations, assume future code section is in status. --><group delimiter=\". \"><group delimiter=\", \"><text variable=\"title\"/><group delimiter=\" \"><text macro=\"container-legal\"/><text macro=\"date-legal\"/><text variable=\"status\" prefix=\"(\" suffix=\")\"/></group><text variable=\"references\"/></group><text macro=\"access\"/></group></else-if><else-if type=\"treaty\"><!-- APA generally defers to Bluebook for legal citations, but diverges withoutexplanation for treaty items. The Bluebook format that was used in APA 6thed. is used here. --><group delimiter=\", \"><text variable=\"title\" text-case=\"title\"/><names variable=\"author\"><name initialize-with=\".\" form=\"short\" delimiter=\"-\"/></names><text macro=\"date-legal\"/><text macro=\"container-legal\"/><text macro=\"access\"/></group></else-if></choose></macro><macro name=\"date-legal\"><choose><if type=\"legal_case\"><group prefix=\"(\" suffix=\")\" delimiter=\" \"><text variable=\"authority\"/><choose><if variable=\"container-title\" match=\"any\"><!-- Print only year for cases published in reporters--><date variable=\"issued\" form=\"numeric\" date-parts=\"year\"/></if><else><date variable=\"issued\" form=\"text\"/></else></choose></group></if><else-if type=\"bill legislation\" match=\"any\"><group prefix=\"(\" suffix=\")\" delimiter=\" \"><group delimiter=\" \"><date variable=\"original-date\"><date-part name=\"year\"/></date><text term=\"and\" form=\"symbol\"/></group><date variable=\"issued\"><date-part name=\"year\"/></date></group></else-if><else-if type=\"treaty\"><date variable=\"issued\" form=\"text\"/></else-if></choose></macro><macro name=\"container-legal\"><!-- Expect legal item container-titles to be stored in short form --><choose><if type=\"legal_case\"><group delimiter=\" \"><choose><if variable=\"container-title\"><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><group delimiter=\" \"><!-- Change to label variable=\"section\" as that becomes available --><text term=\"section\" form=\"symbol\"/><text variable=\"section\"/></group><choose><if variable=\"page page-first\" match=\"any\"><text variable=\"page-first\"/></if><else><text value=\"___\"/></else></choose></group></if><else><group delimiter=\" \"><choose><if is-numeric=\"number\"><!-- Replace with label variable=\"number\" if that becomes available --><text term=\"issue\" form=\"short\" text-case=\"capitalize-first\"/></if></choose><text variable=\"number\"/></group></else></choose></group></if><else-if type=\"bill\"><group delimiter=\", \"><group delimiter=\" \"><text variable=\"genre\"/><group delimiter=\" \"><choose><if variable=\"chapter-number container-title\" match=\"none\"><!-- Replace with label variable=\"number\" as that becomes available --><text term=\"issue\" form=\"short\"/></if></choose><text variable=\"number\"/></group></group><text variable=\"authority\"/><text variable=\"chapter-number\"/><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><text variable=\"page-first\"/></group></group></else-if><else-if type=\"legislation\"><choose><if variable=\"number\"><!--There's a public law number--><group delimiter=\", \"><text variable=\"number\" prefix=\"Pub. L. No. \"/><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><text variable=\"page-first\"/></group></group></if><else><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><choose><if variable=\"section\"><group delimiter=\" \"><!-- Change to label variable=\"section\" as that becomes available --><text term=\"section\" form=\"symbol\"/><text variable=\"section\"/></group></if><else><text variable=\"page-first\"/></else></choose></group></else></choose></else-if><else-if type=\"treaty\"><group delimiter=\" \"><number variable=\"volume\"/><text variable=\"container-title\"/><choose><if variable=\"page page-first\" match=\"any\"><text variable=\"page-first\"/></if><else><group delimiter=\" \"><!-- Replace with label variable=\"number\" if that becomes available --><text term=\"issue\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"number\"/></group></else></choose></group></else-if></choose></macro><macro name=\"citation-locator\"><group delimiter=\" \"><choose><if locator=\"chapter\"><label variable=\"locator\" text-case=\"capitalize-first\"/></if><else><label variable=\"locator\" form=\"short\"/></else></choose><text variable=\"locator\"/></group></macro><citation et-al-min=\"3\" et-al-use-first=\"1\" disambiguate-add-year-suffix=\"true\" disambiguate-add-names=\"true\" disambiguate-add-givenname=\"true\" collapse=\"year\" givenname-disambiguation-rule=\"primary-name-with-initials\"><sort><key macro=\"author-bib\" names-min=\"3\" names-use-first=\"1\"/><key macro=\"date-sort-group\"/><key macro=\"date-sort-date\" sort=\"ascending\"/><key variable=\"status\"/></sort><layout prefix=\"(\" suffix=\")\" delimiter=\"; \"><group delimiter=\", \"><text macro=\"author-intext\"/><text macro=\"date-intext\"/><text macro=\"citation-locator\"/></group></layout></citation><bibliography hanging-indent=\"true\" et-al-min=\"21\" et-al-use-first=\"19\" et-al-use-last=\"true\" entry-spacing=\"0\" line-spacing=\"2\"><sort><key macro=\"author-bib\"/><key macro=\"date-sort-group\"/><key macro=\"date-sort-date\" sort=\"ascending\"/><key variable=\"status\"/><key macro=\"title\"/></sort><layout><choose><if type=\"bill legal_case legislation treaty\" match=\"any\"><!-- Legal items have different orders and delimiters --><choose><if variable=\"DOI URL\" match=\"any\"><text macro=\"legal-cites\"/></if><else><text macro=\"legal-cites\" suffix=\".\"/></else></choose></if><else><group delimiter=\" \"><group delimiter=\". \" suffix=\".\"><text macro=\"author-bib\"/><text macro=\"date-bib\"/><text macro=\"title-and-descriptions\"/><text macro=\"container\"/><text macro=\"event\"/><text macro=\"publisher\"/></group><text macro=\"access\"/><text macro=\"publication-history\"/></group></else></choose></layout></bibliography>\n</style>\n";
-var vancouver = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" version=\"1.0\" demote-non-dropping-particle=\"sort-only\" initialize-with-hyphen=\"false\" page-range-format=\"minimal\"><info><title>Vancouver</title><id>http://www.zotero.org/styles/vancouver</id><link href=\"http://www.zotero.org/styles/vancouver\" rel=\"self\"/><link href=\"http://www.nlm.nih.gov/bsd/uniform_requirements.html\" rel=\"documentation\"/><author><name>Michael Berkowitz</name><email>mberkowi@gmu.edu</email></author><contributor><name>Sean Takats</name><email>stakats@gmu.edu</email></contributor><contributor><name>Sebastian Karcher</name></contributor><category citation-format=\"numeric\"/><category field=\"medicine\"/><summary>Vancouver style as outlined by International Committee of Medical Journal Editors Uniform Requirements for Manuscripts Submitted to Biomedical Journals: Sample References</summary><updated>2022-04-14T13:48:43+00:00</updated><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights></info><locale xml:lang=\"en\"><date form=\"text\" delimiter=\" \"><date-part name=\"year\"/><date-part name=\"month\" form=\"short\" strip-periods=\"true\"/><date-part name=\"day\"/></date><terms><term name=\"collection-editor\" form=\"long\"><single>editor</single><multiple>editors</multiple></term><term name=\"presented at\">presented at</term><term name=\"available at\">available from</term><term name=\"section\" form=\"short\">sect.</term></terms></locale><locale xml:lang=\"fr\"><date form=\"text\" delimiter=\" \"><date-part name=\"day\"/><date-part name=\"month\" form=\"short\" strip-periods=\"true\"/><date-part name=\"year\"/></date></locale><macro name=\"author\"><names variable=\"author\"><name sort-separator=\" \" initialize-with=\"\" name-as-sort-order=\"all\" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"long\" prefix=\", \"/><substitute><names variable=\"editor\"/></substitute></names></macro><macro name=\"editor\"><names variable=\"editor\" suffix=\".\"><name sort-separator=\" \" initialize-with=\"\" name-as-sort-order=\"all\" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"long\" prefix=\", \"/></names></macro><macro name=\"chapter-marker\"><choose><if type=\"chapter paper-conference entry-dictionary entry-encyclopedia\" match=\"any\"><text term=\"in\" text-case=\"capitalize-first\"/></if></choose></macro><macro name=\"publisher\"><choose><!--discard publisher info for articles--><if type=\"article-journal article-magazine article-newspaper\" match=\"none\"><group delimiter=\": \" suffix=\";\"><choose><if type=\"thesis\"><text variable=\"publisher-place\" prefix=\"[\" suffix=\"]\"/></if><else-if type=\"speech\"/><else><text variable=\"publisher-place\"/></else></choose><text variable=\"publisher\"/></group></if></choose></macro><macro name=\"access\"><choose><if variable=\"URL\"><group delimiter=\": \"><text term=\"available at\" text-case=\"capitalize-first\"/><text variable=\"URL\"/></group></if></choose></macro><macro name=\"accessed-date\"><choose><if variable=\"URL\"><group prefix=\"[\" suffix=\"]\" delimiter=\" \"><text term=\"cited\" text-case=\"lowercase\"/><date variable=\"accessed\" form=\"text\"/></group></if></choose></macro><macro name=\"container-title\"><choose><if type=\"article-journal article-magazine chapter paper-conference article-newspaper review review-book entry-dictionary entry-encyclopedia\" match=\"any\"><group suffix=\".\" delimiter=\" \"><choose><if type=\"article-journal review review-book\" match=\"any\"><text variable=\"container-title\" form=\"short\" strip-periods=\"true\"/></if><else><text variable=\"container-title\" strip-periods=\"true\"/></else></choose><choose><if variable=\"URL\"><text term=\"internet\" prefix=\"[\" suffix=\"]\" text-case=\"capitalize-first\"/></if></choose></group><text macro=\"edition\" prefix=\" \"/></if><!--add event-name and event-place once they become available--><else-if type=\"bill legislation\" match=\"any\"><group delimiter=\", \"><group delimiter=\". \"><text variable=\"container-title\"/><group delimiter=\" \"><text term=\"section\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"section\"/></group></group><text variable=\"number\"/></group></else-if><else-if type=\"speech\"><group delimiter=\": \" suffix=\";\"><group delimiter=\" \"><text variable=\"genre\" text-case=\"capitalize-first\"/><text term=\"presented at\"/></group><text variable=\"event\"/></group></else-if><else><group delimiter=\", \" suffix=\".\"><choose><if variable=\"collection-title\" match=\"none\"><group delimiter=\" \"><label variable=\"volume\" form=\"short\" text-case=\"capitalize-first\"/><text variable=\"volume\"/></group></if></choose><text variable=\"container-title\"/></group></else></choose></macro><macro name=\"title\"><text variable=\"title\"/><choose><if type=\"article-journal article-magazine chapter paper-conference article-newspaper review review-book entry-dictionary entry-encyclopedia\" match=\"none\"><choose><if variable=\"URL\"><text term=\"internet\" prefix=\" [\" suffix=\"]\" text-case=\"capitalize-first\"/></if></choose><text macro=\"edition\" prefix=\". \"/></if></choose><choose><if type=\"thesis\"><text variable=\"genre\" prefix=\" [\" suffix=\"]\"/></if></choose></macro><macro name=\"edition\"><choose><if is-numeric=\"edition\"><group delimiter=\" \"><number variable=\"edition\" form=\"ordinal\"/><text term=\"edition\" form=\"short\"/></group></if><else><text variable=\"edition\" suffix=\".\"/></else></choose></macro><macro name=\"date\"><choose><if type=\"article-journal article-magazine article-newspaper review review-book\" match=\"any\"><group suffix=\";\" delimiter=\" \"><date variable=\"issued\" form=\"text\"/><text macro=\"accessed-date\"/></group></if><else-if type=\"bill legislation\" match=\"any\"><group delimiter=\", \"><date variable=\"issued\" delimiter=\" \"><date-part name=\"month\" form=\"short\" strip-periods=\"true\"/><date-part name=\"day\"/></date><date variable=\"issued\"><date-part name=\"year\"/></date></group></else-if><else-if type=\"report\"><date variable=\"issued\" delimiter=\" \"><date-part name=\"year\"/><date-part name=\"month\" form=\"short\" strip-periods=\"true\"/></date><text macro=\"accessed-date\" prefix=\" \"/></else-if><else-if type=\"patent\"><group suffix=\".\"><group delimiter=\", \"><text variable=\"number\"/><date variable=\"issued\"><date-part name=\"year\"/></date></group><text macro=\"accessed-date\" prefix=\" \"/></group></else-if><else-if type=\"speech\"><group delimiter=\"; \"><group delimiter=\" \"><date variable=\"issued\" delimiter=\" \"><date-part name=\"year\"/><date-part name=\"month\" form=\"short\" strip-periods=\"true\"/><date-part name=\"day\"/></date><text macro=\"accessed-date\"/></group><text variable=\"event-place\"/></group></else-if><else><group suffix=\".\"><date variable=\"issued\"><date-part name=\"year\"/></date><text macro=\"accessed-date\" prefix=\" \"/></group></else></choose></macro><macro name=\"pages\"><choose><if type=\"article-journal article-magazine article-newspaper review review-book\" match=\"any\"><text variable=\"page\" prefix=\":\"/></if><else-if type=\"book\" match=\"any\"><text variable=\"number-of-pages\" prefix=\" \"/><choose><if is-numeric=\"number-of-pages\"><label variable=\"number-of-pages\" form=\"short\" prefix=\" \" plural=\"never\"/></if></choose></else-if><else><group prefix=\" \" delimiter=\" \"><label variable=\"page\" form=\"short\" plural=\"never\"/><text variable=\"page\"/></group></else></choose></macro><macro name=\"journal-location\"><choose><if type=\"article-journal article-magazine review review-book\" match=\"any\"><text variable=\"volume\"/><text variable=\"issue\" prefix=\"(\" suffix=\")\"/></if></choose></macro><macro name=\"collection-details\"><choose><if type=\"article-journal article-magazine article-newspaper review review-book\" match=\"none\"><choose><if variable=\"collection-title\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><names variable=\"collection-editor\" suffix=\".\"><name sort-separator=\" \" initialize-with=\"\" name-as-sort-order=\"all\" delimiter=\", \" delimiter-precedes-last=\"always\"/><label form=\"long\" prefix=\", \"/></names><group delimiter=\"; \"><text variable=\"collection-title\"/><group delimiter=\" \"><label variable=\"volume\" form=\"short\"/><text variable=\"volume\"/></group></group></group></if></choose></if></choose></macro><macro name=\"report-details\"><choose><if type=\"report\"><text variable=\"number\" prefix=\"Report No.: \"/></if></choose></macro><citation collapse=\"citation-number\"><sort><key variable=\"citation-number\"/></sort><layout prefix=\"(\" suffix=\")\" delimiter=\",\"><text variable=\"citation-number\"/></layout></citation><bibliography et-al-min=\"7\" et-al-use-first=\"6\" second-field-align=\"flush\"><layout><text variable=\"citation-number\" suffix=\". \"/><group delimiter=\". \" suffix=\". \"><text macro=\"author\"/><text macro=\"title\"/></group><group delimiter=\" \" suffix=\". \"><group delimiter=\": \"><text macro=\"chapter-marker\"/><group delimiter=\" \"><text macro=\"editor\"/><text macro=\"container-title\"/></group></group><text macro=\"publisher\"/><group><text macro=\"date\"/><text macro=\"journal-location\"/><text macro=\"pages\"/></group></group><text macro=\"collection-details\" suffix=\". \"/><text macro=\"report-details\" suffix=\". \"/><text macro=\"access\"/></layout></bibliography>\n</style>\n";
-var harvard1 = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" version=\"1.0\" demote-non-dropping-particle=\"sort-only\" default-locale=\"en-GB\"><info><title>Cite Them Right 11th edition - Harvard</title><id>http://www.zotero.org/styles/harvard-cite-them-right</id><link href=\"http://www.zotero.org/styles/harvard-cite-them-right\" rel=\"self\"/><link href=\"http://www.zotero.org/styles/harvard-cite-them-right-10th-edition\" rel=\"template\"/><link href=\"http://www.citethemrightonline.com/\" rel=\"documentation\"/><author><name>Patrick O'Brien</name></author><category citation-format=\"author-date\"/><category field=\"generic-base\"/><summary>Harvard according to Cite Them Right, 11th edition.</summary><updated>2021-09-01T10:12:20+00:00</updated><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights></info><locale xml:lang=\"en-GB\"><terms><term name=\"editor\" form=\"short\"><single>ed.</single><multiple>eds</multiple></term><term name=\"editortranslator\" form=\"verb\">edited and translated by</term><term name=\"edition\" form=\"short\">edn.</term></terms></locale><macro name=\"editor\"><choose><if type=\"chapter paper-conference\" match=\"any\"><names variable=\"container-author\" delimiter=\", \" suffix=\", \"><name and=\"text\" initialize-with=\". \" delimiter=\", \" sort-separator=\", \" name-as-sort-order=\"all\"/></names><choose><if variable=\"container-author\" match=\"none\"><names variable=\"editor translator\" delimiter=\", \"><name and=\"text\" initialize-with=\".\" name-as-sort-order=\"all\"/><label form=\"short\" prefix=\" (\" suffix=\")\"/></names></if></choose></if></choose></macro><macro name=\"secondary-contributors\"><choose><if type=\"chapter paper-conference\" match=\"none\"><names variable=\"editor translator\" delimiter=\". \"><label form=\"verb\" text-case=\"capitalize-first\" suffix=\" \"/><name and=\"text\" initialize-with=\".\"/></names></if><else-if variable=\"container-author\" match=\"any\"><names variable=\"editor translator\" delimiter=\". \"><label form=\"verb\" text-case=\"capitalize-first\" suffix=\" \"/><name and=\"text\" initialize-with=\". \" delimiter=\", \"/></names></else-if></choose></macro><macro name=\"author\"><names variable=\"author\"><name and=\"text\" delimiter-precedes-last=\"never\" initialize-with=\".\" name-as-sort-order=\"all\"/><label form=\"short\" prefix=\" (\" suffix=\")\"/><et-al font-style=\"italic\"/><substitute><names variable=\"editor\"/><names variable=\"translator\"/><choose><if type=\"article-newspaper article-magazine\" match=\"any\"><text variable=\"container-title\" text-case=\"title\" font-style=\"italic\"/></if><else><text macro=\"title\"/></else></choose></substitute></names></macro><macro name=\"author-short\"><names variable=\"author\"><name form=\"short\" and=\"text\" delimiter=\", \" delimiter-precedes-last=\"never\" initialize-with=\". \"/><et-al font-style=\"italic\"/><substitute><names variable=\"editor\"/><names variable=\"translator\"/><choose><if type=\"article-newspaper article-magazine\" match=\"any\"><text variable=\"container-title\" text-case=\"title\" font-style=\"italic\"/></if><else><text macro=\"title\"/></else></choose></substitute></names></macro><macro name=\"access\"><choose><if variable=\"DOI\"><text variable=\"DOI\" prefix=\"doi:\"/></if><else-if variable=\"URL\"><text term=\"available at\" suffix=\": \" text-case=\"capitalize-first\"/><text variable=\"URL\"/><group prefix=\" (\" delimiter=\": \" suffix=\")\"><text term=\"accessed\" text-case=\"capitalize-first\"/><date form=\"text\" variable=\"accessed\"><date-part name=\"day\"/><date-part name=\"month\"/><date-part name=\"year\"/></date></group></else-if></choose></macro><macro name=\"number-volumes\"><choose><if variable=\"volume\" match=\"none\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><text variable=\"number-of-volumes\"/><label variable=\"volume\" form=\"short\" strip-periods=\"true\"/></group></if></choose></macro><macro name=\"title\"><choose><if type=\"bill book legal_case legislation motion_picture report song thesis webpage graphic\" match=\"any\"><group delimiter=\". \"><group delimiter=\" \"><group delimiter=\" \"><text variable=\"title\" font-style=\"italic\"/><text variable=\"medium\" prefix=\"[\" suffix=\"]\"/></group><text macro=\"number-volumes\"/></group><text macro=\"edition\"/></group></if><else><text variable=\"title\" form=\"long\" quotes=\"true\"/></else></choose></macro><macro name=\"publisher\"><choose><if type=\"thesis\"><group delimiter=\". \"><text variable=\"genre\"/><text variable=\"publisher\"/></group></if><else-if type=\"report\"><group delimiter=\". \"><group delimiter=\" \"><text variable=\"genre\"/><text variable=\"number\"/></group><group delimiter=\": \"><text variable=\"publisher-place\"/><text variable=\"publisher\"/></group></group></else-if><else-if type=\"article-journal article-newspaper article-magazine\" match=\"none\"><group delimiter=\" \"><group delimiter=\", \"><choose><if type=\"speech\" variable=\"event\" match=\"any\"><text variable=\"event\" font-style=\"italic\"/></if></choose><group delimiter=\": \"><text variable=\"publisher-place\"/><text variable=\"publisher\"/></group></group><group prefix=\"(\" suffix=\")\" delimiter=\", \"><text variable=\"collection-title\"/><text variable=\"collection-number\"/></group></group></else-if></choose></macro><macro name=\"year-date\"><choose><if variable=\"issued\"><date variable=\"issued\"><date-part name=\"year\"/></date><text variable=\"year-suffix\"/></if><else><text term=\"no date\"/><text variable=\"year-suffix\" prefix=\" \"/></else></choose></macro><macro name=\"locator\"><choose><if type=\"article-journal\"><text variable=\"volume\"/><text variable=\"issue\" prefix=\"(\" suffix=\")\"/></if></choose></macro><macro name=\"published-date\"><choose><if type=\"article-newspaper article-magazine post-weblog speech\" match=\"any\"><date variable=\"issued\"><date-part name=\"day\" suffix=\" \"/><date-part name=\"month\" form=\"long\"/></date></if></choose></macro><macro name=\"pages\"><choose><if type=\"chapter paper-conference article-journal article article-magazine article-newspaper book review review-book report\" match=\"any\"><group delimiter=\" \"><label variable=\"page\" form=\"short\"/><text variable=\"page\"/></group></if></choose></macro><macro name=\"container-title\"><choose><if variable=\"container-title\"><group delimiter=\". \"><group delimiter=\" \"><text variable=\"container-title\" font-style=\"italic\"/><choose><if type=\"article article-journal\" match=\"any\"><choose><if match=\"none\" variable=\"page volume\"><text value=\"Preprint\" prefix=\"[\" suffix=\"]\"/></if></choose></if></choose></group><text macro=\"edition\"/></group></if></choose></macro><macro name=\"edition\"><choose><if is-numeric=\"edition\"><group delimiter=\" \"><number variable=\"edition\" form=\"ordinal\"/><text term=\"edition\" form=\"short\" strip-periods=\"true\"/></group></if><else><text variable=\"edition\"/></else></choose></macro><macro name=\"container-prefix\"><choose><if type=\"chapter paper-conference\" match=\"any\"><text term=\"in\"/></if></choose></macro><citation et-al-min=\"4\" et-al-use-first=\"1\" disambiguate-add-year-suffix=\"true\" disambiguate-add-names=\"true\" disambiguate-add-givenname=\"true\" collapse=\"year\"><sort><key macro=\"year-date\"/></sort><layout prefix=\"(\" suffix=\")\" delimiter=\"; \"><group delimiter=\", \"><group delimiter=\", \"><text macro=\"author-short\"/><text macro=\"year-date\"/></group><group><label variable=\"locator\" form=\"short\" suffix=\" \"/><text variable=\"locator\"/></group></group></layout></citation><bibliography and=\"text\" et-al-min=\"4\" et-al-use-first=\"1\"><sort><key macro=\"author\"/><key macro=\"year-date\"/><key variable=\"title\"/></sort><layout suffix=\".\"><group delimiter=\". \"><group delimiter=\" \"><text macro=\"author\"/><text macro=\"year-date\" prefix=\"(\" suffix=\")\"/><group delimiter=\", \"><text macro=\"title\"/><group delimiter=\" \"><text macro=\"container-prefix\"/><text macro=\"editor\"/><text macro=\"container-title\"/></group></group></group><text macro=\"secondary-contributors\"/><text macro=\"publisher\"/></group><group delimiter=\", \" prefix=\", \"><text macro=\"locator\"/><text macro=\"published-date\"/><text macro=\"pages\"/></group><text macro=\"access\" prefix=\". \"/></layout></bibliography>\n</style>\n";
-var defaultTemplates = {
+var apa = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" demote-non-dropping-particle=\"never\" initialize-with=\". \" names-delimiter=\", \" page-range-format=\"expanded\" version=\"1.0\"><!-- This file was generated by the Style Variant Builder <https://github.com/citation-style-language/style-variant-builder>. To contribute changes, modify the template and regenerate variants. --><info><title>APA Style 7th edition</title><title-short>Publication Manual of the American Psychological Association, with Bluebook</title-short><id>http://www.zotero.org/styles/apa</id><link href=\"http://www.zotero.org/styles/apa\" rel=\"self\"/><link href=\"http://www.zotero.org/styles/apa-6th-edition\" rel=\"template\"/><link href=\"https://apastyle.apa.org/style-grammar-guidelines/references\" rel=\"documentation\"/><link href=\"https://zotero.org/groups/2205533/collections/MR2N872S\" rel=\"documentation\"/><author><name>Brenton M. Wiernik</name><email>zotero@wiernik.org</email><uri>https://orcid.org/0000-0001-9560-6336</uri></author><author><name>Andrew Dunning</name><uri>https://orcid.org/0000-0003-0464-5036</uri></author><category citation-format=\"author-date\"/><category field=\"anthropology\"/><category field=\"communications\"/><category field=\"generic-base\"/><category field=\"law\"/><category field=\"medicine\"/><category field=\"psychology\"/><category field=\"social_science\"/><category field=\"sociology\"/><summary>Author-date system of the Publication Manual of the American Psychological Association (2020)</summary><updated>2026-02-14T01:18:34+00:00</updated><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights></info><locale xml:lang=\"en\"><terms><term name=\"ad\"> C.E.</term><term name=\"bc\"> B.C.E.</term><term form=\"short\" name=\"circa\">ca.</term><term name=\"guest\"><single>guest expert</single><multiple>guest experts</multiple></term><term form=\"short\" name=\"illustrator\">illus.</term><term form=\"short\" name=\"interviewer\"><single>interviewer</single><multiple>interviewers</multiple></term><term form=\"short\" name=\"legislation\">Pub. L.</term><term name=\"manuscript\">unpublished manuscript</term><term form=\"verb\" name=\"performer\">recorded by</term><term name=\"post\">online post</term><term name=\"review-of\">review of the</term><term form=\"short\" name=\"review-of\">review of</term><term name=\"software\">computer software</term><term form=\"short\" name=\"supplement\"><single>suppl.</single><multiple>suppls.</multiple></term></terms></locale><locale xml:lang=\"da\"><terms><term name=\"et-al\">et al.</term></terms></locale><locale xml:lang=\"de\"><terms><term name=\"et-al\">et al.</term></terms></locale><locale xml:lang=\"es\"><terms><term name=\"from\">de</term></terms></locale><locale xml:lang=\"fr\"><terms><term form=\"short\" name=\"editor\"><single>éd.</single><multiple>éds.</multiple></term></terms></locale><locale xml:lang=\"nb\"><terms><term name=\"et-al\">et al.</term></terms></locale><locale xml:lang=\"nl\"><terms><term name=\"et-al\">et al.</term></terms></locale><locale xml:lang=\"nn\"><terms><term name=\"et-al\">et al.</term></terms></locale><locale xml:lang=\"pl\"><terms><term name=\"et-al\">i in.</term></terms></locale><locale xml:lang=\"ro\"><terms><term name=\"et-al\">et al.</term></terms></locale><!-- Contents:\nAPA uses four main reference elements:\n1. Author (APA 9.7-12)2. Date (APA 9.13-17)3. Title and descriptions (APA 9.18-22)3.1. Title (APA 9.18)3.2. Identifier (in parentheses) (APA 9.19)3.3. Description [in square brackets] (APA 9.21-22)4. Source (APA 9.23-37)4.1. Serial sources (APA 9.25-27)4.2. Monographic sources (APA 9.28)4.3. Publisher sources (APA 9.29)4.4. Database and archive sources (APA 9.30)4.5. Works with specific locations (APA 9.31)4.6. Social media and website sources (APA 9.32-33)4.7. DOI or URL (APA 9.34-36)\nA note on the source may follow the main reference elements:\n5. Publication history (APA 9.39-41)\nAPA also provides parallel rules for legal references following The Bluebook: A Uniform System of Citation (chap. 11):\n6. Legal references--><!-- APA categorizes all sources as serial (APA 9.25-27) or monographic (APA 9.28).\nSerial: article-journal article-magazine article-newspaper periodical post-weblog review review-book\nSerial or Monographic: interview paper-conference\nMonographic with any of `collection-editor compiler editor editorial-director`.A serial `paper-conference` is unpublished if it lacks any of `issue page supplement-number volume`.\nMonographic: article book broadcast chapter classic collection dataset document entry entry-dictionary entry-encyclopedia event figure graphic manuscript map motion_picture musical_score pamphlet patent performance personal_communication post report software song speech standard thesis webpage\nLegal: bill hearing legal_case legislation regulation treaty--><!-- Equivalencies:\n`classic` == `book``document` == `report` (but give full date)`standard` == `report``performance` == `speech``event` == `speech`--><!-- Role equivalencies:\n`compiler` == `editor``organizer`, `curator` == `chair``script-writer` == `director``producer` == `director` (but don't print both)`guest`, `host` == `director``series-creator`, `executive-producer` == `editor`--><!-- Reviews are detected if an item has type `review` or `review-book` or if it has any of the variables `reviewed-title`, `reviewed-author`, or `reviewed-genre`. For the latter case, reviews are commonly stored as types `article-journal`, `article-magazine`, `article-newspaper`, `post-weblog`, or `webpage`. --><!-- Indigeneous knowledge: Assume the item is stored as `document` or `speech` and that Nation/Community, treaty territory, where the Elder lives, and topic are all stored in `title`. Cf. <https://libguides.norquest.ca/c.php?g=314831&p=5188823>. If the item is stored as `interview`, assume that Nation/Community, treaty territory, and topic are stored in `title`. 'Oral teaching' or similar is stored in `archive`, and where the Elder lives is stored in `archive-place`. --><!-- Variable labels --><macro name=\"label-chapter-number\"><group delimiter=\" \"><choose><if is-numeric=\"chapter-number\" type=\"song\"><text text-case=\"capitalize-first\" value=\"track\"/></if><else-if is-numeric=\"chapter-number\"><label text-case=\"capitalize-first\" variable=\"chapter-number\"/></else-if></choose><text variable=\"chapter-number\"/></group></macro><macro name=\"label-edition\"><group delimiter=\" \"><choose><if is-numeric=\"edition\"><number form=\"ordinal\" variable=\"edition\"/><label form=\"short\" variable=\"edition\"/></if><else><text variable=\"edition\"/></else></choose></group></macro><macro name=\"label-issue\"><group delimiter=\" \"><label text-case=\"capitalize-first\" variable=\"issue\"/><text variable=\"issue\"/></group></macro><macro name=\"label-locator\"><!-- Abbreviate page and paragraph; leave other locator labels in long form (APA 8.13) --><group delimiter=\" \"><choose><if locator=\"page\"><label form=\"short\" variable=\"locator\"/></if><else-if match=\"any\" type=\"bill hearing legal_case legislation regulation treaty\"><!-- Bluebook-style labels for legal types --><choose><if locator=\"chapter paragraph section\" match=\"any\"><label form=\"symbol\" variable=\"locator\"/></if><else><label text-case=\"capitalize-first\" variable=\"locator\"/></else></choose></else-if><else-if locator=\"paragraph\"><label form=\"short\" variable=\"locator\"/></else-if><else-if is-numeric=\"locator\"><label text-case=\"capitalize-first\" variable=\"locator\"/></else-if><!-- a non-numeric canonical reference is identified by its formatting and does not need a label, similar to a timestamp --><else-if locator=\"chapter line verse\" match=\"any\"/><else><label text-case=\"capitalize-first\" variable=\"locator\"/></else></choose><text variable=\"locator\"/></group></macro><macro name=\"label-number\"><group delimiter=\" \"><choose><if type=\"standard\"/><else-if is-numeric=\"number\" match=\"any\" type=\"legislation patent regulation\"><label form=\"short\" text-case=\"capitalize-first\" variable=\"number\"/></else-if></choose><text text-case=\"capitalize-first\" variable=\"number\"/></group></macro><macro name=\"label-number-capitalized\"><!-- alias for cross-compatibility of Bluebook macros --><text macro=\"label-number\"/></macro><macro name=\"label-number-article\"><!-- APA example 6: Journal article with article number or eLocator --><group delimiter=\" \"><text term=\"article-locator\" text-case=\"capitalize-first\"/><text variable=\"number\"/></group></macro><macro name=\"label-number-of-volumes\"><group delimiter=\" \"><choose><if is-numeric=\"number-of-volumes\"><label form=\"short\" text-case=\"capitalize-first\" variable=\"number-of-volumes\"/><group><text prefix=\"1\" term=\"page-range-delimiter\"/><number variable=\"number-of-volumes\"/></group></if><else><text variable=\"number-of-volumes\"/></else></choose></group></macro><macro name=\"label-page\"><group delimiter=\" \"><label form=\"short\" variable=\"page\"/><text variable=\"page\"/></group></macro><macro name=\"label-part-number\"><group delimiter=\" \"><choose><if is-numeric=\"part-number\"><!-- TODO: Replace with `part-number` label when CSL provides one --><text form=\"short\" term=\"part\" text-case=\"capitalize-first\"/></if></choose><text text-case=\"capitalize-first\" variable=\"part-number\"/></group></macro><macro name=\"label-section-symbol\"><group delimiter=\" \"><label form=\"symbol\" variable=\"section\"/><text variable=\"section\"/></group></macro><macro name=\"label-supplement-number\"><group delimiter=\" \"><choose><if is-numeric=\"supplement-number\"><!-- TODO: Replace with `supplement-number` label when CSL provides one --><text form=\"short\" term=\"supplement\" text-case=\"capitalize-first\"/></if></choose><text text-case=\"capitalize-first\" variable=\"supplement-number\"/></group></macro><macro name=\"label-version\"><group delimiter=\" \"><label text-case=\"capitalize-first\" variable=\"version\"/><text variable=\"version\"/></group></macro><macro name=\"label-volume\"><group delimiter=\" \"><choose><if is-numeric=\"volume\"><label form=\"short\" text-case=\"capitalize-first\" variable=\"volume\"/></if></choose><text text-case=\"capitalize-first\" variable=\"volume\"/></group></macro><!-- 1. Author (APA 9.7-12) --><macro name=\"author\"><!-- Substitutes for missing authors: order prioritizes primary creators (e.g., composer, author) over secondary roles (e.g., editor, curator), with title as the final fallback. --><names variable=\"composer\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/><substitute><names variable=\"author\"/><!-- `narrator` only cited in `identifier-contributors` --><names variable=\"illustrator\"/><choose><if type=\"broadcast\"><names variable=\"script-writer director\"><!-- Actors/performers and producers [not executive] not cited in APA style. --><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names></if></choose><names variable=\"director\"><!-- For non-broadcast items, APA only cites directors and not writers. --><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"guest host\"><!-- TODO: Collapse variables when that becomes available. --><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"producer\"><!-- Producers not cited if there is a writer/director, but use if they are the principal creator. --><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><choose><if match=\"any\" type=\"entry-dictionary entry-encyclopedia\"><text variable=\"publisher\"/></if></choose><choose><if match=\"none\" variable=\"container-title\"/><else-if match=\"any\" type=\"book classic entry entry-dictionary entry-encyclopedia\"><!-- Items with a monographic `container-title` substitute their title and identifier, but leave description after `container-title`. This mimics the `source-monographic` macro. --><text macro=\"author-title-substitute\"/></else-if></choose><names variable=\"executive-producer\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"series-creator\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"editor-translator\"/><!-- `translator` is not cited as a primary creator (only as Ed. & Trans.). --><names variable=\"editor\"/><names variable=\"editorial-director\"/><names variable=\"compiler\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><choose><if match=\"any\" type=\"event performance speech\"><names variable=\"chair\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"organizer\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names></if></choose><names variable=\"curator\"><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"collection-editor\"/><choose><if match=\"any\" type=\"software webpage\"><!-- `software` (APA 10.10) and `webpage` (APA 10.16) can be cited under \"name of group\": likely in `publisher` if no `author` --><text variable=\"publisher\"/></if><else-if type=\"standard\"><text variable=\"authority\"/></else-if></choose><text macro=\"author-title-substitute\"/></substitute></names></macro><macro name=\"author-and-contributors\"><group delimiter=\" \"><text macro=\"author\"/><choose><!-- add nonprimary authors equivalent to those appearing \"on a book cover\"; do not modify the in-text citation (APA 9.8) --><if match=\"none\" variable=\"author compiler composer editor editor-translator illustrator\"/><else-if match=\"any\" type=\"book musical_score pamphlet report standard\"><names prefix=\"(\" suffix=\")\" variable=\"contributor\"><label form=\"verb\" suffix=\" \"/><name and=\"symbol\" delimiter-precedes-last=\"always\" name-as-sort-order=\"all\"/></names></else-if></choose></group></macro><macro name=\"author-short\"><choose><if match=\"any\" type=\"bill hearing legal_case legislation regulation treaty\"><text macro=\"title-and-descriptions-short\"/></if><else-if match=\"any\" type=\"interview personal_communication\"><choose><!-- These variables indicate that the letter is retrievable by the reader. If not, use the APA in-text-only personal communication format. --><if match=\"any\" variable=\"archive archive-place container-title DOI number publisher references URL\"><names variable=\"author\"><name and=\"symbol\" form=\"short\"/><substitute><text macro=\"title-and-descriptions-short\"/></substitute></names></if><else><group delimiter=\", \"><names variable=\"author\"><name and=\"symbol\"/><substitute><text macro=\"title-and-descriptions-short\"/></substitute></names><text term=\"personal-communication\"/></group></else></choose></else-if><else><names variable=\"composer\"><name and=\"symbol\" form=\"short\"/><substitute><names variable=\"author\"/><names variable=\"illustrator\"/><choose><if type=\"broadcast\"><!-- TODO: Collapse variables when that becomes available. --><!-- Ideally combine as `script-writer director` --><names variable=\"script-writer\"/></if></choose><names variable=\"director\"/><!-- TODO: Collapse variables when that becomes available. --><names variable=\"guest host\"/><names variable=\"producer\"/><choose><if match=\"any\" type=\"entry-dictionary entry-encyclopedia\"><text variable=\"publisher\"/></if></choose><choose><if match=\"none\" variable=\"container-title\"/><else-if match=\"any\" type=\"book classic entry entry-dictionary entry-encyclopedia\"><text macro=\"title-and-descriptions-short\"/></else-if></choose><names variable=\"executive-producer\"/><names variable=\"series-creator\"/><names variable=\"editor\"/><names variable=\"editorial-director\"/><names variable=\"compiler\"/><choose><if match=\"any\" type=\"event performance speech\"><names variable=\"chair\"/><names variable=\"organizer\"/></if></choose><names variable=\"curator\"/><names variable=\"collection-editor\"/><choose><if match=\"any\" type=\"software webpage\"><!-- `software` (APA 10.10) and `webpage` (APA 10.16) can be cited under \"name of group\": likely in `publisher` if no `author` --><text form=\"short\" variable=\"publisher\"/></if><else-if type=\"standard\"><text form=\"short\" variable=\"authority\"/></else-if></choose><text macro=\"title-and-descriptions-short\"/></substitute></names></else></choose></macro><macro name=\"author-sort\"><choose><if match=\"any\" type=\"bill hearing legal_case legislation regulation treaty\"><text macro=\"legal-title\"/></if><else><text macro=\"author\"/></else></choose></macro><!-- Author elements --><macro name=\"author-title-substitute\"><choose><if match=\"any\" type=\"review review-book\" variable=\"reviewed-author reviewed-genre reviewed-title\"><!-- `title` is only the review title if there is a separate `reviewed-genre` or `reviewed-title`; otherwise, it is the title of the reviewed work, printed in the description --><choose><if variable=\"reviewed-genre title\"><text macro=\"title\"/></if><else-if variable=\"reviewed-title title\"><text macro=\"title\"/></else-if><else><text macro=\"title-and-descriptions\"/></else></choose></if><else-if variable=\"title\"><!-- If an item has a `title`, substitute missing author with title and identifier, but leave description after the date (in the title position). --><group delimiter=\" \"><text macro=\"title\"/><text macro=\"identifier\"/></group></else-if><else><!-- If an item has no `title`, substitute with descriptions. --><text macro=\"title-and-descriptions\"/></else></choose></macro><!-- 2. Date (APA 9.13-17) --><macro name=\"date\"><!-- Full dates included for ephemeral sources (e.g. broadcasts, interviews) to provide maximum specificity, while books use year only. --><group delimiter=\"-\" prefix=\"(\" suffix=\")\"><choose><if variable=\"issued\"><group delimiter=\", \"><group><text macro=\"date-issued-year\"/><text variable=\"year-suffix\"/></group><choose><if match=\"any\" type=\"article-magazine article-newspaper broadcast collection document event motion_picture pamphlet performance personal_communication post post-weblog song speech webpage\"><!-- Many video and audio examples in manual give full dates. Err on the side of too much information. --><text macro=\"date-issued-month-day\"/></if><!-- Only show the month and day for an unpublished `interview` or `paper-conference` --><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director issue page supplement-number volume\"/><else-if match=\"any\" type=\"interview paper-conference\"><text macro=\"date-issued-month-day\"/></else-if><!-- Only year: article article-journal book chapter classic entry entry-dictionary entry-encyclopedia dataset figure graphic manuscript map musical_score paper-conference[published] patent periodical report review review-book software standard thesis --></choose></group></if><else-if variable=\"status\"><!-- Print the status variable rather than use generic CSL terms (`in press`, etc.) --><text text-case=\"lowercase\" variable=\"status\"/><text variable=\"year-suffix\"/></else-if><else><text form=\"short\" term=\"no date\"/><text variable=\"year-suffix\"/></else></choose></group></macro><macro name=\"date-short\"><group delimiter=\"-\"><choose><if variable=\"issued\"><group delimiter=\"/\"><text macro=\"date-original-year\"/><group><choose><if match=\"any\" variable=\"archive archive-place container-title DOI number publisher references URL\"><text macro=\"date-issued-year\"/></if><else-if match=\"any\" type=\"interview personal_communication\"><!-- use the in-text-only format for inaccessible personal communications --><text macro=\"date-issued-full\"/></else-if><else><text macro=\"date-issued-year\"/></else></choose><text variable=\"year-suffix\"/></group></group></if><else-if variable=\"status\"><!-- Print the status variable rather than use generic CSL terms (`in press`, etc.) --><text text-case=\"lowercase\" variable=\"status\"/><text variable=\"year-suffix\"/></else-if><else><text form=\"short\" term=\"no date\"/><text variable=\"year-suffix\"/></else></choose></group></macro><macro name=\"date-sort\"><!-- Sort items by issue date as printed --><choose><if match=\"any\" type=\"article article-journal book chapter entry entry-dictionary entry-encyclopedia dataset figure graphic manuscript map musical_score patent report review review-book thesis\"><date date-parts=\"year\" form=\"numeric\" variable=\"issued\"/></if><else-if type=\"paper-conference\"><!-- Determine whether published and serial or monographic --><choose><if match=\"any\" variable=\"collection-editor compiler editor editorial-director issue page supplement-number volume\"><date date-parts=\"year\" form=\"numeric\" variable=\"issued\"/></if><else><text macro=\"date-issued-leading-zeros\"/></else></choose></else-if><else><text macro=\"date-issued-leading-zeros\"/></else></choose></macro><macro name=\"date-sort-group\"><!-- Sorts items with and without dates:\n1. `no date` items (= 0)2. items with dates (= 1)3. items with `status` (forthcoming, in press, etc.) (= 2) --><choose><if variable=\"issued\"><text value=\"1\"/></if><else-if variable=\"status\"><text value=\"2\"/></else-if><else><text value=\"0\"/></else></choose></macro><!-- Date elements --><macro name=\"date-event-full\"><group delimiter=\" \"><choose><if is-uncertain-date=\"event-date\"><text form=\"short\" term=\"circa\"/></if></choose><date form=\"text\" variable=\"event-date\"/></group></macro><macro name=\"date-issued-full\"><group delimiter=\" \"><choose><if is-uncertain-date=\"issued\"><text form=\"short\" term=\"circa\"/></if></choose><date form=\"text\" variable=\"issued\"/></group></macro><macro name=\"date-issued-leading-zeros\"><date delimiter=\"-\" variable=\"issued\"><date-part name=\"year\"/><date-part form=\"numeric-leading-zeros\" name=\"month\"/><date-part form=\"numeric-leading-zeros\" name=\"day\"/></date></macro><macro name=\"date-issued-month-day\"><date variable=\"issued\"><date-part name=\"month\"/><date-part name=\"day\" prefix=\" \"/></date></macro><macro name=\"date-issued-year\"><group delimiter=\" \"><choose><if is-uncertain-date=\"issued\"><text form=\"short\" term=\"circa\"/></if></choose><date date-parts=\"year\" form=\"numeric\" variable=\"issued\"/></group></macro><macro name=\"date-original-year\"><group delimiter=\" \"><choose><if is-uncertain-date=\"original-date\"><text form=\"short\" term=\"circa\"/></if></choose><date date-parts=\"year\" form=\"numeric\" variable=\"original-date\"/></group></macro><!-- 3. Title and descriptions (APA 9.18-22) --><macro name=\"title-and-descriptions\"><group delimiter=\" \"><choose><if variable=\"title\"><text macro=\"title\"/><text macro=\"identifier\"/><text macro=\"description\"/></if><else-if match=\"any\" type=\"bill report\"><!-- Bills, resolutions, and congressional reports substitute bill number if no title. --><!-- Congressional reports are indistinguishable from other reports --><text macro=\"identifier-number\"/><text macro=\"description\"/><text macro=\"identifier\"/></else-if><else><text macro=\"description\"/><text macro=\"identifier\"/></else></choose></group></macro><macro name=\"title-and-descriptions-short\"><choose><if variable=\"title\"><text macro=\"title-short\"/></if><else-if match=\"any\" type=\"bill report\"><!-- Bills, resolutions, and congressional reports substitute bill number if no title. --><text macro=\"legal-identifier-bill-report\"/></else-if><else><text macro=\"description-short\"/></else></choose></macro><!-- 3.1. Title (APA 9.18) --><macro name=\"title\"><choose><if match=\"any\" type=\"post webpage\"><!-- part number/title always at the analytic level --><text font-style=\"italic\" macro=\"title-and-part-filter-review\"/></if><!-- Other types are italicized based on presence of `container-title`. Assume that `review` and `review-book` are published either in a serial or on a webpage (APA example 69) --><else-if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><text macro=\"title-serial\"/></else-if><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"><text macro=\"title-monographic\"/></else-if><else-if match=\"any\" type=\"interview paper-conference\"><text macro=\"title-serial\"/></else-if><else><text macro=\"title-monographic\"/></else></choose></macro><macro name=\"title-short\"><choose><if match=\"any\" type=\"review review-book\" variable=\"reviewed-author reviewed-genre reviewed-title\"><!-- `title` is only the review title if there is a separate `reviewed-genre` or `reviewed-title`; otherwise, it is the title of the reviewed work, printed in the description --><choose><if variable=\"reviewed-genre title\"><!-- Quotes, title case --><text form=\"short\" quotes=\"true\" text-case=\"title\" variable=\"title\"/></if><else-if variable=\"reviewed-title title\"><!-- Quotes, title case --><text form=\"short\" quotes=\"true\" text-case=\"title\" variable=\"title\"/></else-if><else><text macro=\"description-short\"/></else></choose></if><else-if match=\"any\" type=\"bill legislation regulation report treaty\"><!-- No italics or quotes, title case --><text form=\"short\" text-case=\"title\" variable=\"title\"/></else-if><else-if match=\"any\" type=\"legal_case post\"><!-- Italicized, sentence case --><text font-style=\"italic\" form=\"short\" variable=\"title\"/></else-if><else-if match=\"any\" type=\"hearing webpage\"><!-- Italicized, title case (regardless of `container-title`) --><text font-style=\"italic\" form=\"short\" text-case=\"title\" variable=\"title\"/></else-if><!-- Other types are formatted based on presence of `container-title`, as in title macro --><else-if variable=\"container-title\"><!-- Quotes, title case --><text form=\"short\" quotes=\"true\" text-case=\"title\" variable=\"title\"/></else-if><else><!-- Italicized, title case (default) --><text font-style=\"italic\" form=\"short\" text-case=\"title\" variable=\"title\"/></else></choose></macro><!-- Title elements --><macro name=\"title-and-part-filter-review\"><choose><if match=\"any\" type=\"review review-book\" variable=\"reviewed-author reviewed-genre reviewed-title\"><!-- If a review has no `reviewed-genre` or `reviewed-title`, assume that `title` contains the title of the reviewed work; the description provides it. --><choose><if variable=\"reviewed-genre title\"><text macro=\"title-and-part-title\"/></if><else-if variable=\"reviewed-title title\"><text macro=\"title-and-part-title\"/></else-if></choose></if><else><text macro=\"title-and-part-title\"/></else></choose></macro><macro name=\"title-and-part-title\"><group delimiter=\": \"><text variable=\"title\"/><text macro=\"title-part\"/></group></macro><macro name=\"title-and-volume-title\"><group delimiter=\": \"><text variable=\"title\"/><text macro=\"title-volume\"/></group></macro><macro name=\"title-monographic\"><!-- For monographic items, assume `part-number` and `part-title` refer to the book/volume. --><choose><if variable=\"container-title\"><text variable=\"title\"/></if><else><!-- For monographic items without `container-title` and with `volume-title`, append `volume-title` to `title` (APA example 30) --><text font-style=\"italic\" macro=\"title-and-volume-title\"/></else></choose></macro><macro name=\"title-part\"><choose><if variable=\"part-title\"><group delimiter=\". \"><text macro=\"label-part-number\"/><text text-case=\"capitalize-first\" variable=\"part-title\"/></group></if><else-if is-numeric=\"part-number\"/><else><text macro=\"label-part-number\"/></else></choose></macro><macro name=\"title-serial\"><!-- For serials, assume that `part-number` and `part-title` refer to the article and append to `title` --><choose><if variable=\"container-title\"><text macro=\"title-and-part-filter-review\"/></if><else><!-- for serial items without `container-title`, don't append `volume-title` to `title` --><text font-style=\"italic\" macro=\"title-and-part-filter-review\"/></else></choose></macro><macro name=\"title-volume\"><group delimiter=\", \"><choose><!-- Assume that `part-number` and `part-title` of monographic items refer to the source book/volume --><if variable=\"volume-title\"><group delimiter=\": \"><group delimiter=\". \"><text macro=\"label-volume\"/><text variable=\"volume-title\"/></group><text macro=\"title-part\"/></group></if><else-if variable=\"part-title\"><text macro=\"label-volume\"/><text macro=\"title-part\"/></else-if><!-- if there is no `part-title` or `volume title`, `part-number` and `volume` appear in `identifier` if numeric --><else-if is-numeric=\"part-number volume\"/><else-if is-numeric=\"part-number\" variable=\"volume\"><text macro=\"label-volume\"/></else-if><else-if is-numeric=\"volume\" variable=\"part-number\"><text macro=\"label-part-number\"/></else-if><else-if is-numeric=\"part-number\"/><else-if is-numeric=\"volume\"/><else><text macro=\"label-volume\"/><text macro=\"label-part-number\"/></else></choose></group></macro><!-- 3.2. Identifier (in parentheses) (APA 9.19) --><macro name=\"identifier\"><!-- (Secondary contributors; Database location; Genre no. 123; Report Series 123, Version, Edition, Volume, Page) --><group delimiter=\"; \" prefix=\"(\" suffix=\")\"><choose><if type=\"patent\"><text macro=\"identifier-patent\"/></if><else-if match=\"any\" type=\"post webpage\"><!-- print `container-title` on `post` or `webpage` in the same way as `publisher` --><text macro=\"identifier-contributors\"/><text macro=\"identifier-number\"/><text macro=\"identifier-monographic\"/></else-if><else-if type=\"report\" variable=\"container-title\"><!-- If the report is a chapter in a larger report, then most identifying information is printed in the source. --><text macro=\"identifier-contributors\"/></else-if><else-if type=\"report\" variable=\"title\"><text macro=\"identifier-contributors\"/><text macro=\"identifier-number\"/><text macro=\"identifier-monographic\"/></else-if><else-if type=\"report\"><!-- If there is no `title`, then `genre` and `number` are already printed as the title. --><text macro=\"identifier-contributors\"/><text macro=\"identifier-monographic\"/></else-if><else-if variable=\"container-title\"><choose><if match=\"none\" variable=\"genre title\"><text macro=\"label-chapter-number\"/></if></choose><text macro=\"identifier-contributors\"/><choose><if match=\"any\" type=\"broadcast graphic map motion_picture\"><!-- For some audiovisual media, `number` information comes after title, not `container-title` (APA example 94); but an album track number is `chapter-number` --><text macro=\"identifier-number\"/></if></choose><text macro=\"identifier-serial\"/></else-if><else><text macro=\"identifier-contributors\"/><text macro=\"identifier-number\"/><text macro=\"identifier-monographic\"/><text macro=\"identifier-serial\"/></else></choose></group></macro><!-- Identifier elements --><macro name=\"identifier-contributors\"><choose><if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><text macro=\"identifier-contributors-serial\"/></if><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"><text macro=\"identifier-contributors-monographic\"/></else-if><else-if match=\"any\" type=\"interview paper-conference\"><text macro=\"identifier-contributors-serial\"/></else-if><else><text macro=\"identifier-contributors-monographic\"/></else></choose></macro><macro name=\"identifier-contributors-monographic\"><group delimiter=\"; \"><choose><if variable=\"title\"><names variable=\"interviewer\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></if></choose><choose><if match=\"any\" type=\"post webpage\"><!-- print `container-title` on `post` or `webpage` in the same way as `publisher` --><names variable=\"container-author\"><label form=\"verb-short\" suffix=\" \" text-case=\"title\"/><name and=\"symbol\"/></names><names delimiter=\"; \" variable=\"editor translator\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names><names delimiter=\"; \" variable=\"illustrator narrator\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names><names delimiter=\"; \" variable=\"compiler chair organizer curator series-creator executive-producer\"><name and=\"symbol\"/><label prefix=\", \" text-case=\"title\"/></names></if><else><names delimiter=\"; \" variable=\"illustrator narrator\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names><choose><if variable=\"container-title editor-translator\"/><else-if variable=\"container-title\"><!-- TODO: Check logic once processors start to automatically populate `editor-translator` --><names delimiter=\"; \" variable=\"translator\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></else-if><else><names variable=\"container-author\"><label form=\"verb-short\" suffix=\" \" text-case=\"title\"/><name and=\"symbol\"/></names><names delimiter=\"; \" variable=\"editor translator\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names><names delimiter=\"; \" variable=\"compiler chair organizer curator series-creator executive-producer\"><name and=\"symbol\"/><label prefix=\", \" text-case=\"title\"/></names></else></choose></else></choose></group></macro><macro name=\"identifier-contributors-serial\"><group delimiter=\"; \"><choose><if variable=\"title\"><names delimiter=\"; \" variable=\"interviewer\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></if></choose><names delimiter=\"; \" variable=\"translator narrator\"><name and=\"symbol\"/><label form=\"short\" prefix=\", \" text-case=\"title\"/></names></group></macro><macro name=\"identifier-locators\"><choose><if variable=\"page\"><text macro=\"label-page\"/></if><else-if variable=\"chapter-number genre\"><text macro=\"label-chapter-number\"/></else-if><else-if variable=\"chapter-number title\"><text macro=\"label-chapter-number\"/></else-if><!-- `chapter-number` appears earlier in `identifier` if there is no `title` or `genre` --></choose></macro><macro name=\"identifier-monographic\"><choose><!-- omit serial types --><if match=\"any\" type=\"article-journal article-magazine article-newspaper broadcast event patent performance periodical post post-weblog review review-book speech webpage\"/><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"><!-- monographic types --><text macro=\"identifier-monographic-item\"/></else-if><!-- omit serial types --><else-if match=\"any\" type=\"interview paper-conference\"/><else><!-- monographic types --><text macro=\"identifier-monographic-item\"/></else></choose></macro><macro name=\"identifier-monographic-item\"><group delimiter=\", \"><text macro=\"label-version\"/><text macro=\"label-edition\"/><text macro=\"identifier-series\"/><text macro=\"label-supplement-number\"/><text macro=\"identifier-number-volume\"/><text macro=\"identifier-number-part\"/><text macro=\"label-issue\"/><text macro=\"identifier-locators\"/></group></macro><macro name=\"identifier-number\"><group delimiter=\" \"><choose><if type=\"thesis\" variable=\"genre\"><!-- `genre` provided with thesis description (APA example 65) --><text text-case=\"capitalize-first\" value=\"publication\"/></if><else-if variable=\"number\"><text text-case=\"title\" variable=\"genre\"/></else-if></choose><text macro=\"label-number\"/></group></macro><macro name=\"identifier-number-part\"><choose><!-- Part number printed with part title --><if variable=\"part-title\"/><!-- Non-numeric part numbers printed as part of the title --><else-if is-numeric=\"part-number\"><text macro=\"label-part-number\"/></else-if></choose></macro><macro name=\"identifier-number-volume\"><choose><!-- Volume number printed with volume/part title --><if variable=\"volume volume-title\"/><else-if variable=\"part-title volume\"/><!-- Non-numeric volumes printed as part of the book title --><else-if is-numeric=\"volume\"><text macro=\"label-volume\"/></else-if><else><text macro=\"label-number-of-volumes\"/></else></choose></macro><macro name=\"identifier-patent\"><!-- `authority`: U.S. ; `genre`: patent ; `number`: 123,445 --><group delimiter=\" \"><text form=\"short\" variable=\"authority\"/><choose><if variable=\"genre\"><text text-case=\"capitalize-first\" variable=\"genre\"/></if><else><text term=\"patent\" text-case=\"capitalize-first\"/></else></choose><text macro=\"label-number\"/></group></macro><macro name=\"identifier-serial\"><choose><if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><!-- serial types --><text macro=\"identifier-number-part\"/></if><!-- omit monographic types --><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"/><else-if match=\"any\" type=\"interview paper-conference\"><!-- serial types --><text macro=\"identifier-number-part\"/></else-if></choose></macro><macro name=\"identifier-series\"><!-- Series given only for report-like types (APA example 52) --><choose><if match=\"any\" type=\"document report standard\"><group delimiter=\" \"><text text-case=\"title\" variable=\"collection-title\"/><text variable=\"collection-number\"/></group></if></choose></macro><!-- 3.3. Description [in square brackets] (APA 9.21) --><macro name=\"description\"><group prefix=\"[\" suffix=\"]\"><choose><if match=\"any\" type=\"interview\" variable=\"interviewer\"><text macro=\"description-interview\"/></if><else-if match=\"any\" type=\"review review-book\" variable=\"reviewed-author reviewed-genre reviewed-title\"><text macro=\"description-review\"/></else-if><else-if type=\"personal_communication\"><text macro=\"description-letter\"/></else-if><else-if type=\"song\" variable=\"composer\"><text macro=\"description-song\"/></else-if><else-if type=\"thesis\"><text macro=\"description-thesis\"/></else-if><else-if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><text macro=\"description-serial\"/></else-if><else-if match=\"none\" variable=\"container-title\"><!-- Other description --><text macro=\"description-format\"/></else-if><!-- For unpublished conference presentations/performances/events, chapters in reports/standards/generic documents, software, place description within the source element --><else-if match=\"any\" type=\"document report software standard\"/><else-if match=\"any\" type=\"event paper-conference performance speech\"><choose><if match=\"any\" variable=\"collection-editor compiler editor editorial-director issue page supplement-number volume\"><text macro=\"description-format\"/></if></choose></else-if><else><text macro=\"description-format\"/></else></choose></group></macro><macro name=\"description-short\"><group prefix=\"[\" suffix=\"]\"><choose><if match=\"any\" type=\"interview\" variable=\"interviewer\"><text macro=\"description-interview-short\"/></if><else-if match=\"any\" type=\"review review-book\" variable=\"reviewed-author reviewed-genre reviewed-title\"><text macro=\"description-review-short\"/></else-if><else-if type=\"personal_communication\"><text macro=\"description-letter-short\"/></else-if><else-if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><!-- serial types --><text macro=\"description-serial-short\"/></else-if><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"><!-- monographic types --><text macro=\"description-format-short\"/></else-if><else-if match=\"any\" type=\"interview paper-conference\"><!-- serial types --><text macro=\"description-serial-short\"/></else-if><else><!-- monographic types --><text macro=\"description-format-short\"/></else></choose></group></macro><!-- Description elements --><macro name=\"description-format\"><choose><if match=\"any\" variable=\"genre medium\"><group delimiter=\"; \"><choose><if match=\"none\" variable=\"number\"><text text-case=\"capitalize-first\" variable=\"genre\"/></if></choose><text text-case=\"capitalize-first\" variable=\"medium\"/></group></if><else><text macro=\"description-format-term-generic\"/></else></choose></macro><macro name=\"description-format-short\"><choose><if variable=\"genre\"><text form=\"short\" text-case=\"capitalize-first\" variable=\"genre\"/></if><else-if variable=\"medium\"><text form=\"short\" text-case=\"capitalize-first\" variable=\"medium\"/></else-if><else><text macro=\"description-format-term-generic\"/></else></choose></macro><macro name=\"description-format-term-generic\"><!-- Generic labels for specific types --><choose><if type=\"broadcast\"><text term=\"broadcast\" text-case=\"capitalize-first\"/></if><else-if type=\"collection\"><text term=\"collection\" text-case=\"capitalize-first\"/></else-if><else-if type=\"dataset\"><text term=\"dataset\" text-case=\"capitalize-first\"/></else-if><else-if type=\"figure\"><text term=\"figure\" text-case=\"capitalize-first\"/></else-if><else-if type=\"graphic\"><text term=\"graphic\" text-case=\"capitalize-first\"/></else-if><else-if match=\"any\" type=\"interview personal_communication\"><choose><if match=\"none\" variable=\"archive archive-place container-title DOI number publisher references URL\"><text term=\"personal-communication\" text-case=\"capitalize-first\"/></if><else-if type=\"interview\"><text term=\"interview\" text-case=\"capitalize-first\"/></else-if><else-if type=\"personal_communication\"><text term=\"letter\" text-case=\"capitalize-first\"/></else-if></choose></else-if><else-if type=\"manuscript\"><choose><if match=\"none\" variable=\"archive archive-place container-title DOI number publisher references URL\"><text term=\"manuscript\" text-case=\"capitalize-first\"/></if></choose></else-if><else-if type=\"map\"><text term=\"map\" text-case=\"capitalize-first\"/></else-if><else-if type=\"motion_picture\"><text term=\"motion_picture\" text-case=\"capitalize-first\"/></else-if><else-if type=\"periodical\" variable=\"container-title supplement-number\"><text term=\"supplement\" text-case=\"capitalize-first\"/></else-if><else-if type=\"periodical\" variable=\"container-title title\"><text term=\"special-issue\" text-case=\"capitalize-first\"/></else-if><else-if type=\"song\"><text term=\"song\" text-case=\"capitalize-first\"/></else-if><else-if type=\"software\"><text term=\"software\" text-case=\"capitalize-first\"/></else-if><else-if type=\"post\"><text term=\"post\" text-case=\"capitalize-first\"/></else-if><else-if type=\"review\"><text term=\"review\" text-case=\"capitalize-first\"/></else-if><else-if type=\"review-book\"><text term=\"review-book\" text-case=\"capitalize-first\"/></else-if></choose></macro><macro name=\"description-interview\"><group delimiter=\"; \"><choose><if variable=\"interviewer title\"><!-- Avoid repeating 'interview' --><choose><if match=\"none\" variable=\"number\"><text text-case=\"capitalize-first\" variable=\"genre\"/></if></choose><text text-case=\"capitalize-first\" variable=\"medium\"/></if><else-if variable=\"title\"><text macro=\"description-format\"/></else-if><else-if variable=\"genre\"><group delimiter=\" \"><text text-case=\"capitalize-first\" variable=\"genre\"/><choose><if variable=\"interviewer\"><text form=\"verb\" term=\"container-author\"/><names variable=\"interviewer\"><name and=\"symbol\"/></names></if></choose></group></else-if><else-if variable=\"interviewer\"><names variable=\"interviewer\"><label form=\"verb\" suffix=\" \" text-case=\"capitalize-first\"/><name and=\"symbol\"/></names><text text-case=\"capitalize-first\" variable=\"medium\"/></else-if><else><text macro=\"description-format\"/></else></choose></group></macro><macro name=\"description-interview-short\"><names variable=\"interviewer\"><label form=\"verb\" suffix=\" \" text-case=\"capitalize-first\"/><name and=\"symbol\" form=\"short\"/><substitute><text macro=\"description-format-short\"/></substitute></names></macro><macro name=\"description-letter\"><choose><if variable=\"recipient\"><group delimiter=\"; \"><group delimiter=\" \"><text macro=\"description-format\"/><names variable=\"recipient\"><label form=\"verb\" suffix=\" \"/><name and=\"symbol\" initialize=\"false\"/></names></group><text macro=\"description-medium\"/></group></if><else><text macro=\"description-format\"/></else></choose></macro><macro name=\"description-letter-short\"><choose><if variable=\"recipient\"><group delimiter=\" \"><text macro=\"description-format-short\"/><names variable=\"recipient\"><label form=\"verb\" suffix=\" \"/><name and=\"symbol\" form=\"short\"/></names></group></if><else><text macro=\"description-format-short\"/></else></choose></macro><macro name=\"description-medium\"><choose><if variable=\"number\"/><else-if variable=\"genre\"><text text-case=\"capitalize-first\" variable=\"medium\"/></else-if></choose></macro><macro name=\"description-review\"><group delimiter=\"; \"><group delimiter=\", \"><group delimiter=\" \"><choose><if variable=\"reviewed-genre\"><text term=\"review-of\" text-case=\"capitalize-first\"/><text variable=\"reviewed-genre\"/></if><else-if variable=\"number\"><!-- Genre printed with `number` --><text form=\"short\" term=\"review-of\" text-case=\"capitalize-first\"/></else-if><!-- If no `reviewed-genre`, assume that `genre` or `medium` is entered as 'Review of the book' or similar --><else-if variable=\"genre\"><text text-case=\"capitalize-first\" variable=\"genre\"/></else-if><else-if variable=\"medium\"><text text-case=\"capitalize-first\" variable=\"medium\"/></else-if><else-if type=\"review-book\"><text term=\"review-of\" text-case=\"capitalize-first\"/><text term=\"book\" text-case=\"lowercase\"/></else-if><else><text form=\"short\" term=\"review-of\" text-case=\"capitalize-first\"/></else></choose><text macro=\"description-review-title\"/></group><names variable=\"reviewed-author\"><label form=\"verb-short\" suffix=\" \"/><name and=\"symbol\"/></names></group><text macro=\"description-medium\"/></group></macro><macro name=\"description-review-short\"><group delimiter=\" \"><text form=\"short\" term=\"review-of\" text-case=\"capitalize-first\"/><text macro=\"description-review-title-short\"/></group></macro><macro name=\"description-review-title\"><choose><if match=\"any\" variable=\"reviewed-genre reviewed-title\"><!-- Not possible to distinguish TV series episode from other reviewed works without a reviewed source title (APA example 69) --><!-- TODO: Adapt for `reviewed-container-title` or similar if it becomes available --><text font-style=\"italic\" variable=\"reviewed-title\"/></if><else><!-- Assume `title` is the title of the reviewed work --><text font-style=\"italic\" variable=\"title\"/></else></choose></macro><macro name=\"description-review-title-short\"><choose><if match=\"any\" variable=\"reviewed-genre reviewed-title\"><!-- Not possible to distinguish TV series episode from other reviewed works without a reviewed source title (APA example 69) --><!-- TODO: Adapt for `reviewed-container-title` or similar if it becomes available --><text font-style=\"italic\" form=\"short\" text-case=\"title\" variable=\"reviewed-title\"/></if><else><!-- Assume `title` is the title of the reviewed work --><text font-style=\"italic\" form=\"short\" text-case=\"title\" variable=\"title\"/></else></choose></macro><macro name=\"description-serial\"><group delimiter=\"; \"><text macro=\"description-format\"/><choose><if match=\"none\" variable=\"title\"><text variable=\"section\"/></if></choose></group></macro><macro name=\"description-serial-short\"><choose><if variable=\"title\"/><else-if variable=\"section\"><text form=\"short\" text-case=\"capitalize-first\" variable=\"section\"/></else-if><else><text macro=\"description-format-short\"/></else></choose></macro><macro name=\"description-song\"><!-- Performer of classical music works --><group delimiter=\"; \"><group delimiter=\" \"><!-- Based on `description-format` macro --><choose><if match=\"any\" variable=\"genre medium\"><choose><if match=\"none\" variable=\"number\"><text text-case=\"capitalize-first\" variable=\"genre\"/></if></choose><text text-case=\"capitalize-first\" variable=\"medium\"/><text form=\"verb\" term=\"performer\"/></if><else><text form=\"verb\" term=\"performer\" text-case=\"capitalize-first\"/></else></choose><names variable=\"author\"><name and=\"symbol\"/><substitute><names variable=\"performer\"/></substitute></names></group><text macro=\"description-medium\"/></group></macro><macro name=\"description-thesis\"><group delimiter=\"; \"><group delimiter=\", \"><text text-case=\"capitalize-first\" variable=\"genre\"/><choose><if match=\"any\" variable=\"archive DOI URL\"><!-- Include the university in description if thesis is published --><text variable=\"publisher\"/></if></choose></group><text text-case=\"capitalize-first\" variable=\"medium\"/></group></macro><!-- 4. Source (APA 9.23-37) --><macro name=\"source\"><group delimiter=\". \"><choose><if match=\"any\" type=\"post webpage\"/><else-if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><text macro=\"source-serial\"/></else-if><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"><text macro=\"source-monographic\"/></else-if><else-if match=\"any\" type=\"interview paper-conference\"><text macro=\"source-serial\"/></else-if><else><text macro=\"source-monographic\"/></else></choose><text macro=\"source-publisher\"/><text macro=\"source-archive\"/><text macro=\"source-location\"/><text macro=\"source-website\"/></group></macro><!-- 4.1. Serial sources (APA 9.25-27) --><macro name=\"source-serial\"><group delimiter=\". \"><group delimiter=\", \"><group delimiter=\", \" font-style=\"italic\"><text text-case=\"title\" variable=\"container-title\"/><!-- `collection-title` is for any serial with multiple series (e.g. 'second series') --><text text-case=\"title\" variable=\"collection-title\"/></group><group><text font-style=\"italic\" variable=\"volume\"/><group delimiter=\", \" prefix=\"(\" suffix=\")\"><text variable=\"issue\"/><text macro=\"label-supplement-number\"/></group></group><choose><if variable=\"number\"><text macro=\"label-number-article\"/></if><else><text variable=\"page\"/></else></choose></group><choose><if match=\"any\" variable=\"collection-title issue number page supplement-number volume\"/><else-if variable=\"issued status\"><!-- Print the status variable rather than use generic CSL terms (`in press`, etc.) --><text text-case=\"capitalize-first\" variable=\"status\"/></else-if></choose></group></macro><!-- 4.2. Monographic sources (APA 9.28) --><macro name=\"source-monographic\"><!-- Monographic sources repeat main reference elements --><choose><if variable=\"container-title\"><group delimiter=\" \"><choose><if type=\"song\"><text term=\"on\" text-case=\"capitalize-first\"/></if><else><text term=\"in\" text-case=\"capitalize-first\"/></else></choose><group delimiter=\", \"><text macro=\"source-monographic-author\"/><text macro=\"source-monographic-title\"/></group><text macro=\"source-monographic-identifier\"/><text macro=\"source-monographic-description\"/></group></if></choose></macro><!-- Monographic source author --><macro name=\"source-monographic-author\"><names variable=\"container-author\"><name and=\"symbol\"/><label prefix=\" (\" suffix=\")\" text-case=\"title\"/><substitute><names variable=\"executive-producer\"/><names variable=\"series-creator\"/><names variable=\"editor-translator\"><name and=\"symbol\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><!-- TODO: Translator omitted on the assumption that editor-translators are uncommon for chapter citations. If needed, direct entry or automatic population of `editor-translator` can produce combined labels. --><names delimiter=\"; \" variable=\"editor\"><name and=\"symbol\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"editorial-director\"><name and=\"symbol\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names><names variable=\"compiler\"/><choose><if match=\"any\" type=\"event performance speech\"><names variable=\"chair\"/><names variable=\"organizer\"/></if></choose><names variable=\"curator\"/><names variable=\"collection-editor\"><name and=\"symbol\"/><label form=\"short\" prefix=\" (\" suffix=\")\" text-case=\"title\"/></names></substitute></names></macro><!-- Monographic source title --><macro name=\"source-monographic-title\"><group delimiter=\": \" font-style=\"italic\"><text variable=\"container-title\"/><text macro=\"title-volume\"/></group></macro><!-- Monographic source identifier --><macro name=\"source-monographic-identifier\"><choose><if variable=\"container-title\"><group delimiter=\"; \" prefix=\"(\" suffix=\")\"><choose><if match=\"none\" type=\"broadcast graphic map motion_picture\"><!-- For some audiovisual media, number information comes after `title`, not `container-title` (APA example 94); but an album track number is `chapter-number` --><text macro=\"identifier-number\"/></if></choose><text macro=\"identifier-monographic\"/></group></if></choose></macro><!-- Monographic source description --><macro name=\"source-monographic-description\"><group prefix=\"[\" suffix=\"]\"><choose><if match=\"any\" type=\"document report software standard\"><!-- place description after `container-title` --><text macro=\"description-format\"/></if><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director issue page supplement-number volume\"/><else-if match=\"any\" type=\"event paper-conference performance speech\"><!-- unpublished conference presentations should describe the session --><text macro=\"description-format\"/></else-if></choose></group></macro><!-- 4.3. Publisher sources (APA 9.29) --><macro name=\"source-publisher\"><choose><if type=\"thesis\"><choose><if match=\"none\" variable=\"archive DOI URL\"><!-- Provide university in `publisher` if unpublished --><text variable=\"publisher\"/></if></choose></if><!-- omit serial types --><else-if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"/><else-if match=\"any\" variable=\"collection-editor compiler editor editorial-director\"><!-- monographic types --><text variable=\"publisher\"/></else-if><else-if type=\"interview\"><!-- give publisher for a broadcast `interview` handled as a serial type --><text variable=\"publisher\"/></else-if><!-- omit serial `paper-conference` --><else-if type=\"paper-conference\"/><else><text variable=\"publisher\"/></else></choose></macro><!-- 4.4. Database and archive sources (APA 9.30) --><macro name=\"source-archive\"><group delimiter=\", \"><choose><if variable=\"archive_collection\"><!-- With collection: `archive_collection` (`archive_location`), `archive`, `archive-place` --><group delimiter=\" \"><text variable=\"archive_collection\"/><text prefix=\"(\" suffix=\")\" variable=\"archive_location\"/></group><text variable=\"archive\"/><text variable=\"archive-place\"/></if><else><!-- No collection: `archive` (`archive_location`), `archive-place` --><group delimiter=\" \"><text variable=\"archive\"/><text prefix=\"(\" suffix=\")\" variable=\"archive_location\"/></group><text variable=\"archive-place\"/></else></choose><!-- a database identifier/number is stored in `number` and appears in `identifier-number` --></group></macro><!-- 4.5. Works with specific locations (APA 9.31) --><macro name=\"source-location\"><choose><if match=\"any\" variable=\"event event-title\"><!-- TODO: To prevent Zotero from printing `event-place`, due to its double-mapping of `publisher-place` and `event-place`. Remove this when that is changed. --><choose><if type=\"paper-conference\"><choose><if match=\"none\" variable=\"collection-editor compiler editor editorial-director issue page supplement-number volume\"><!-- Don't print event info for conference papers published in a proceedings --><text macro=\"source-location-title-place-date\"/></if></choose></if><else><!-- For other item types, print event info even if published (e.g. collection catalogs, performance programs). These items aren't given explicit examples in the APA manual, so err on the side of providing too much information. --><text macro=\"source-location-title-place-date\"/></else></choose></if></choose></macro><macro name=\"source-location-title-place-date\"><group delimiter=\", \"><choose><!-- TODO: We expect `event-title` to be used, but processors and applications may not be updated yet. This macro ensures that either `event` or `event-title` can be accepted. Remove if processor logic and application adoption can handle this. --><if variable=\"event-title\"><text text-case=\"capitalize-first\" variable=\"event-title\"/></if><else><text text-case=\"capitalize-first\" variable=\"event\"/></else></choose><text variable=\"event-place\"/><text macro=\"date-event-full\"/></group></macro><!-- 4.6. Social media and website sources (APA 9.32-33) --><macro name=\"source-website\"><choose><if match=\"any\" type=\"post webpage\"><text text-case=\"title\" variable=\"container-title\"/></if></choose></macro><!-- 4.7. DOI or URL (APA 9.34-36) --><macro name=\"source-DOI-URL\"><choose><if variable=\"DOI\"><text prefix=\"https://doi.org/\" variable=\"DOI\"/></if><else-if variable=\"URL\"><group delimiter=\" \"><choose><if match=\"none\" variable=\"issued status\"><text term=\"retrieved\" text-case=\"capitalize-first\"/><group delimiter=\", \"><date form=\"text\" variable=\"accessed\"/><text term=\"from\"/></group></if></choose><text variable=\"URL\"/></group></else-if></choose></macro><!-- 5. Publication history (APA 9.39-41) --><macro name=\"publication-history\"><!-- Notes on source element: original publication, reprint info, retraction info --><group delimiter=\"; \" prefix=\"(\" suffix=\")\"><choose><if type=\"patent\"><text variable=\"references\"/></if><else><!-- Print `status` here for \"retracted\" etc. if it's not printed elsewhere. --><choose><if match=\"none\" variable=\"issued\"/><else-if match=\"any\" variable=\"collection-title issue number page supplement-number volume\"><text text-case=\"capitalize-first\" variable=\"status\"/></else-if></choose><choose><if variable=\"references\"><!-- Provide the option for more elaborate description of publication history, such as full \"reprinted\" references (APA examples 11, 43, 44) --><text variable=\"references\"/></if><else><!-- Format publication history using CSL variables --><group delimiter=\" \"><text term=\"original-work-published\" text-case=\"capitalize-first\"/><group delimiter=\", \"><group delimiter=\" \"><text value=\"as\"/><text font-style=\"italic\" variable=\"original-title\"/></group><text macro=\"date-original-year\"/><text variable=\"original-publisher\"/></group></group></else></choose></else></choose></group></macro><!-- 6. Legal references: Bluebook style (shared with Chicago) --><!-- Where APA or Chicago diverge from Bluebook, the official manual is followed --><macro name=\"legal-reference\"><!-- Type usage:\n`bill`: bills, resolutions, federal reports\n`legal_case`: all legal and court cases\n`hearing`: hearings and testimony\n`legislation`: statutes, constitutional items, and charters\n`regulation`: codified regulations, uncodified regulations, executive orders\n`treaty`: treaties--><group delimiter=\", \"><choose><if type=\"treaty\"><text macro=\"legal-title\"/><names variable=\"author\"><!-- Treaty parties should be included at least for bilateral treaties (Bluebook 21.4.2) --><name delimiter=\"-\" et-al-min=\"100\" et-al-use-first=\"99\" form=\"short\" initialize=\"false\"/></names><text macro=\"legal-date\"/><!-- treaty source/report in addition to URL (Bluebook 21.4.5) --><text macro=\"legal-source\"/></if><else><group delimiter=\" \"><group delimiter=\", \"><text macro=\"legal-title\"/><text macro=\"legal-source\"/></group><text macro=\"legal-date\"/><text macro=\"legal-identifier\"/></group></else></choose><group delimiter=\" \"><!-- locator for use in notes --><choose><if locator=\"page\" variable=\"page\"><text term=\"at\"/></if></choose><text macro=\"label-locator\"/></group></group></macro><!-- 6.1. Legal date --><macro name=\"legal-date\"><choose><if type=\"treaty\"><text macro=\"date-issued-full\"/></if><else-if type=\"legal_case\"><text macro=\"legal-date-case\"/></else-if><else-if match=\"any\" type=\"bill hearing legislation regulation\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><group delimiter=\" \"><text macro=\"date-original-year\"/><text form=\"symbol\" term=\"and\"/></group><choose><if variable=\"issued\"><text macro=\"date-issued-year\"/></if><else><!-- Show proposal date for uncodified regulations. Assume date is entered literally ala \"proposed May 23, 2016\". --><!-- TODO: Add `proposed` date here if that becomes available --><date form=\"text\" variable=\"submitted\"/></else></choose></group></else-if></choose></macro><macro name=\"legal-date-case\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><text variable=\"authority\"/><choose><if variable=\"container-title\"><!-- Print only year for cases published in reporters--><text macro=\"date-issued-year\"/></if><else><text macro=\"date-issued-full\"/></else></choose></group></macro><!-- 6.2.1. Legal title --><macro name=\"legal-title\"><choose><if match=\"any\" type=\"bill legal_case legislation regulation treaty\"><text text-case=\"title\" variable=\"title\"/></if><else-if type=\"hearing\"><!-- use standard format (Bluebook 13.3) --><group delimiter=\": \" font-style=\"italic\"><text text-case=\"capitalize-first\" variable=\"title\"/><group delimiter=\" \"><text term=\"hearing\" text-case=\"capitalize-first\"/><group delimiter=\" \"><text term=\"on\"/><text variable=\"number\"/></group><group delimiter=\" \"><text value=\"before the\"/><text variable=\"section\"/></group></group></group></else-if></choose></macro><!-- 6.2.2. Legal identifier --><macro name=\"legal-identifier\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><choose><if type=\"hearing\"><!-- Use the 'verb' form of the hearing term to hold 'testimony of' --><text form=\"verb\" term=\"hearing\"/><names variable=\"author\"><name and=\"symbol\" initialize=\"false\"/></names></if><else-if match=\"any\" type=\"bill legislation regulation\"><!-- For uncodified regulations, assume future code section is in `status`. --><text variable=\"status\"/></else-if></choose></group></macro><macro name=\"legal-identifier-bill-report\"><group delimiter=\" \"><text variable=\"genre\"/><choose><if match=\"any\" variable=\"authority chapter-number container-title\"><text variable=\"number\"/></if><else><!-- If there is no legislative body, session number, or code/record title, assume the item is a congressional report and include 'No.' label. --><text macro=\"label-number-capitalized\"/></else></choose></group></macro><!-- 6.3. Legal source --><macro name=\"legal-source\"><!-- Expect legal item `container-title` to be stored in short form --><choose><if type=\"bill\"><text macro=\"legal-source-bill\"/></if><else-if type=\"hearing\"><text macro=\"legal-source-hearing\"/></else-if><else-if type=\"legal_case\"><text macro=\"legal-source-case\"/></else-if><else-if type=\"legislation\"><text macro=\"legal-source-legislation\"/></else-if><else-if type=\"regulation\"><text macro=\"legal-source-regulation\"/></else-if><else-if type=\"treaty\"><text macro=\"legal-source-treaty\"/></else-if></choose></macro><!-- Legal source types --><macro name=\"legal-source-bill\"><group delimiter=\", \"><text macro=\"legal-identifier-bill-report\"/><group delimiter=\" \"><text variable=\"authority\"/><!-- `chapter-number` is a session number --><text variable=\"chapter-number\"/></group><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><text variable=\"page-first\"/></group></group></macro><macro name=\"legal-source-case\"><group delimiter=\" \"><choose><if variable=\"container-title\"><text variable=\"volume\"/><text variable=\"container-title\"/><text macro=\"label-section-symbol\"/><choose><if match=\"any\" variable=\"page page-first\"><text variable=\"page-first\"/></if><else><text value=\"___\"/></else></choose></if><else><text macro=\"label-number-capitalized\"/></else></choose></group></macro><macro name=\"legal-source-hearing\"><group delimiter=\" \"><text variable=\"authority\"/><!-- `chapter-number` is a session number --><text variable=\"chapter-number\"/></group></macro><macro name=\"legal-source-legislation\"><choose><if variable=\"number\"><!-- `number` is a public law number --><group delimiter=\", \"><group delimiter=\" \"><choose><if variable=\"genre\"><text text-case=\"capitalize-first\" variable=\"genre\"/></if><else><text form=\"short\" term=\"legislation\" text-case=\"capitalize-first\"/></else></choose><text macro=\"label-number-capitalized\"/></group><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><text variable=\"page-first\"/></group></group></if><else><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><choose><if variable=\"section\"><text macro=\"label-section-symbol\"/></if><else><text variable=\"page-first\"/></else></choose></group></else></choose></macro><macro name=\"legal-source-regulation\"><group delimiter=\", \"><group delimiter=\" \"><text variable=\"genre\"/><text macro=\"label-number-capitalized\"/></group><group delimiter=\" \"><text variable=\"volume\"/><text variable=\"container-title\"/><choose><if variable=\"section\"><text macro=\"label-section-symbol\"/></if><else><text variable=\"page-first\"/></else></choose></group></group></macro><macro name=\"legal-source-treaty\"><group delimiter=\" \"><number variable=\"volume\"/><text variable=\"container-title\"/><choose><if match=\"any\" variable=\"page page-first\"><text variable=\"page-first\"/></if><else><text macro=\"label-number-capitalized\"/></else></choose></group></macro><!-- Citation --><citation collapse=\"year\" disambiguate-add-givenname=\"true\" disambiguate-add-names=\"true\" disambiguate-add-year-suffix=\"true\" et-al-min=\"3\" et-al-use-first=\"1\" givenname-disambiguation-rule=\"primary-name-with-initials\"><sort><key macro=\"author-sort\" names-min=\"3\" names-use-first=\"1\"/><key macro=\"date-sort-group\"/><key macro=\"date-sort\"/><key variable=\"status\"/></sort><layout delimiter=\"; \" prefix=\"(\" suffix=\")\"><group delimiter=\", \"><text macro=\"author-short\"/><text macro=\"date-short\"/><text macro=\"label-locator\"/></group></layout></citation><!-- Bibliography --><macro name=\"bibliography\"><group delimiter=\" \"><choose><if match=\"any\" type=\"bill hearing legal_case legislation regulation treaty\"><!-- Legal items have different orders and delimiters --><text macro=\"legal-reference\" suffix=\".\"/><text macro=\"source-DOI-URL\"/><text variable=\"references\"/></if><else><group delimiter=\". \" suffix=\".\"><text macro=\"author-and-contributors\"/><text macro=\"date\"/><text macro=\"title-and-descriptions\"/><text macro=\"source\"/></group><text macro=\"source-DOI-URL\"/><text macro=\"publication-history\"/></else></choose></group></macro><bibliography entry-spacing=\"0\" et-al-min=\"21\" et-al-use-first=\"19\" et-al-use-last=\"true\" hanging-indent=\"true\" line-spacing=\"2\"><sort><key macro=\"author-sort\"/><key macro=\"date-sort-group\"/><key macro=\"date-sort\"/><key variable=\"status\"/><key macro=\"title\"/><key variable=\"volume\"/><key variable=\"part-number\"/><key variable=\"event-date\"/><key variable=\"original-date\"/><key macro=\"source-archive\"/></sort><layout><choose><if match=\"any\" variable=\"archive archive-place container-title DOI number publisher references URL\"><text macro=\"bibliography\"/></if><!-- an inaccessible `interview` or `personal_communication` is cited in-text only (APA 8.9) --><else-if match=\"any\" type=\"interview personal_communication\"/><else><text macro=\"bibliography\"/></else></choose></layout></bibliography>\n</style>\n";
+var vancouver = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" delimiter-precedes-last=\"always\" demote-non-dropping-particle=\"sort-only\" initialize-with=\"\" initialize-with-hyphen=\"false\" name-as-sort-order=\"all\" name-delimiter=\", \" names-delimiter=\", \" page-range-format=\"minimal\" sort-separator=\" \" version=\"1.0\"><!-- This file was generated by the Style Variant Builder <https://github.com/citation-style-language/style-variant-builder>. To contribute changes, modify the template and regenerate variants. --><info><title>NLM/Vancouver: Citing Medicine 2nd edition (citation-sequence)</title><title-short>National Library of Medicine, ANSI/NISO Z39.29-2005 (R2010), ICMJE Recommendations/URMs (C-S)</title-short><id>http://www.zotero.org/styles/nlm-citation-sequence</id><link href=\"http://www.zotero.org/styles/nlm-citation-sequence\" rel=\"self\"/><link href=\"https://www.nlm.nih.gov/citingmedicine\" rel=\"documentation\"/><link href=\"https://www.nlm.nih.gov/bsd/uniform_requirements.html\" rel=\"documentation\"/><link href=\"https://www.icmje.org/recommendations/\" rel=\"documentation\"/><author><name>Michael Berkowitz</name><email>mberkowi@gmu.edu</email></author><author><name>Andrew Dunning</name><uri>https://orcid.org/0000-0003-0464-5036</uri></author><contributor><name>Petr Hlustik</name><uri>https://orcid.org/0000-0002-1951-0671</uri></contributor><contributor><name>Sebastian Karcher</name><uri>https://orcid.org/0000-0001-8249-7388</uri></contributor><contributor><name>Charles Parnot</name><uri>https://orcid.org/0000-0002-7346-5883</uri></contributor><contributor><name>Sean Takats</name><uri>https://orcid.org/0000-0002-7851-5069</uri></contributor><category citation-format=\"numeric\"/><category field=\"generic-base\"/><category field=\"medicine\"/><category field=\"science\"/><summary>Citing Medicine: The NLM Style Guide for Authors, Editors, and Publishers, 2nd edition (2015), based on ANSI/NISO Z39.29-2005 (R2010); citation-sequence system.</summary><updated>2026-03-29T15:20:09+00:00</updated><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights></info><locale xml:lang=\"en\"><date delimiter=\" \" form=\"text\"><date-part name=\"year\"/><date-part form=\"short\" name=\"month\" strip-periods=\"true\"/><date-part name=\"day\"/></date><terms><term name=\"available at\">available from</term><term name=\"collection-editor\"><single>editor</single><multiple>editors</multiple></term><term form=\"short\" name=\"month-06\">Jun.</term><term form=\"short\" name=\"month-07\">Jul.</term><term form=\"short\" name=\"month-09\">Sep.</term><term name=\"presented at\">presented at</term><term form=\"short\" name=\"section\"><single>sect.</single><multiple>sects.</multiple></term><term form=\"short\" name=\"supplement\"><single>suppl.</single><multiple>suppls.</multiple></term></terms></locale><locale xml:lang=\"fr\"><date delimiter=\" \" form=\"text\"><date-part name=\"day\"/><date-part form=\"short\" name=\"month\" strip-periods=\"true\"/><date-part name=\"year\"/></date></locale><!-- Variable labels --><macro name=\"label-collection-number\"><group delimiter=\" \"><choose><if is-numeric=\"collection-number\"><label form=\"short\" variable=\"collection-number\"/></if></choose><text variable=\"collection-number\"/></group></macro><macro name=\"label-edition\"><group delimiter=\" \"><choose><if is-numeric=\"edition\"><number form=\"ordinal\" variable=\"edition\"/><label form=\"short\" variable=\"edition\"/></if><else><text variable=\"edition\"/></else></choose></group></macro><macro name=\"label-number\"><group delimiter=\": \"><choose><if type=\"standard\"/><else-if is-numeric=\"number\" match=\"any\" type=\"legislation patent regulation\"><label form=\"short\" variable=\"number\"/></else-if></choose><text variable=\"number\"/></group></macro><macro name=\"label-number-of-pages\"><group delimiter=\" \"><text variable=\"number-of-pages\"/><choose><if is-numeric=\"number-of-pages\"><label form=\"short\" plural=\"never\" variable=\"number-of-pages\"/></if></choose></group></macro><macro name=\"label-page\"><group delimiter=\" \"><label form=\"short\" plural=\"never\" variable=\"page\"/><text variable=\"page\"/></group></macro><macro name=\"label-part-number-capitalized\"><group delimiter=\" \"><choose><if is-numeric=\"part-number\"><!-- TODO: Replace with `part-number` label when CSL provides one --><text form=\"short\" term=\"part\" text-case=\"capitalize-first\"/></if></choose><text variable=\"part-number\"/></group></macro><macro name=\"label-supplement-number\"><group delimiter=\" \"><choose><if is-numeric=\"supplement-number\"><!-- TODO: Replace with `supplement-number` label when CSL provides one --><text form=\"short\" strip-periods=\"true\" term=\"supplement\" text-case=\"capitalize-first\"/></if></choose><text text-case=\"capitalize-first\" variable=\"supplement-number\"/></group></macro><macro name=\"label-volume-capitalized\"><group delimiter=\" \"><choose><if is-numeric=\"volume\"><label form=\"short\" text-case=\"capitalize-first\" variable=\"volume\"/></if></choose><text variable=\"volume\"/></group></macro><macro name=\"author\"><names variable=\"author\"><label prefix=\", \"/><substitute><names variable=\"editor-translator\"/><names variable=\"editor translator\"/><names variable=\"editor\"/><names variable=\"collection-editor\"/></substitute></names></macro><macro name=\"title\"><choose><if type=\"webpage\" variable=\"container-title\"><!-- `webpage` listed under `container-title` (Citing Medicine, ch. 25) --><text variable=\"container-title\"/></if><else><text variable=\"title\"/></else></choose></macro><macro name=\"content-type\"><text variable=\"genre\"/></macro><macro name=\"type-of-medium\"><choose><if variable=\"medium\"><text text-case=\"capitalize-first\" variable=\"medium\"/></if><else-if match=\"any\" type=\"chapter entry-dictionary entry-encyclopedia paper-conference\"/><else-if variable=\"URL\"><text term=\"internet\" text-case=\"capitalize-first\"/></else-if></choose></macro><macro name=\"container-preposition\"><choose><if match=\"any\" type=\"chapter paper-conference entry-dictionary entry-encyclopedia\"><text term=\"in\" text-case=\"capitalize-first\"/></if></choose></macro><macro name=\"secondary-authors\"><names variable=\"editor\"><label prefix=\", \"/></names></macro><macro name=\"container-title\"><group delimiter=\", \"><choose><if type=\"webpage\"/><else-if variable=\"container-title\"><group delimiter=\". \"><group delimiter=\" \"><choose><if match=\"any\" type=\"article-journal review review-book\"><text form=\"short\" strip-periods=\"true\" variable=\"container-title\"/></if><else><text variable=\"container-title\"/></else></choose><choose><if type=\"article-journal\" variable=\"DOI\"/><else-if type=\"article-journal\" variable=\"PMID\"/><else-if type=\"article-journal\" variable=\"PMCID\"/><else-if variable=\"URL\"><text prefix=\"[\" suffix=\"]\" term=\"internet\" text-case=\"capitalize-first\"/></else-if></choose></group><text macro=\"label-edition\"/></group></else-if><!-- TODO: add `event-name` and `event-place` --><else-if match=\"any\" type=\"bill legislation\"><group delimiter=\". \"><text variable=\"container-title\"/><group delimiter=\" \"><text form=\"short\" term=\"section\" text-case=\"capitalize-first\"/><text variable=\"section\"/></group></group><text variable=\"number\"/></else-if><else-if type=\"speech\"><group delimiter=\": \"><group delimiter=\" \"><text text-case=\"capitalize-first\" variable=\"genre\"/><text term=\"presented at\"/></group><text variable=\"event-title\"/></group></else-if><else><group delimiter=\", \"><text macro=\"label-volume-capitalized\"/><text variable=\"volume-title\"/></group><group delimiter=\", \"><text macro=\"label-part-number-capitalized\"/><text variable=\"part-title\"/></group></else></choose></group></macro><macro name=\"place-of-publication\"><choose><if type=\"thesis\"><text prefix=\"[\" suffix=\"]\" variable=\"publisher-place\"/></if><else-if type=\"speech\"/><else><text variable=\"publisher-place\"/></else></choose></macro><macro name=\"publisher\"><choose><!-- discard publisher for serial publications --><if match=\"none\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><group delimiter=\": \"><text macro=\"place-of-publication\"/><text variable=\"publisher\"/></group></if></choose></macro><macro name=\"date\"><group delimiter=\" \"><choose><if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"><group delimiter=\":\"><group delimiter=\" \"><date form=\"text\" variable=\"issued\"/><choose><if type=\"article-journal\" variable=\"DOI\"/><else-if type=\"article-journal\" variable=\"PMID\"/><else-if type=\"article-journal\" variable=\"PMCID\"/><else><text macro=\"date-of-citation\"/></else></choose></group><choose><if type=\"article-newspaper\"><text variable=\"page\"/></if></choose></group></if><else-if match=\"any\" type=\"bill legislation\"><date form=\"text\" variable=\"issued\"/></else-if><else-if type=\"report\"><date date-parts=\"year-month\" form=\"text\" variable=\"issued\"/><text macro=\"date-of-citation\"/></else-if><else-if type=\"patent\"><group delimiter=\", \"><text variable=\"number\"/><date date-parts=\"year\" form=\"numeric\" variable=\"issued\"/></group><text macro=\"date-of-citation\"/></else-if><else-if type=\"speech\"><group delimiter=\"; \"><group delimiter=\" \"><date form=\"text\" variable=\"issued\"/><text macro=\"date-of-citation\"/></group><text variable=\"event-place\"/></group></else-if><else><date date-parts=\"year\" form=\"numeric\" variable=\"issued\"/><text macro=\"date-of-citation\"/></else></choose></group></macro><macro name=\"identifier-serial\"><choose><if match=\"any\" type=\"article-journal article-magazine periodical post-weblog review review-book\"><group delimiter=\":\"><group><text variable=\"collection-title\"/><text variable=\"volume\"/><group delimiter=\" \" prefix=\"(\" suffix=\")\"><text variable=\"issue\"/><text macro=\"label-supplement-number\"/></group></group><text macro=\"location-pagination-serial\"/></group></if></choose></macro><macro name=\"date-of-citation\"><choose><if variable=\"URL\"><group delimiter=\" \" prefix=\"[\" suffix=\"]\"><text term=\"cited\"/><date form=\"text\" variable=\"accessed\"/></group></if></choose></macro><macro name=\"location-pagination-monographic\"><group delimiter=\" \"><choose><if match=\"any\" type=\"article-journal article-magazine article-newspaper review review-book\"/><else-if type=\"book\"><text macro=\"label-number-of-pages\"/></else-if><else><text macro=\"label-page\"/></else></choose></group></macro><macro name=\"location-pagination-serial\"><choose><if variable=\"number\"><text variable=\"number\"/></if><else><text variable=\"page\"/></else></choose></macro><macro name=\"webpage-part\"><choose><if type=\"webpage\" variable=\"container-title\"><text variable=\"title\"/></if></choose></macro><macro name=\"series\"><choose><if match=\"any\" type=\"article-journal article-magazine article-newspaper periodical post-weblog review review-book\"/><else-if variable=\"collection-title\"><group delimiter=\". \" prefix=\"(\" suffix=\")\"><names variable=\"collection-editor\"><label prefix=\", \"/></names><group delimiter=\"; \"><text variable=\"collection-title\"/><text macro=\"label-collection-number\"/></group></group></else-if></choose></macro><macro name=\"report-number\"><choose><if type=\"report\" variable=\"number\"><group delimiter=\" \"><choose><if variable=\"genre\"><text text-case=\"capitalize-first\" variable=\"genre\"/></if><else><text term=\"report\" text-case=\"capitalize-first\"/></else></choose><text macro=\"label-number\"/></group></if></choose></macro><macro name=\"availability\"><group delimiter=\". \"><group delimiter=\": \"><text text-case=\"capitalize-first\" value=\"located at\"/><group delimiter=\"; \"><group delimiter=\", \"><text variable=\"archive_collection\"/><text variable=\"archive\"/><text variable=\"archive-place\"/></group><text variable=\"archive_location\"/></group></group><group delimiter=\" \"><choose><if type=\"article-journal\" variable=\"DOI\"/><else-if type=\"article-journal\" variable=\"PMID\"/><else-if type=\"article-journal\" variable=\"PMCID\"/><else><group delimiter=\": \"><text term=\"available at\" text-case=\"capitalize-first\"/><text variable=\"URL\"/></group></else></choose><text prefix=\"doi:\" variable=\"DOI\"/></group></group></macro><macro name=\"notes\"><group delimiter=\". \" suffix=\".\"><group delimiter=\"; \"><group delimiter=\": \"><text value=\"PubMed PMID\"/><text variable=\"PMID\"/></group><group delimiter=\": \"><text value=\"PubMed Central PMCID\"/><text variable=\"PMCID\"/></group></group><text variable=\"references\"/></group></macro><citation collapse=\"citation-number\"><sort><key variable=\"citation-number\"/></sort><layout delimiter=\",\" prefix=\"(\" suffix=\")\"><text variable=\"citation-number\"/></layout></citation><macro name=\"bibliography\"><group delimiter=\" \"><group delimiter=\". \" suffix=\".\"><text macro=\"author\"/><group delimiter=\" \"><text macro=\"title\"/><text macro=\"content-type\" prefix=\"[\" suffix=\"]\"/><choose><if type=\"webpage\" variable=\"container-title\"><text macro=\"type-of-medium\" prefix=\"[\" suffix=\"]\"/></if><else-if match=\"none\" variable=\"container-title\"><text macro=\"type-of-medium\" prefix=\"[\" suffix=\"]\"/></else-if></choose></group><choose><if match=\"none\" variable=\"container-title\"><text macro=\"label-edition\"/></if></choose><group delimiter=\": \"><text macro=\"container-preposition\"/><group delimiter=\". \"><text macro=\"secondary-authors\"/><text macro=\"container-title\"/></group></group><group delimiter=\"; \"><text macro=\"publisher\"/><group delimiter=\";\"><text macro=\"date\"/><text macro=\"identifier-serial\"/></group></group><text macro=\"location-pagination-monographic\"/><text macro=\"webpage-part\"/><text macro=\"series\"/><text macro=\"report-number\"/></group><text macro=\"availability\"/><text macro=\"notes\"/></group></macro><bibliography et-al-min=\"7\" et-al-use-first=\"6\" second-field-align=\"flush\"><layout><text suffix=\".\" variable=\"citation-number\"/><text macro=\"bibliography\"/></layout></bibliography>\n</style>\n";
+var harvard1 = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<style xmlns=\"http://purl.org/net/xbiblio/csl\" class=\"in-text\" version=\"1.0\" demote-non-dropping-particle=\"sort-only\"><info><title>Cite Them Right 12th edition (author-date/Harvard)</title><id>http://www.zotero.org/styles/harvard-cite-them-right</id><link href=\"http://www.zotero.org/styles/harvard-cite-them-right\" rel=\"self\"/><link href=\"http://www.zotero.org/styles/harvard-cite-them-right-11th-edition\" rel=\"template\"/><link href=\"http://www.citethemrightonline.com/\" rel=\"documentation\"/><author><name>Patrick O'Brien</name></author><category citation-format=\"author-date\"/><category field=\"generic-base\"/><summary>Harvard according to Cite Them Right, 11th edition.</summary><updated>2026-02-12T10:42:48+00:00</updated><rights license=\"http://creativecommons.org/licenses/by-sa/3.0/\">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights></info><locale xml:lang=\"en-GB\"><terms><term name=\"editor\" form=\"short\"><single>ed.</single><multiple>eds</multiple></term><term name=\"editortranslator\" form=\"verb\">edited and translated by</term><term name=\"edition\" form=\"short\">edn.</term></terms></locale><macro name=\"editor\"><choose><if type=\"chapter paper-conference\" match=\"any\"><group delimiter=\" \"><text term=\"in\"/><names variable=\"container-author\" delimiter=\", \" suffix=\", \"><name and=\"text\" initialize-with=\". \"/></names><choose><if variable=\"container-author\" match=\"none\"><names variable=\"editor translator\" delimiter=\", \"><name and=\"text\" initialize-with=\".\"/><label form=\"short\" prefix=\" (\" suffix=\")\"/></names></if></choose></group></if></choose></macro><macro name=\"secondary-contributors\"><choose><if type=\"chapter paper-conference\" match=\"none\"><names variable=\"editor translator\" delimiter=\". \"><label form=\"verb\" text-case=\"capitalize-first\" suffix=\" \"/><name and=\"text\" initialize-with=\".\"/></names></if><else-if variable=\"container-author\" match=\"any\"><names variable=\"editor translator\" delimiter=\". \"><label form=\"verb\" text-case=\"capitalize-first\" suffix=\" \"/><name and=\"text\" initialize-with=\". \" delimiter=\", \"/></names></else-if></choose></macro><macro name=\"author\"><names variable=\"author\"><name and=\"text\" delimiter-precedes-last=\"never\" initialize-with=\".\" name-as-sort-order=\"all\"/><label form=\"short\" prefix=\" (\" suffix=\")\"/><et-al font-style=\"italic\"/><substitute><names variable=\"editor\"/><names variable=\"translator\"/><choose><if type=\"article-newspaper article-magazine article-journal\" match=\"any\"><text variable=\"container-title\" text-case=\"title\" font-style=\"italic\"/></if><else><text macro=\"title\"/></else></choose></substitute></names></macro><macro name=\"author-short\"><names variable=\"author\"><name form=\"short\" and=\"text\" delimiter=\", \" delimiter-precedes-last=\"never\" initialize-with=\". \"/><et-al font-style=\"italic\"/><substitute><names variable=\"editor\"/><names variable=\"translator\"/><choose><if type=\"article-newspaper article-magazine article-journal\" match=\"any\"><text variable=\"container-title\" text-case=\"title\" font-style=\"italic\"/></if><else><text macro=\"title\"/></else></choose></substitute></names></macro><macro name=\"access\"><choose><if variable=\"DOI\"><group delimiter=\": \"><text term=\"available at\" text-case=\"capitalize-first\"/><text variable=\"DOI\" prefix=\"https://doi.org/\"/></group></if><else-if variable=\"URL\"><text term=\"available at\" suffix=\": \" text-case=\"capitalize-first\"/><text variable=\"URL\"/><group prefix=\" (\" delimiter=\": \" suffix=\")\"><text term=\"accessed\" text-case=\"capitalize-first\"/><date form=\"text\" variable=\"accessed\"><date-part name=\"day\"/><date-part name=\"month\"/><date-part name=\"year\"/></date></group></else-if></choose></macro><macro name=\"number-volumes\"><choose><if variable=\"volume\" match=\"none\"><group delimiter=\" \" prefix=\"(\" suffix=\")\"><text variable=\"number-of-volumes\"/><label variable=\"volume\" form=\"short\" strip-periods=\"true\"/></group></if></choose></macro><macro name=\"title\"><choose><if type=\"bill book legal_case legislation motion_picture report song thesis webpage graphic\" match=\"any\"><group delimiter=\". \"><group delimiter=\" \"><group delimiter=\" \"><text variable=\"title\" font-style=\"italic\"/><text variable=\"medium\" prefix=\"[\" suffix=\"]\"/></group><text macro=\"number-volumes\"/></group><text macro=\"edition\"/></group></if><else><text variable=\"title\" form=\"long\" quotes=\"true\"/></else></choose></macro><macro name=\"publisher\"><choose><if type=\"thesis\"><group delimiter=\". \"><text variable=\"genre\"/><text variable=\"publisher\"/></group></if><else-if type=\"report\"><group delimiter=\". \"><group delimiter=\" \"><text variable=\"genre\"/><text variable=\"number\"/></group><group delimiter=\": \"><text variable=\"publisher-place\"/><text variable=\"publisher\"/></group></group></else-if><else-if type=\"article-journal article-newspaper article-magazine\" match=\"none\"><group delimiter=\" \"><group delimiter=\", \"><choose><if type=\"speech\" variable=\"event-title\" match=\"any\"><text variable=\"event-title\" font-style=\"italic\"/></if></choose><group delimiter=\": \"><text variable=\"publisher-place\"/><text variable=\"publisher\"/></group></group><group prefix=\"(\" suffix=\")\" delimiter=\", \"><text variable=\"collection-title\"/><text variable=\"collection-number\"/></group></group></else-if></choose></macro><macro name=\"year-date\"><choose><if variable=\"issued\"><date variable=\"issued\"><date-part name=\"year\"/></date><text variable=\"year-suffix\"/></if><else><text term=\"no date\"/><text variable=\"year-suffix\" prefix=\" \"/></else></choose></macro><macro name=\"locator\"><choose><if type=\"article-journal\"><text variable=\"volume\"/><text variable=\"issue\" prefix=\"(\" suffix=\")\"/></if></choose></macro><macro name=\"published-date\"><choose><if type=\"article-newspaper article-magazine post-weblog speech\" match=\"any\"><date variable=\"issued\"><date-part name=\"day\" suffix=\" \"/><date-part name=\"month\" form=\"long\"/></date></if></choose></macro><macro name=\"pages\"><choose><if type=\"chapter paper-conference article-journal article article-magazine article-newspaper book review review-book report\" match=\"any\"><group delimiter=\" \"><label variable=\"page\" form=\"short\"/><text variable=\"page\"/></group></if></choose></macro><macro name=\"container-title\"><choose><if variable=\"container-title\"><group delimiter=\". \"><group delimiter=\" \"><text variable=\"container-title\" font-style=\"italic\"/><choose><if type=\"article article-journal\" match=\"any\"><choose><if match=\"none\" variable=\"page volume\"><text value=\"Preprint\" prefix=\"[\" suffix=\"]\"/></if></choose></if></choose></group><text macro=\"edition\"/></group></if></choose></macro><macro name=\"edition\"><choose><if is-numeric=\"edition\"><group delimiter=\" \"><number variable=\"edition\" form=\"ordinal\"/><text term=\"edition\" form=\"short\" strip-periods=\"true\"/></group></if><else><text variable=\"edition\"/></else></choose></macro><citation et-al-min=\"4\" et-al-use-first=\"1\" disambiguate-add-year-suffix=\"true\" disambiguate-add-names=\"true\" disambiguate-add-givenname=\"true\" collapse=\"year\"><sort><key macro=\"year-date\"/></sort><layout prefix=\"(\" suffix=\")\" delimiter=\"; \"><group delimiter=\", \"><group delimiter=\", \"><text macro=\"author-short\"/><text macro=\"year-date\"/></group><group><label variable=\"locator\" form=\"short\" suffix=\" \"/><text variable=\"locator\"/></group></group></layout></citation><bibliography and=\"text\" et-al-min=\"4\" et-al-use-first=\"1\"><sort><key macro=\"author\"/><key macro=\"year-date\"/><key variable=\"title\"/></sort><layout suffix=\".\"><group delimiter=\". \"><group delimiter=\" \"><text macro=\"author\"/><text macro=\"year-date\" prefix=\"(\" suffix=\")\"/><group delimiter=\", \"><text macro=\"title\"/><group delimiter=\" \"><text macro=\"editor\"/><text macro=\"container-title\"/></group></group></group><text macro=\"secondary-contributors\"/><text macro=\"publisher\"/></group><group delimiter=\", \" prefix=\", \"><text macro=\"locator\"/><text macro=\"published-date\"/><text macro=\"pages\"/></group><text macro=\"access\" prefix=\". \"/></layout></bibliography>\n</style>\n";
+var defaultStyles = {
 	apa: apa,
 	vancouver: vancouver,
 	harvard1: harvard1
 };
 
-const templates = new Register(defaultTemplates);
+const styles = new Register(defaultStyles);
 
 /*
 Copyright (c) 2009-2019 Frank Bennett
@@ -35177,8 +32407,8 @@ function retrieveLocale(locale) {
   return {};
 }
 const engines = {};
-const fetchEngine = function (style, locale, styleXml, retrieveItem, retrieveLocale) {
-  const engineHash = `${style}|${locale}`;
+const fetchEngine = function (styleName, locale, styleXml, retrieveItem, retrieveLocale) {
+  const engineHash = `${styleName}|${locale}`;
   let engine;
   if (engines[engineHash] instanceof CSL.Engine) {
     engine = engines[engineHash];
@@ -35193,15 +32423,17 @@ const fetchEngine = function (style, locale, styleXml, retrieveItem, retrieveLoc
   }
   return engine;
 };
-const prepareEngine = function (data, style, locale, format) {
+const prepareEngine = function (data, styleName, locale, format) {
   if (!CSL.Output.Formats[format] || !CSL.Output.Formats[format]['@bibliography/entry']) {
     throw new TypeError(`Cannot find format '${format}'`);
+  }
+  if (!styles.has(styleName)) {
+    throw new TypeError(`Cannot find style '${styleName}'`);
   }
   const items = data.reduce((store, entry) => {
     store[entry.id] = entry;
     return store;
   }, {});
-  const template = templates.get(templates.has(style) ? style : 'apa');
   locale = locales.has(locale) ? locale : undefined;
   const callback = function (key) {
     if (Object.prototype.hasOwnProperty.call(items, key)) {
@@ -35210,7 +32442,7 @@ const prepareEngine = function (data, style, locale, format) {
       throw new Error(`Cannot find entry with id '${key}'`);
     }
   };
-  const engine = fetchEngine(style, locale, template, callback, retrieveLocale);
+  const engine = fetchEngine(styleName, locale, styles.get(styleName), callback, retrieveLocale);
   engine.setOutputFormat(format);
   engine.opt.development_extensions.wrap_url_and_doi = false;
   return engine;
@@ -35221,8 +32453,8 @@ const getPrefixedEntry = (value, id) => getAttributedEntry(value, 'csl-entry-id'
 
 const getAffix = (source, affix) => typeof affix === 'function' ? affix(source) : affix || '';
 function bibliography(data, options = {}) {
+  const style = options.style || options.template || 'apa';
   const {
-    template = 'apa',
     lang,
     format = 'text',
     nosort = false
@@ -35230,8 +32462,10 @@ function bibliography(data, options = {}) {
   const ids = options.entry ? [].concat(options.entry) : data.map(({
     id
   }) => id);
-  data = downgradeCsl(data);
-  const citeproc = prepareEngine(data, template, lang, format);
+  if (options.downgradeCsl) {
+    data = downgradeCsl(data);
+  }
+  const citeproc = prepareEngine(data, style, lang, format);
   const sortedIds = citeproc.updateItems(ids, nosort);
   if (options.append || options.prepend) {
     const items = data.reduce((items, entry) => {
@@ -35281,8 +32515,8 @@ function prepareCitations(context) {
   return context.map(prepareCitation);
 }
 function citation(data, options = {}) {
+  const style = options.style || options.template || 'apa';
   const {
-    template = 'apa',
     lang,
     format = 'text'
   } = options;
@@ -35290,8 +32524,10 @@ function citation(data, options = {}) {
     id
   }) => id);
   const entries = options.entry ? options.entry : ids;
-  data = downgradeCsl(data);
-  const citeproc = prepareEngine(data, template, lang, format);
+  if (options.downgradeCsl) {
+    data = downgradeCsl(data);
+  }
+  const citeproc = prepareEngine(data, style, lang, format);
   const before = prepareCitations(options.citationsPre);
   const citation = prepareCitation(entries);
   const after = prepareCitations(options.citationsPost);
@@ -35307,7 +32543,7 @@ add('@csl', {
   config: {
     engine: prepareEngine,
     locales,
-    templates
+    styles
   }
 });
 
@@ -36853,10 +34089,16 @@ const citationFactory = async function (
                 wrapCitationItem(ci, citationEngineId, linkCitations)
             );
 
-            for (const ci of citationItems) {
-                if (ci && ci.id) {
-                    citedIds.add(ci.id);
-                }
+            // Validate the whole citation before rendering or recording any keys.
+            const missingKeys = [...new Set(citationItems
+                .map(({ id }) => id)
+                .filter(id => !referenceMap.has(id)))];
+            if (missingKeys.length) {
+                throw new Error(
+                    `Unknown reference key${missingKeys.length === 1 ? '' : 's'}: ` +
+                    `${missingKeys.map(key => JSON.stringify(key)).join(', ')}. ` +
+                    'Check that each key matches an entry in this reference database.'
+                );
             }
 
             const citationCluster = {
@@ -36878,6 +34120,11 @@ const citationFactory = async function (
             citationClusters.set(citationClusterId, citationCluster);
             citationTag.citationCluster = citationCluster;
 
+            // Only successfully rendered citations contribute to the bibliography.
+            for (const { id } of citationItems) {
+                citedIds.add(id);
+            }
+
             if (typeof window !== 'undefined') {
                 document.dispatchEvent(
                     new CustomEvent(CITATION_UPDATED, { detail: { engine: citationEngineId } })
@@ -36895,7 +34142,7 @@ const citationFactory = async function (
             bold.style.fontWeight = 'bold';
             bold.textContent = 'Citation error: ';
 
-            const msg = document.createTextNode(String(e));
+            const msg = document.createTextNode(e instanceof Error ? e.message : String(e));
             err.append(bold, msg);
             return err;
         }

@@ -353,10 +353,16 @@ const citationFactory = async function (
                 wrapCitationItem(ci, citationEngineId, linkCitations)
             );
 
-            for (const ci of citationItems) {
-                if (ci && ci.id) {
-                    citedIds.add(ci.id);
-                }
+            // Validate the whole citation before rendering or recording any keys.
+            const missingKeys = [...new Set(citationItems
+                .map(({ id }) => id)
+                .filter(id => !referenceMap.has(id)))];
+            if (missingKeys.length) {
+                throw new Error(
+                    `Unknown reference key${missingKeys.length === 1 ? '' : 's'}: ` +
+                    `${missingKeys.map(key => JSON.stringify(key)).join(', ')}. ` +
+                    'Check that each key matches an entry in this reference database.'
+                );
             }
 
             const citationCluster = {
@@ -378,6 +384,11 @@ const citationFactory = async function (
             citationClusters.set(citationClusterId, citationCluster);
             citationTag.citationCluster = citationCluster;
 
+            // Only successfully rendered citations contribute to the bibliography.
+            for (const { id } of citationItems) {
+                citedIds.add(id);
+            }
+
             if (typeof window !== 'undefined') {
                 document.dispatchEvent(
                     new CustomEvent(CITATION_UPDATED, { detail: { engine: citationEngineId } })
@@ -395,7 +406,7 @@ const citationFactory = async function (
             bold.style.fontWeight = 'bold';
             bold.textContent = 'Citation error: ';
 
-            const msg = document.createTextNode(String(e));
+            const msg = document.createTextNode(e instanceof Error ? e.message : String(e));
             err.append(bold, msg);
             return err;
         }
@@ -517,5 +528,5 @@ const citationFactory = async function (
     return cite;
 };
 
-// Just export the Refs class as the default in the bundled package
+// Export the Refs class as the default in the bundled package
 export default Refs;
